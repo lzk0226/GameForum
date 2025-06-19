@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizPostLikeMapper">
+    
+    <resultMap type="BizPostLike" id="BizPostLikeResult">
+        <result property="userId"    column="user_id"    />
+        <result property="postId"    column="post_id"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectBizPostLikeVo">
+        select user_id, post_id, create_time from biz_post_like
+    </sql>
+
+    <select id="selectBizPostLikeList" parameterType="BizPostLike" resultMap="BizPostLikeResult">
+        <include refid="selectBizPostLikeVo"/>
+        <where>  
+        </where>
+    </select>
+    
+    <select id="selectBizPostLikeByUserId" parameterType="Long" resultMap="BizPostLikeResult">
+        <include refid="selectBizPostLikeVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertBizPostLike" parameterType="BizPostLike">
+        insert into biz_post_like
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="postId != null">post_id,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="postId != null">#{postId},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizPostLike" parameterType="BizPostLike">
+        update biz_post_like
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="postId != null">post_id = #{postId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteBizPostLikeByUserId" parameterType="Long">
+        delete from biz_post_like where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteBizPostLikeByUserIds" parameterType="String">
+        delete from biz_post_like where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>

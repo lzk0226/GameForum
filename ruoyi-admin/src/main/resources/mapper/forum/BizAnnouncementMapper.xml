@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizAnnouncementMapper">
+    
+    <resultMap type="BizAnnouncement" id="BizAnnouncementResult">
+        <result property="titel"    column="titel"    />
+        <result property="content"    column="content"    />
+        <result property="time"    column="time"    />
+        <result property="photo"    column="photo"    />
+        <result property="issuerId"    column="issuer_id"    />
+    </resultMap>
+
+    <sql id="selectBizAnnouncementVo">
+        select titel, content, time, photo, issuer_id from biz_announcement
+    </sql>
+
+    <select id="selectBizAnnouncementList" parameterType="BizAnnouncement" resultMap="BizAnnouncementResult">
+        <include refid="selectBizAnnouncementVo"/>
+        <where>  
+            <if test="titel != null  and titel != ''"> and titel like concat('%', #{titel}, '%')</if>
+            <if test="content != null  and content != ''"> and content like concat('%', #{content}, '%')</if>
+            <if test="time != null "> and time = #{time}</if>
+            <if test="photo != null  and photo != ''"> and photo = #{photo}</if>
+            <if test="issuerId != null "> and issuer_id = #{issuerId}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizAnnouncementByTitel" parameterType="String" resultMap="BizAnnouncementResult">
+        <include refid="selectBizAnnouncementVo"/>
+        where titel = #{titel}
+    </select>
+
+    <insert id="insertBizAnnouncement" parameterType="BizAnnouncement">
+        insert into biz_announcement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="titel != null">titel,</if>
+            <if test="content != null">content,</if>
+            <if test="time != null">time,</if>
+            <if test="photo != null">photo,</if>
+            <if test="issuerId != null">issuer_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="titel != null">#{titel},</if>
+            <if test="content != null">#{content},</if>
+            <if test="time != null">#{time},</if>
+            <if test="photo != null">#{photo},</if>
+            <if test="issuerId != null">#{issuerId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizAnnouncement" parameterType="BizAnnouncement">
+        update biz_announcement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="content != null">content = #{content},</if>
+            <if test="time != null">time = #{time},</if>
+            <if test="photo != null">photo = #{photo},</if>
+            <if test="issuerId != null">issuer_id = #{issuerId},</if>
+        </trim>
+        where titel = #{titel}
+    </update>
+
+    <delete id="deleteBizAnnouncementByTitel" parameterType="String">
+        delete from biz_announcement where titel = #{titel}
+    </delete>
+
+    <delete id="deleteBizAnnouncementByTitels" parameterType="String">
+        delete from biz_announcement where titel in 
+        <foreach item="titel" collection="array" open="(" separator="," close=")">
+            #{titel}
+        </foreach>
+    </delete>
+</mapper>

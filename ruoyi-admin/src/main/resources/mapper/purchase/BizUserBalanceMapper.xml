@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.purchase.mapper.BizUserBalanceMapper">
+    
+    <resultMap type="BizUserBalance" id="BizUserBalanceResult">
+        <result property="userId"    column="user_id"    />
+        <result property="balance"    column="balance"    />
+        <result property="frozenAmount"    column="frozen_amount"    />
+        <result property="totalRecharge"    column="total_recharge"    />
+        <result property="totalConsume"    column="total_consume"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBizUserBalanceVo">
+        select user_id, balance, frozen_amount, total_recharge, total_consume, create_time, update_time from biz_user_balance
+    </sql>
+
+    <select id="selectBizUserBalanceList" parameterType="BizUserBalance" resultMap="BizUserBalanceResult">
+        <include refid="selectBizUserBalanceVo"/>
+        <where>  
+            <if test="balance != null "> and balance = #{balance}</if>
+            <if test="frozenAmount != null "> and frozen_amount = #{frozenAmount}</if>
+            <if test="totalRecharge != null "> and total_recharge = #{totalRecharge}</if>
+            <if test="totalConsume != null "> and total_consume = #{totalConsume}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizUserBalanceByUserId" parameterType="Long" resultMap="BizUserBalanceResult">
+        <include refid="selectBizUserBalanceVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertBizUserBalance" parameterType="BizUserBalance">
+        insert into biz_user_balance
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="balance != null">balance,</if>
+            <if test="frozenAmount != null">frozen_amount,</if>
+            <if test="totalRecharge != null">total_recharge,</if>
+            <if test="totalConsume != null">total_consume,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="balance != null">#{balance},</if>
+            <if test="frozenAmount != null">#{frozenAmount},</if>
+            <if test="totalRecharge != null">#{totalRecharge},</if>
+            <if test="totalConsume != null">#{totalConsume},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizUserBalance" parameterType="BizUserBalance">
+        update biz_user_balance
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="frozenAmount != null">frozen_amount = #{frozenAmount},</if>
+            <if test="totalRecharge != null">total_recharge = #{totalRecharge},</if>
+            <if test="totalConsume != null">total_consume = #{totalConsume},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteBizUserBalanceByUserId" parameterType="Long">
+        delete from biz_user_balance where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteBizUserBalanceByUserIds" parameterType="String">
+        delete from biz_user_balance where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>

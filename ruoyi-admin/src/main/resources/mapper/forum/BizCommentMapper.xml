@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizCommentMapper">
+    
+    <resultMap type="BizComment" id="BizCommentResult">
+        <result property="commentId"    column="comment_id"    />
+        <result property="commentContent"    column="comment_content"    />
+        <result property="postId"    column="post_id"    />
+        <result property="gameId"    column="game_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="likeCount"    column="like_count"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectBizCommentVo">
+        select comment_id, comment_content, post_id, game_id, user_id, parent_id, like_count, status, del_flag, create_by, create_time, update_by, update_time, remark from biz_comment
+    </sql>
+
+    <select id="selectBizCommentList" parameterType="BizComment" resultMap="BizCommentResult">
+        <include refid="selectBizCommentVo"/>
+        <where>  
+            <if test="commentContent != null  and commentContent != ''"> and comment_content like concat('%', #{commentContent}, '%')</if>
+            <if test="postId != null "> and post_id = #{postId}</if>
+            <if test="gameId != null "> and game_id = #{gameId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="parentId != null "> and parent_id = #{parentId}</if>
+            <if test="likeCount != null "> and like_count = #{likeCount}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizCommentByCommentId" parameterType="Long" resultMap="BizCommentResult">
+        <include refid="selectBizCommentVo"/>
+        where comment_id = #{commentId}
+    </select>
+
+    <insert id="insertBizComment" parameterType="BizComment" useGeneratedKeys="true" keyProperty="commentId">
+        insert into biz_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">comment_content,</if>
+            <if test="postId != null">post_id,</if>
+            <if test="gameId != null">game_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">#{commentContent},</if>
+            <if test="postId != null">#{postId},</if>
+            <if test="gameId != null">#{gameId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizComment" parameterType="BizComment">
+        update biz_comment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">comment_content = #{commentContent},</if>
+            <if test="postId != null">post_id = #{postId},</if>
+            <if test="gameId != null">game_id = #{gameId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteBizCommentByCommentId" parameterType="Long">
+        delete from biz_comment where comment_id = #{commentId}
+    </delete>
+
+    <delete id="deleteBizCommentByCommentIds" parameterType="String">
+        delete from biz_comment where comment_id in 
+        <foreach item="commentId" collection="array" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizSectionMapper">
+    
+    <resultMap type="BizSection" id="BizSectionResult">
+        <result property="sectionId"    column="section_id"    />
+        <result property="sectionName"    column="section_name"    />
+        <result property="sectionDescription"    column="section_description"    />
+        <result property="gameId"    column="game_id"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectBizSectionVo">
+        select section_id, section_name, section_description, game_id, order_num, status, del_flag, create_by, create_time, update_by, update_time, remark from biz_section
+    </sql>
+
+    <select id="selectBizSectionList" parameterType="BizSection" resultMap="BizSectionResult">
+        <include refid="selectBizSectionVo"/>
+        <where>  
+            <if test="sectionName != null  and sectionName != ''"> and section_name like concat('%', #{sectionName}, '%')</if>
+            <if test="sectionDescription != null  and sectionDescription != ''"> and section_description like concat('%', #{sectionDescription}, '%')</if>
+            <if test="gameId != null "> and game_id = #{gameId}</if>
+            <if test="orderNum != null "> and order_num = #{orderNum}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizSectionBySectionId" parameterType="Long" resultMap="BizSectionResult">
+        <include refid="selectBizSectionVo"/>
+        where section_id = #{sectionId}
+    </select>
+
+    <insert id="insertBizSection" parameterType="BizSection" useGeneratedKeys="true" keyProperty="sectionId">
+        insert into biz_section
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sectionName != null and sectionName != ''">section_name,</if>
+            <if test="sectionDescription != null">section_description,</if>
+            <if test="gameId != null">game_id,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sectionName != null and sectionName != ''">#{sectionName},</if>
+            <if test="sectionDescription != null">#{sectionDescription},</if>
+            <if test="gameId != null">#{gameId},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizSection" parameterType="BizSection">
+        update biz_section
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sectionName != null and sectionName != ''">section_name = #{sectionName},</if>
+            <if test="sectionDescription != null">section_description = #{sectionDescription},</if>
+            <if test="gameId != null">game_id = #{gameId},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where section_id = #{sectionId}
+    </update>
+
+    <delete id="deleteBizSectionBySectionId" parameterType="Long">
+        delete from biz_section where section_id = #{sectionId}
+    </delete>
+
+    <delete id="deleteBizSectionBySectionIds" parameterType="String">
+        delete from biz_section where section_id in 
+        <foreach item="sectionId" collection="array" open="(" separator="," close=")">
+            #{sectionId}
+        </foreach>
+    </delete>
+</mapper>

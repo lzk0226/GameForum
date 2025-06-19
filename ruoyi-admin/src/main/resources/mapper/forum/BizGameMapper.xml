@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizGameMapper">
+
+    <resultMap type="BizGame" id="BizGameResult">
+        <result property="gameId"    column="game_id"    />
+        <result property="gameName"    column="game_name"    />
+        <result property="gameDescription"    column="game_description"    />
+        <result property="gameTypeId"    column="game_type_id"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectBizGameVo">
+        select game_id, game_name, game_description, game_type_id, status, del_flag, create_by, create_time, update_by, update_time, remark from biz_game
+    </sql>
+
+    <select id="selectBizGameList" parameterType="BizGame" resultMap="BizGameResult">
+        <include refid="selectBizGameVo"/>
+        <where>
+            <if test="gameName != null  and gameName != ''"> and game_name like concat('%', #{gameName}, '%')</if>
+            <if test="gameDescription != null  and gameDescription != ''"> and game_description like concat('%', #{gameDescription}, '%')</if>
+            <if test="gameTypeId != null "> and game_type_id = #{gameTypeId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectBizGameByGameId" parameterType="Long" resultMap="BizGameResult">
+        <include refid="selectBizGameVo"/>
+        where game_id = #{gameId}
+    </select>
+
+    <insert id="insertBizGame" parameterType="BizGame" useGeneratedKeys="true" keyProperty="gameId">
+        insert into biz_game
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">game_name,</if>
+            <if test="gameDescription != null">game_description,</if>
+            <if test="gameTypeId != null">game_type_id,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">#{gameName},</if>
+            <if test="gameDescription != null">#{gameDescription},</if>
+            <if test="gameTypeId != null">#{gameTypeId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizGame" parameterType="BizGame">
+        update biz_game
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">game_name = #{gameName},</if>
+            <if test="gameDescription != null">game_description = #{gameDescription},</if>
+            <if test="gameTypeId != null">game_type_id = #{gameTypeId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where game_id = #{gameId}
+    </update>
+
+    <delete id="deleteBizGameByGameId" parameterType="Long">
+        delete from biz_game where game_id = #{gameId}
+    </delete>
+
+    <delete id="deleteBizGameByGameIds" parameterType="String">
+        delete from biz_game where game_id in
+        <foreach item="gameId" collection="array" open="(" separator="," close=")">
+            #{gameId}
+        </foreach>
+    </delete>
+</mapper>

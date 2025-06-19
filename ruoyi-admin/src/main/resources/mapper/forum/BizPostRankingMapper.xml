@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizPostRankingMapper">
+    
+    <resultMap type="BizPostRanking" id="BizPostRankingResult">
+        <result property="postId"    column="post_id"    />
+        <result property="dayRank"    column="day_rank"    />
+        <result property="weekRank"    column="week_rank"    />
+        <result property="monthRank"    column="month_rank"    />
+        <result property="yearRank"    column="year_rank"    />
+        <result property="totalRank"    column="total_rank"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBizPostRankingVo">
+        select post_id, day_rank, week_rank, month_rank, year_rank, total_rank, update_time from biz_post_ranking
+    </sql>
+
+    <select id="selectBizPostRankingList" parameterType="BizPostRanking" resultMap="BizPostRankingResult">
+        <include refid="selectBizPostRankingVo"/>
+        <where>  
+            <if test="dayRank != null "> and day_rank = #{dayRank}</if>
+            <if test="weekRank != null "> and week_rank = #{weekRank}</if>
+            <if test="monthRank != null "> and month_rank = #{monthRank}</if>
+            <if test="yearRank != null "> and year_rank = #{yearRank}</if>
+            <if test="totalRank != null "> and total_rank = #{totalRank}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizPostRankingByPostId" parameterType="Long" resultMap="BizPostRankingResult">
+        <include refid="selectBizPostRankingVo"/>
+        where post_id = #{postId}
+    </select>
+
+    <insert id="insertBizPostRanking" parameterType="BizPostRanking">
+        insert into biz_post_ranking
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="postId != null">post_id,</if>
+            <if test="dayRank != null">day_rank,</if>
+            <if test="weekRank != null">week_rank,</if>
+            <if test="monthRank != null">month_rank,</if>
+            <if test="yearRank != null">year_rank,</if>
+            <if test="totalRank != null">total_rank,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="postId != null">#{postId},</if>
+            <if test="dayRank != null">#{dayRank},</if>
+            <if test="weekRank != null">#{weekRank},</if>
+            <if test="monthRank != null">#{monthRank},</if>
+            <if test="yearRank != null">#{yearRank},</if>
+            <if test="totalRank != null">#{totalRank},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizPostRanking" parameterType="BizPostRanking">
+        update biz_post_ranking
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="dayRank != null">day_rank = #{dayRank},</if>
+            <if test="weekRank != null">week_rank = #{weekRank},</if>
+            <if test="monthRank != null">month_rank = #{monthRank},</if>
+            <if test="yearRank != null">year_rank = #{yearRank},</if>
+            <if test="totalRank != null">total_rank = #{totalRank},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where post_id = #{postId}
+    </update>
+
+    <delete id="deleteBizPostRankingByPostId" parameterType="Long">
+        delete from biz_post_ranking where post_id = #{postId}
+    </delete>
+
+    <delete id="deleteBizPostRankingByPostIds" parameterType="String">
+        delete from biz_post_ranking where post_id in 
+        <foreach item="postId" collection="array" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </delete>
+</mapper>

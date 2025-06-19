@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizCommentLikeMapper">
+    
+    <resultMap type="BizCommentLike" id="BizCommentLikeResult">
+        <result property="userId"    column="user_id"    />
+        <result property="commentId"    column="comment_id"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectBizCommentLikeVo">
+        select user_id, comment_id, create_time from biz_comment_like
+    </sql>
+
+    <select id="selectBizCommentLikeList" parameterType="BizCommentLike" resultMap="BizCommentLikeResult">
+        <include refid="selectBizCommentLikeVo"/>
+        <where>  
+        </where>
+    </select>
+    
+    <select id="selectBizCommentLikeByUserId" parameterType="Long" resultMap="BizCommentLikeResult">
+        <include refid="selectBizCommentLikeVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertBizCommentLike" parameterType="BizCommentLike">
+        insert into biz_comment_like
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="commentId != null">comment_id,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="commentId != null">#{commentId},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizCommentLike" parameterType="BizCommentLike">
+        update biz_comment_like
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="commentId != null">comment_id = #{commentId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteBizCommentLikeByUserId" parameterType="Long">
+        delete from biz_comment_like where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteBizCommentLikeByUserIds" parameterType="String">
+        delete from biz_comment_like where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>
