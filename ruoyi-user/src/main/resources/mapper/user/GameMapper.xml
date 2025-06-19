@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.GameMapper">
+
+    <resultMap type="Game" id="GameResult">
+        <result property="gameId"           column="game_id"        />
+        <result property="gameName"         column="game_name"      />
+        <result property="gameDescription"  column="game_description" />
+        <result property="gameTypeId"       column="game_type_id"   />
+        <result property="gameTypeName"     column="game_type_name" />
+        <result property="gameIcon"         column="game_icon"      />
+        <result property="gameImages"       column="game_images"    />
+        <result property="createTime"       column="create_time"    />
+        <result property="remark"           column="remark"         />
+    </resultMap>
+
+    <sql id="selectGameVo">
+        select
+            g.game_id,
+            g.game_name,
+            g.game_description,
+            g.game_type_id,
+            gt.type_name as game_type_name,
+            g.game_icon,
+            g.game_images,
+            g.create_time,
+            g.remark
+        from biz_game g
+                 left join biz_game_type gt on g.game_type_id = gt.type_id
+        where g.status = '0' and g.del_flag = '0'
+    </sql>
+
+    <select id="selectGameList" parameterType="Game" resultMap="GameResult">
+        <include refid="selectGameVo"/>
+        <where>
+            <if test="gameName != null and gameName != ''">
+                AND g.game_name like concat('%', #{gameName}, '%')
+            </if>
+            <if test="gameTypeId != null">
+                AND g.game_type_id = #{gameTypeId}
+            </if>
+        </where>
+        order by g.create_time desc
+    </select>
+
+    <select id="selectGameById" parameterType="Integer" resultMap="GameResult">
+        <include refid="selectGameVo"/>
+        and g.game_id = #{gameId}
+    </select>
+
+    <select id="selectGameListByType" parameterType="Integer" resultMap="GameResult">
+        <include refid="selectGameVo"/>
+        and g.game_type_id = #{gameTypeId}
+        order by g.create_time desc
+    </select>
+
+    <select id="selectGameListByName" parameterType="String" resultMap="GameResult">
+        <include refid="selectGameVo"/>
+        and g.game_name like concat('%', #{gameName}, '%')
+        order by g.create_time desc
+    </select>
+
+    <select id="selectHotGameList" parameterType="Integer" resultMap="GameResult">
+        <include refid="selectGameVo"/>
+        order by g.create_time desc
+        limit #{limit}
+    </select>
+
+</mapper>

@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.CommentMapper">
+
+    <resultMap type="Comment" id="CommentResult">
+        <result property="commentId"       column="comment_id"       />
+        <result property="commentContent"  column="comment_content"  />
+        <result property="postId"          column="post_id"          />
+        <result property="gameId"          column="game_id"          />
+        <result property="userId"          column="user_id"          />
+        <result property="parentId"        column="parent_id"        />
+        <result property="likeCount"       column="like_count"       />
+        <result property="status"          column="status"           />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+    </resultMap>
+
+    <resultMap type="Comment" id="CommentDetailResult">
+        <result property="commentId"       column="comment_id"       />
+        <result property="commentContent"  column="comment_content"  />
+        <result property="postId"          column="post_id"          />
+        <result property="gameId"          column="game_id"          />
+        <result property="userId"          column="user_id"          />
+        <result property="parentId"        column="parent_id"        />
+        <result property="likeCount"       column="like_count"       />
+        <result property="status"          column="status"           />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+        <result property="nickName"        column="nick_name"        />
+        <result property="userAvatar"      column="avatar"           />
+        <result property="postTitle"       column="post_title"       />
+        <result property="gameName"        column="game_name"        />
+        <result property="parentContent"   column="parent_content"   />
+        <result property="parentNickName"  column="parent_nick_name" />
+        <result property="hasLiked"        column="has_liked"        />
+    </resultMap>
+
+    <resultMap type="Comment" id="CommentStatsResult">
+        <result property="userId"          column="user_id"          />
+        <result property="totalComments"   column="total_comments"   />
+        <result property="totalLikes"      column="total_likes"      />
+    </resultMap>
+
+    <sql id="selectCommentVo">
+        select comment_id, comment_content, post_id, game_id, user_id, parent_id,
+               like_count, status, del_flag, create_by, create_time, update_by, update_time, remark
+        from biz_comment
+    </sql>
+
+    <sql id="selectCommentDetailVo">
+        select c.comment_id, c.comment_content, c.post_id, c.game_id, c.user_id, c.parent_id,
+               c.like_count, c.status, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.remark,
+               u.nick_name as nick_name, u.avatar as avatar,
+               p.post_title, g.game_name,
+               pc.comment_content as parent_content, pu.nick_name as parent_nick_name
+        from biz_comment c
+                 left join sys_user u on c.user_id = u.user_id
+                 left join biz_post p on c.post_id = p.post_id
+                 left join biz_game g on c.game_id = g.game_id
+                 left join biz_comment pc on c.parent_id = pc.comment_id
+                 left join sys_user pu on pc.user_id = pu.user_id
+    </sql>
+
+    <select id="selectCommentList" parameterType="Comment" resultMap="CommentDetailResult">
+        <include refid="selectCommentDetailVo"/>
+        <where>
+            <if test="commentContent != null and commentContent != ''"> and c.comment_content like concat('%', #{commentContent}, '%')</if>
+            <if test="postId != null"> and c.post_id = #{postId}</if>
+            <if test="gameId != null"> and c.game_id = #{gameId}</if>
+            <if test="userId != null"> and c.user_id = #{userId}</if>
+            <if test="parentId != null"> and c.parent_id = #{parentId}</if>
+            <if test="status != null and status != ''"> and c.status = #{status}</if>
+            <if test="delFlag != null and delFlag != ''"> and c.del_flag = #{delFlag}</if>
+        </where>
+        order by c.create_time desc
+    </select>
+
+    <select id="selectCommentByCommentId" parameterType="Integer" resultMap="CommentResult">
+        <include refid="selectCommentVo"/>
+        where comment_id = #{commentId}
+    </select>
+
+    <select id="selectCommentDetail" parameterType="Integer" resultMap="CommentDetailResult">
+        <include refid="selectCommentDetailVo"/>
+        where c.comment_id = #{commentId}
+    </select>
+
+    <select id="selectCommentListByPostId" resultMap="CommentDetailResult">
+        select c.comment_id, c.comment_content, c.post_id, c.game_id, c.user_id, c.parent_id,
+        c.like_count, c.status, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.remark,
+        u.nick_name as nick_name, u.avatar as avatar,
+        p.post_title, g.game_name,
+        pc.comment_content as parent_content, pu.nick_name as parent_nick_name,
+        <choose>
+            <when test="userId != null">
+                case when cl.user_id is not null then 1 else 0 end as has_liked
+            </when>
+            <otherwise>
+                0 as has_liked
+            </otherwise>
+        </choose>
+        from biz_comment c
+        left join sys_user u on c.user_id = u.user_id
+        left join biz_post p on c.post_id = p.post_id
+        left join biz_game g on c.game_id = g.game_id
+        left join biz_comment pc on c.parent_id = pc.comment_id
+        left join sys_user pu on pc.user_id = pu.user_id
+        <if test="userId != null">
+            left join biz_comment_like cl on c.comment_id = cl.comment_id and cl.user_id = #{userId}
+        </if>
+        where c.post_id = #{postId} and c.status = '0' and c.del_flag = '0'
+        order by c.create_time asc
+    </select>
+
+    <select id="selectCommentListByUserId" parameterType="Long" resultMap="CommentDetailResult">
+        <include refid="selectCommentDetailVo"/>
+        where c.user_id = #{userId} and c.status = '0' and c.del_flag = '0'
+        order by c.create_time desc
+    </select>
+
+    <select id="selectCommentListByParentId" resultMap="CommentDetailResult">
+        select c.comment_id, c.comment_content, c.post_id, c.game_id, c.user_id, c.parent_id,
+        c.like_count, c.status, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.remark,
+        u.nick_name as nick_name, u.avatar as avatar,
+        p.post_title, g.game_name,
+        <choose>
+            <when test="userId != null">
+                case when cl.user_id is not null then 1 else 0 end as has_liked
+            </when>
+            <otherwise>
+                0 as has_liked
+            </otherwise>
+        </choose>
+        from biz_comment c
+        left join sys_user u on c.user_id = u.user_id
+        left join biz_post p on c.post_id = p.post_id
+        left join biz_game g on c.game_id = g.game_id
+        <if test="userId != null">
+            left join biz_comment_like cl on c.comment_id = cl.comment_id and cl.user_id = #{userId}
+        </if>
+        where c.parent_id = #{parentId} and c.status = '0' and c.del_flag = '0'
+        order by c.create_time asc
+    </select>
+
+    <select id="selectHotCommentList" resultMap="CommentDetailResult">
+        <include refid="selectCommentDetailVo"/>
+        where c.post_id = #{postId} and c.status = '0' and c.del_flag = '0'
+        order by c.like_count desc, c.create_time desc
+        <if test="limit != null">
+            limit #{limit}
+        </if>
+    </select>
+
+    <insert id="insertComment" parameterType="Comment" useGeneratedKeys="true" keyProperty="commentId">
+        insert into biz_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">comment_content,</if>
+            <if test="postId != null">post_id,</if>
+            <if test="gameId != null">game_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">#{commentContent},</if>
+            <if test="postId != null">#{postId},</if>
+            <if test="gameId != null">#{gameId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <!-- ========== 以下是修正后的点赞相关方法 ========== -->
+
+    <!-- 检查用户是否已经点赞过评论 -->
+    <select id="hasUserLikedComment" resultType="boolean">
+        SELECT COUNT(1) > 0
+        FROM biz_comment_like
+        WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </select>
+
+    <!-- 点赞评论 - 插入点赞记录 -->
+    <insert id="likeComment">
+        INSERT INTO biz_comment_like (user_id, comment_id, create_time)
+        VALUES (#{userId}, #{commentId}, NOW())
+    </insert>
+
+    <!-- 取消点赞评论 - 直接删除点赞记录 -->
+    <delete id="unlikeComment">
+        DELETE FROM biz_comment_like
+        WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </delete>
+
+    <!-- 更新评论点赞数 -->
+    <update id="updateCommentLikeCount">
+        UPDATE biz_comment
+        SET like_count = like_count + #{increment}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <!-- 根据实际点赞记录数量同步评论点赞数 -->
+    <update id="syncCommentLikeCount">
+        UPDATE biz_comment c
+        SET like_count = (
+            SELECT COUNT(*)
+            FROM biz_comment_like cl
+            WHERE cl.comment_id = c.comment_id
+        )
+        WHERE c.comment_id = #{commentId}
+    </update>
+
+    <!-- 获取评论的实际点赞数量 -->
+    <select id="getCommentLikeCount" resultType="int">
+        SELECT COUNT(*)
+        FROM biz_comment_like
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <!-- 增加评论点赞数（用于查看当前评论点赞量） -->
+    <select id="incrementCommentLikeCount" resultType="int">
+        SELECT like_count
+        FROM biz_comment
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <!-- 删除点赞记录（取消点赞） -->
+    <delete id="decrementCommentLikeCount">
+        DELETE FROM biz_comment_like
+        WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </delete>
+
+    <!-- 更新评论 -->
+    <update id="updateComment" parameterType="Comment">
+        update biz_comment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="commentContent != null and commentContent != ''">comment_content = #{commentContent},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = NOW(),
+        </trim>
+        where comment_id = #{commentId}
+    </update>
+
+    <!-- 隐藏评论（逻辑删除） -->
+    <update id="hideComment">
+        UPDATE biz_comment
+        SET del_flag = '2', update_time = NOW(), update_by = #{updateBy}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <!-- 批量隐藏评论 -->
+    <update id="hideComments">
+        UPDATE biz_comment
+        SET del_flag = '2', update_time = NOW(), update_by = #{updateBy}
+        WHERE comment_id IN
+        <foreach item="commentId" collection="commentIds" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+    </update>
+
+    <!-- 获取用户评论统计信息 -->
+    <select id="selectUserCommentStats" parameterType="Long" resultMap="CommentStatsResult">
+        SELECT
+            #{userId} as user_id,
+            COUNT(c.comment_id) as total_comments,
+            COALESCE(SUM(c.like_count), 0) as total_likes
+        FROM biz_comment c
+        WHERE c.user_id = #{userId} AND c.status = '0' AND c.del_flag = '0'
+    </select>
+
+    <!-- 获取用户点赞过的评论列表 -->
+    <select id="selectUserLikedComments" parameterType="Long" resultMap="CommentDetailResult">
+        select c.comment_id, c.comment_content, c.post_id, c.game_id, c.user_id, c.parent_id,
+               c.like_count, c.status, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.remark,
+               u.nick_name as nick_name, u.avatar as avatar,
+               p.post_title, g.game_name,
+               pc.comment_content as parent_content, pu.nick_name as parent_nick_name,
+               1 as has_liked
+        from biz_comment c
+                 inner join biz_comment_like cl on c.comment_id = cl.comment_id
+                 left join sys_user u on c.user_id = u.user_id
+                 left join biz_post p on c.post_id = p.post_id
+                 left join biz_game g on c.game_id = g.game_id
+                 left join biz_comment pc on c.parent_id = pc.comment_id
+                 left join sys_user pu on pc.user_id = pu.user_id
+        where cl.user_id = #{userId} and c.status = '0' and c.del_flag = '0'
+        order by cl.create_time desc
+    </select>
+
+</mapper>

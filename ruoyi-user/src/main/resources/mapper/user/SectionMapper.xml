@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.SectionMapper">
+
+    <resultMap type="Section" id="SectionResult">
+        <result property="sectionId"            column="section_id"         />
+        <result property="sectionName"          column="section_name"       />
+        <result property="sectionDescription"   column="section_description" />
+        <result property="gameId"               column="game_id"            />
+        <result property="gameName"             column="game_name"          />
+        <result property="orderNum"             column="order_num"          />
+        <result property="createTime"           column="create_time"        />
+        <result property="remark"               column="remark"             />
+    </resultMap>
+
+    <sql id="selectSectionVo">
+        select
+            s.section_id,
+            s.section_name,
+            s.section_description,
+            s.game_id,
+            g.game_name,
+            s.order_num,
+            s.create_time,
+            s.remark
+        from biz_section s
+                 left join biz_game g on s.game_id = g.game_id
+        where s.status = '0' and s.del_flag = '0'
+          and g.status = '0' and g.del_flag = '0'
+    </sql>
+
+    <select id="selectSectionList" parameterType="Section" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        <where>
+            <if test="sectionName != null and sectionName != ''">
+                AND s.section_name like concat('%', #{sectionName}, '%')
+            </if>
+            <if test="gameId != null">
+                AND s.game_id = #{gameId}
+            </if>
+        </where>
+        order by s.order_num asc, s.create_time desc
+    </select>
+
+    <select id="selectSectionById" parameterType="Integer" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        and s.section_id = #{sectionId}
+    </select>
+
+    <select id="selectSectionListByGameId" parameterType="Integer" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        and s.game_id = #{gameId}
+        order by s.order_num asc, s.create_time desc
+    </select>
+
+    <select id="selectSectionListByName" parameterType="String" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        and s.section_name like concat('%', #{sectionName}, '%')
+        order by s.order_num asc, s.create_time desc
+    </select>
+
+    <select id="selectHotSectionList" parameterType="Integer" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        order by s.order_num asc, s.create_time desc
+        limit #{limit}
+    </select>
+
+    <select id="selectAllSectionList" resultMap="SectionResult">
+        <include refid="selectSectionVo"/>
+        order by s.order_num asc, s.create_time desc
+    </select>
+
+</mapper>

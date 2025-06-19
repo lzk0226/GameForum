@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.PostMapper">
+
+    <resultMap type="com.ruoyi.user.domain.Post" id="PostResult">
+        <result property="postId"        column="post_id"        />
+        <result property="postTitle"     column="post_title"     />
+        <result property="postContent"   column="post_content"   />
+        <result property="userId"        column="user_id"        />
+        <result property="sectionId"     column="section_id"     />
+        <result property="likeCount"     column="like_count"     />
+        <result property="commentCount"  column="comment_count"  />
+        <result property="viewCount"     column="view_count"     />
+        <result property="topFlag"       column="top_flag"       />
+        <result property="hotFlag"       column="hot_flag"       />
+        <result property="status"        column="status"         />
+        <result property="delFlag"       column="del_flag"       />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"        column="remark"         />
+        <result property="photo"         column="photo"          />
+        <result property="sectionName"   column="section_name"   />
+        <result property="nickName"      column="nick_name"      />
+        <result property="avatar"        column="avatar"         />
+    </resultMap>
+
+    <sql id="selectPostVo">
+        select p.post_id, p.post_title, p.post_content, p.user_id, p.section_id,
+               p.like_count, p.comment_count, p.view_count, p.top_flag, p.hot_flag,
+               p.status, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.photo,
+               s.section_name, u.nick_name, u.avatar
+        from biz_post p
+                 left join biz_section s on p.section_id = s.section_id
+                 left join sys_user u on p.user_id = u.user_id
+    </sql>
+
+    <select id="selectPostList" parameterType="com.ruoyi.user.domain.Post" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        <where>
+            p.status = '0' and p.del_flag = '0'
+            <if test="postTitle != null and postTitle != ''">
+                and p.post_title like concat('%', #{postTitle}, '%')
+            </if>
+            <if test="userId != null">
+                and p.user_id = #{userId}
+            </if>
+            <if test="sectionId != null">
+                and p.section_id = #{sectionId}
+            </if>
+            <if test="topFlag != null and topFlag != ''">
+                and p.top_flag = #{topFlag}
+            </if>
+            <if test="hotFlag != null and hotFlag != ''">
+                and p.hot_flag = #{hotFlag}
+            </if>
+        </where>
+        order by p.top_flag desc, p.create_time desc
+    </select>
+
+    <select id="selectPostById" parameterType="Integer" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.post_id = #{postId} and p.status = '0' and p.del_flag = '0'
+    </select>
+
+    <select id="selectPostListBySectionId" parameterType="Integer" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.section_id = #{sectionId} and p.status = '0' and p.del_flag = '0'
+        order by p.top_flag desc, p.create_time desc
+    </select>
+
+    <select id="selectPostListByUserId" parameterType="Long" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.user_id = #{userId} and p.status = '0' and p.del_flag = '0'
+        order by p.create_time desc
+    </select>
+
+    <select id="selectPostListByTitle" parameterType="String" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.post_title like concat('%', #{postTitle}, '%') and p.status = '0' and p.del_flag = '0'
+        order by p.top_flag desc, p.create_time desc
+    </select>
+
+    <select id="selectHotPostList" parameterType="Integer" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.status = '0' and p.del_flag = '0'
+        order by p.hot_flag desc, p.like_count desc, p.view_count desc, p.create_time desc
+        <if test="limit != null and limit > 0">
+            limit #{limit}
+        </if>
+    </select>
+
+    <select id="selectTopPostList" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.top_flag = '1' and p.status = '0' and p.del_flag = '0'
+        <if test="sectionId != null">
+            and p.section_id = #{sectionId}
+        </if>
+        order by p.create_time desc
+    </select>
+
+    <select id="selectUserPostStats" parameterType="Long" resultMap="PostResult">
+        select
+            count(*) as post_id,
+            ifnull(sum(like_count), 0) as like_count,
+            ifnull(sum(comment_count), 0) as comment_count,
+            ifnull(sum(view_count), 0) as view_count
+        from biz_post
+        where user_id = #{userId} and status = '0' and del_flag = '0'
+    </select>
+
+    <insert id="insertPost" parameterType="com.ruoyi.user.domain.Post" useGeneratedKeys="true" keyProperty="postId">
+        insert into biz_post
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="postTitle != null and postTitle != ''">post_title,</if>
+            <if test="postContent != null and postContent != ''">post_content,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="sectionId != null">section_id,</if>
+            <if test="likeCount != null">like_count,</if>
+            <if test="commentCount != null">comment_count,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="topFlag != null">top_flag,</if>
+            <if test="hotFlag != null">hot_flag,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="photo != null and photo != ''">photo,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="postTitle != null and postTitle != ''">#{postTitle},</if>
+            <if test="postContent != null and postContent != ''">#{postContent},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="sectionId != null">#{sectionId},</if>
+            <if test="likeCount != null">#{likeCount},</if>
+            <if test="commentCount != null">#{commentCount},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="topFlag != null">#{topFlag},</if>
+            <if test="hotFlag != null">#{hotFlag},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="photo != null and photo != ''">#{photo},</if>
+        </trim>
+    </insert>
+
+    <update id="updatePost" parameterType="com.ruoyi.user.domain.Post">
+        update biz_post
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="postTitle != null and postTitle != ''">post_title = #{postTitle},</if>
+            <if test="postContent != null and postContent != ''">post_content = #{postContent},</if>
+            <if test="sectionId != null">section_id = #{sectionId},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="photo != null">photo = #{photo},</if>
+        </trim>
+        where post_id = #{postId}
+    </update>
+
+    <update id="deletePostById">
+        update biz_post
+        set del_flag = '2', update_by = #{updateBy}, update_time = now()
+        where post_id = #{postId}
+    </update>
+
+    <update id="deletePostByIds">
+        update biz_post
+        set del_flag = '2', update_by = #{updateBy}, update_time = now()
+        where post_id in
+        <foreach item="postId" collection="postIds" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </update>
+
+    <update id="increaseViewCount">
+        update biz_post
+        set view_count = view_count + 1
+        where post_id = #{postId} and status = '0' and del_flag = '0'
+    </update>
+
+    <update id="updateLikeCount">
+        update biz_post
+        set like_count = like_count + #{increment}
+        where post_id = #{postId} and status = '0' and del_flag = '0'
+    </update>
+
+    <update id="updateCommentCount">
+        update biz_post
+        set comment_count = comment_count + #{increment}
+        where post_id = #{postId} and status = '0' and del_flag = '0'
+    </update>
+
+    <!-- 检查用户是否已经点赞过某个帖子 -->
+    <select id="hasUserLikedPost" resultType="int">
+        select count(*)
+        from biz_post_like
+        where user_id = #{userId} and post_id = #{postId}
+    </select>
+
+    <!-- 添加点赞记录 -->
+    <insert id="insertPostLike">
+        insert into biz_post_like (user_id, post_id, create_time)
+        values (#{userId}, #{postId}, now())
+    </insert>
+
+    <!-- 删除点赞记录 -->
+    <delete id="deletePostLike">
+        delete from biz_post_like
+        where user_id = #{userId} and post_id = #{postId}
+    </delete>
+</mapper>

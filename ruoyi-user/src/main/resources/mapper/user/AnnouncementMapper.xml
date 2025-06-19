@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.AnnouncementMapper">
+
+    <resultMap type="Announcement" id="AnnouncementResult">
+        <result property="titel"        column="titel"          />
+        <result property="content"      column="content"        />
+        <result property="time"         column="time"           />
+        <result property="photo"        column="photo"          />
+        <result property="issuerId"     column="issuer_id"      />
+    </resultMap>
+
+    <sql id="selectAnnouncementVo">
+        select
+            titel,
+            content,
+            time,
+            photo,
+            issuer_id
+        from biz_announcement
+    </sql>
+
+    <select id="selectAnnouncementList" parameterType="Announcement" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        <where>
+            <if test="titel != null and titel != ''">
+                AND titel like concat('%', #{titel}, '%')
+            </if>
+            <if test="content != null and content != ''">
+                AND content like concat('%', #{content}, '%')
+            </if>
+            <if test="issuerId != null">
+                AND issuer_id = #{issuerId}
+            </if>
+        </where>
+        order by time desc
+    </select>
+
+    <select id="selectAnnouncementByTitelAndContent" parameterType="Announcement" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        where titel = #{titel} and content = #{content}
+    </select>
+
+    <select id="selectAllAnnouncementList" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        order by time desc
+    </select>
+
+    <select id="selectAnnouncementListByKeyword" parameterType="String" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        where titel like concat('%', #{keyword}, '%')
+        or content like concat('%', #{keyword}, '%')
+        order by time desc
+    </select>
+
+    <select id="selectAnnouncementListByIssuerId" parameterType="Integer" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        where issuer_id = #{issuerId}
+        order by time desc
+    </select>
+
+    <select id="countAnnouncements" resultType="long">
+        select count(*) from biz_announcement
+    </select>
+
+    <select id="selectAnnouncementsByPage" parameterType="Announcement" resultMap="AnnouncementResult">
+        <include refid="selectAnnouncementVo"/>
+        <where>
+            <if test="titel != null and titel != ''">
+                AND titel like concat('%', #{titel}, '%')
+            </if>
+            <if test="content != null and content != ''">
+                AND content like concat('%', #{content}, '%')
+            </if>
+            <if test="issuerId != null">
+                AND issuer_id = #{issuerId}
+            </if>
+        </where>
+        order by time desc
+    </select>
+
+</mapper>
