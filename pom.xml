@@ -243,6 +243,7 @@
         <module>ruoyi-generator</module>
         <module>ruoyi-common</module>
         <module>ruoyi-user</module>
+        <module>ruoyi-user</module>
     </modules>
     <packaging>pom</packaging>
 
