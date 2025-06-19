@@ -6,8 +6,10 @@ spring:
         druid:
             # 主库数据源
             master:
+                #地址如实填写，作者这里的数据库是直接用的ry-vue，如命名不同请修改
                 url: jdbc:mysql://localhost:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
+                #写你自己的密码！！！
                 password: 3365468
             # 从库数据源
             slave:
