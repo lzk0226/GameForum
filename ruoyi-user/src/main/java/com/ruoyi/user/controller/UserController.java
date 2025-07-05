@@ -13,11 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.Map;
 
 /**
  * @version 1.0
@@ -173,36 +168,6 @@ public class UserController {
         User user = userService.selectUserById(userId);
         return user != null ? R.ok(user) : R.fail(ResultCodeEnum.USER_NOT_FOUND);
     }
-
-    /*上传头像*/
-    @PostMapping("/save-avatar")
-    public R<String> saveAvatar(@RequestBody Map<String, String> data) {
-        try {
-            String fileName = data.get("fileName");
-            String base64Data = data.get("base64Data");
-
-            if (fileName == null || base64Data == null) {
-                return R.fail("文件名或内容为空");
-            }
-
-            // 去掉前缀（data:image/png;base64,）
-            String base64Image = base64Data.contains(",") ? base64Data.split(",")[1] : base64Data;
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-            // 保存路径：请换成你的目标文件夹（不能是 public）
-            String path = "D:/IdeaStash/test/public/images/headPortrait/"; // 推荐你换成自己的路径
-            File dir = new File(path);
-            if (!dir.exists()) dir.mkdirs();
-
-            Files.write(Paths.get(path + fileName), imageBytes);
-            return R.ok("保存成功");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return R.fail("保存失败：" + e.getMessage());
-        }
-    }
-
 
     /**
      * 修改用户资料

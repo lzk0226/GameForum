@@ -14,12 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -450,69 +445,6 @@ public class PostController {
     public R<Post> getUserPostStats(@PathVariable("userId") @NotNull(message = "用户ID不能为空") Long userId) {
         Post stats = postService.selectUserPostStats(userId);
         return R.ok(stats);
-    }
-
-    /**
-     * 上传帖子图片
-     */
-    @PostMapping("/save-post-image")
-    public R<String> savePostImage(@RequestBody Map<String, String> data,
-                                   @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        try {
-            // 验证token
-            if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
-                return R.fail(ResultCodeEnum.TOKEN_INVALID);
-            }
-
-            String token = authHeader.substring(7);
-            if (!jwtUtils.validateToken(token)) {
-                return R.fail(ResultCodeEnum.TOKEN_INVALID);
-            }
-
-            String fileName = data.get("fileName");
-            String base64Data = data.get("base64Data");
-
-            if (fileName == null || base64Data == null) {
-                return R.fail("文件名或内容为空");
-            }
-
-            // 验证文件名格式（安全检查）
-            if (!fileName.matches("^post_\\d+_[a-zA-Z0-9]+\\.(jpg|jpeg|png|gif|bmp|webp)$")) {
-                return R.fail("文件名格式不正确");
-            }
-
-            // 去掉前缀（data:image/png;base64,）
-            String base64Image = base64Data.contains(",") ? base64Data.split(",")[1] : base64Data;
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-            // 验证图片大小（5MB限制）
-            if (imageBytes.length > 5 * 1024 * 1024) {
-                return R.fail("图片大小不能超过5MB");
-            }
-
-            // 保存路径
-            String path = "D:/IdeaStash/test/public/images/user/post/";
-            File dir = new File(path);
-            if (!dir.exists()) {
-                boolean created = dir.mkdirs();
-                if (!created) {
-                    return R.fail("创建目录失败");
-                }
-            }
-
-            // 保存文件
-            Files.write(Paths.get(path + fileName), imageBytes);
-
-            // 返回相对路径
-            String relativePath = "images/user/post/" + fileName;
-            return R.ok(relativePath);
-
-        } catch (IllegalArgumentException e) {
-            return R.fail("图片格式错误");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return R.fail("保存失败：" + e.getMessage());
-        }
     }
 
     /**
