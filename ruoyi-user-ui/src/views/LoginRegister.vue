@@ -1,88 +1,123 @@
 <template>
   <div class="login-container">
-    <div class="background">
-      <div class="decoration" v-for="i in 4" :key="i" :class="`decoration-${i}`"></div>
+    <!-- 粒子背景 -->
+    <div class="particles-bg">
+      <div class="particle" v-for="i in 20" :key="i" :style="getParticleStyle(i)"></div>
     </div>
 
-    <div class="container" :class="{ loading: isLoading, 'register-mode': isRegister }">
-      <div class="character-icon">🎮</div>
+    <!-- 浮动装饰元素 -->
+    <div class="floating-elements">
+      <div v-for="(icon, index) in gameIcons" :key="index"
+           class="game-icon"
+           :style="getIconStyle(index)">
+        {{ icon }}
+      </div>
+    </div>
 
-      <div class="header">
-        <h1 class="title">{{ isRegister ? '加入我们' : '欢迎回来' }}</h1>
-        <p class="subtitle">{{ isRegister ? '开始全新的游戏体验' : '继续你的冒险之旅' }}</p>
+    <div class="main-card" :class="{ 'register-mode': isRegister }">
+      <!-- 卡片头部 -->
+      <div class="card-header">
+        <div class="logo-section">
+          <div class="logo-icon">🎮</div>
+          <h1 class="brand-title">GameHub</h1>
+        </div>
+        <div class="header-text">
+          <h2 class="welcome-title">{{ headerData.title }}</h2>
+          <p class="welcome-subtitle">{{ headerData.subtitle }}</p>
+        </div>
       </div>
 
-      <div class="tabs">
-        <div class="tab" :class="{ active: !isRegister }" @click="switchTab(false)">登录</div>
-        <div class="tab" :class="{ active: isRegister }" @click="switchTab(true)">注册</div>
+      <!-- 切换标签 -->
+      <div class="tab-container">
+        <div class="tab-slider" :class="{ 'slide-right': isRegister }"></div>
+        <div v-for="(tab, index) in tabs" :key="index"
+             class="tab"
+             :class="{ active: tab.active }"
+             @click="switchTab(tab.isRegister)">
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span>{{ tab.label }}</span>
+        </div>
       </div>
 
-      <div class="form-container">
-        <!-- 成功动画 -->
+      <!-- 表单区域 -->
+      <div class="form-wrapper">
+        <!-- 成功动画覆盖层 -->
         <div v-if="showSuccess" class="success-overlay">
-          <div class="success-circle" :class="{ active: showSuccess }">
-            <div class="checkmark" :class="{ show: showCheckmark }">✓</div>
+          <div class="success-animation active">
+            <div class="success-circle">
+              <div class="checkmark" :class="{ show: showCheckmark }">✓</div>
+            </div>
+            <div class="success-text">登录成功！</div>
           </div>
         </div>
 
-        <!-- 表单 -->
-        <form @submit.prevent="handleSubmit" class="form" :class="{ shrinking: showSuccess }">
-          <!-- 登录表单 -->
-          <template v-if="!isRegister">
-            <div class="form-group">
-              <input v-model="form.userName" type="text" placeholder="用户名" required class="form-input">
+        <!-- 主表单 -->
+        <form @submit.prevent="handleSubmit" class="main-form" :class="{ shrinking: showSuccess }">
+          <div class="form-content" :class="{ 'register-form': isRegister }">
+            <!-- 动态渲染表单字段 -->
+            <div v-for="(row, rowIndex) in formFields" :key="rowIndex"
+                 :class="row.length > 1 ? 'input-row' : ''">
+              <div v-for="field in row" :key="field.key" class="input-group">
+                <div class="input-icon">{{ field.icon }}</div>
+                <input
+                    v-model="form[field.key]"
+                    :type="field.type"
+                    :placeholder="field.placeholder"
+                    :required="field.required"
+                    class="form-input">
+              </div>
             </div>
-            <div class="form-group">
-              <input v-model="form.password" type="password" placeholder="密码" required class="form-input">
-            </div>
-          </template>
+          </div>
 
-          <!-- 注册表单 -->
-          <template v-else>
-            <div class="form-row">
-              <div class="form-group">
-                <input v-model="form.userName" type="text" placeholder="用户名" required class="form-input">
-              </div>
-              <div class="form-group">
-                <input v-model="form.nickName" type="text" placeholder="昵称" required class="form-input">
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <input v-model="form.password" type="password" placeholder="密码" required class="form-input">
-              </div>
-              <div class="form-group">
-                <input v-model="form.email" type="email" placeholder="邮箱 (可选)" class="form-input">
-              </div>
-            </div>
-            <div class="form-group">
-              <input v-model="form.phonenumber" type="tel" placeholder="手机号 (可选)" class="form-input">
-            </div>
-          </template>
-
-          <button type="submit" class="submit-btn" :disabled="isLoading">
-            {{ isLoading ? (isRegister ? '注册中...' : '登录中...') : (isRegister ? '创建角色' : '开始游戏') }}
+          <!-- 提交按钮 -->
+          <button type="submit" class="submit-button" :disabled="isLoading">
+            <span v-if="isLoading" class="loading-spinner"></span>
+            <span class="button-text">{{ buttonText }}</span>
           </button>
 
-          <!-- 错误信息 -->
-          <div v-if="errorMsg" class="error-message">{{ errorMsg }}</div>
-          <div v-if="successMsg && !showSuccess" class="success-message">{{ successMsg }}</div>
+          <!-- 消息提示 -->
+          <div v-if="errorMsg" class="message error-message">
+            <span class="message-icon">⚠️</span>
+            {{ errorMsg }}
+          </div>
+          <div v-if="successMsg && !showSuccess" class="message success-message">
+            <span class="message-icon">✅</span>
+            {{ successMsg }}
+          </div>
         </form>
       </div>
 
-      <div class="form-footer">
-        {{ isRegister ? '让我们一起创造属于你的传奇！' : '准备好开始新的冒险了吗？' }}
+      <!-- 底部信息 -->
+      <div class="card-footer">
+        <p class="footer-text">{{ footerText }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const baseURL = 'http://localhost:8080'
+
+// 常量配置
+const gameIcons = ['⚔️', '🛡️', '🎯', '⭐']
+const particlePositions = [
+  { top: '20%', left: '10%' }, { top: '60%', left: '20%' }, { top: '40%', left: '80%' },
+  { top: '80%', left: '70%' }, { top: '10%', left: '90%' }, { top: '70%', left: '5%' },
+  { top: '30%', left: '40%' }, { top: '90%', left: '30%' }, { top: '50%', left: '60%' },
+  { top: '15%', left: '50%' }, { top: '75%', left: '85%' }, { top: '35%', left: '15%' },
+  { top: '85%', left: '55%' }, { top: '25%', left: '75%' }, { top: '65%', left: '35%' },
+  { top: '45%', left: '95%' }, { top: '55%', left: '25%' }, { top: '5%', left: '65%' },
+  { top: '95%', left: '45%' }, { top: '75%', left: '15%' }
+]
+
+const iconPositions = [
+  { top: '10%', left: '10%' }, { top: '20%', right: '15%' },
+  { bottom: '25%', left: '20%' }, { bottom: '15%', right: '10%' }
+]
 
 // 状态管理
 const isRegister = ref(false)
@@ -101,7 +136,59 @@ const form = reactive({
   phonenumber: ''
 })
 
-// 监听切换重置消息
+// 计算属性
+const headerData = computed(() => ({
+  title: isRegister.value ? '创建账户' : '欢迎回来',
+  subtitle: isRegister.value ? '加入我们的游戏社区' : '继续你的游戏之旅'
+}))
+
+const tabs = computed(() => [
+  { label: '登录', icon: '👤', active: !isRegister.value, isRegister: false },
+  { label: '注册', icon: '✨', active: isRegister.value, isRegister: true }
+])
+
+const formFields = computed(() => {
+  const loginFields = [
+    [{ key: 'userName', icon: '👤', type: 'text', placeholder: '输入用户名', required: true }],
+    [{ key: 'password', icon: '🔐', type: 'password', placeholder: '输入密码', required: true }]
+  ]
+
+  const registerFields = [
+    [
+      { key: 'userName', icon: '👤', type: 'text', placeholder: '用户名', required: true },
+      { key: 'nickName', icon: '🏷️', type: 'text', placeholder: '昵称', required: true }
+    ],
+    [
+      { key: 'password', icon: '🔐', type: 'password', placeholder: '密码', required: true },
+      { key: 'email', icon: '📧', type: 'email', placeholder: '邮箱 (可选)', required: false }
+    ],
+    [{ key: 'phonenumber', icon: '📱', type: 'tel', placeholder: '手机号 (可选)', required: false }]
+  ]
+
+  return isRegister.value ? registerFields : loginFields
+})
+
+const buttonText = computed(() => {
+  if (isLoading.value) return isRegister.value ? '注册中...' : '登录中...'
+  return isRegister.value ? '创建账户' : '立即登录'
+})
+
+const footerText = computed(() =>
+    isRegister.value ? ' ' : '准备好开始你的冒险了吗？'
+)
+
+// 样式计算方法
+const getParticleStyle = (index) => ({
+  ...particlePositions[index - 1],
+  animationDelay: `${-2 * index}s`
+})
+
+const getIconStyle = (index) => ({
+  ...iconPositions[index],
+  animationDelay: `${-2 * index}s`
+})
+
+// 监听器
 watch(isRegister, () => {
   errorMsg.value = ''
   successMsg.value = ''
@@ -111,7 +198,7 @@ watch(isRegister, () => {
 
 // 工具函数
 const saveTokens = (data) => {
-  const items = {
+  const tokenData = {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
     tokenType: data.tokenType,
@@ -119,7 +206,7 @@ const saveTokens = (data) => {
     userInfo: JSON.stringify(data.user),
     tokenExpiration: Date.now() + (data.expiresIn * 1000)
   }
-  Object.entries(items).forEach(([key, value]) => localStorage.setItem(key, value))
+  Object.entries(tokenData).forEach(([key, value]) => localStorage.setItem(key, value))
 }
 
 const apiCall = async (url, data) => {
@@ -130,7 +217,6 @@ const apiCall = async (url, data) => {
   })
 
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
-
   const result = await response.json()
   if (result.code === 200) return result
   throw result
@@ -142,19 +228,17 @@ const resetForm = () => {
 
 const parseErrorMessage = (error) => {
   const msg = error.msg || error.message || '操作失败'
-
-  // 解析数据库约束错误
-  if (msg.includes('Duplicate entry') && msg.includes('uk_user_name')) {
-    return '用户名已存在'
-  }
-  if (msg.includes('Duplicate entry') && msg.includes('email')) {
-    return '邮箱已存在'
-  }
-  if (msg.includes('Duplicate entry') && msg.includes('phone')) {
-    return '手机号已存在'
+  const errorMap = {
+    'uk_user_name': '用户名已存在',
+    'email': '邮箱已存在',
+    'phone': '手机号已存在'
   }
 
-  return isRegister.value ? '注册失败，请重试' : '登录失败，请重试'
+  const duplicateError = Object.entries(errorMap).find(([key]) =>
+      msg.includes('Duplicate entry') && msg.includes(key)
+  )
+
+  return duplicateError ? duplicateError[1] : (isRegister.value ? '注册失败，请重试' : '登录失败，请重试')
 }
 
 // 主要方法
@@ -180,15 +264,12 @@ const handleSubmit = async () => {
       const response = await apiCall('/user/profile/login', form)
       saveTokens(response.data)
 
-      //successMsg.value = `登录成功！欢迎回来，${response.data.user.nickName || response.data.user.userName}`
-
-      // 登录成功动画
       setTimeout(() => {
         showSuccess.value = true
-        setTimeout(() => showCheckmark.value = true, 800)
-      }, 500)
+        setTimeout(() => showCheckmark.value = true, 500)
+      }, 300)
 
-      setTimeout(() => router.push('/'), 3000)
+      setTimeout(() => router.push('/'), 2500)
     }
   } catch (error) {
     errorMsg.value = parseErrorMessage(error)
@@ -199,324 +280,450 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+/* 基础样式 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-.login-container {
-  font-family: 'Microsoft YaHei', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s infinite;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  inset: 0;
+html, body {
+  margin: 0;
+  padding: 0;
   overflow: hidden;
 }
 
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.background {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.decoration {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  animation: float 20s infinite linear;
-}
-
-.decoration-1 { width: 200px; height: 200px; top: 10%; left: 10%; }
-.decoration-2 { width: 150px; height: 150px; top: 60%; right: 10%; animation-delay: -5s; }
-.decoration-3 { width: 100px; height: 100px; top: 30%; right: 30%; animation-delay: -10s; }
-.decoration-4 { width: 80px; height: 80px; bottom: 20%; left: 20%; animation-delay: -15s; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-  50% { transform: translateY(-100px) rotate(180deg); opacity: 0.6; }
-}
-
-.container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(30px);
-  border-radius: 25px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  width: 450px;
-  max-width: 90vw;
-  padding: 50px;
-  position: relative;
-  transition: all 0.5s ease;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.container.register-mode {
-  width: 750px;
-  max-width: 95vw;
-}
-
-.container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-  background-size: 300% 100%;
-  animation: rainbow 4s linear infinite;
-}
-
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 300% 50%; }
-}
-
-.character-icon {
-  position: absolute;
-  top: -35px;
-  right: -25px;
-  width: 90px;
-  height: 90px;
-  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-  border-radius: 50%;
+/* 容器 */
+.login-container {
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 35px;
-  animation: floatIcon 4s ease-in-out infinite;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 背景效果 */
+.particles-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+.floating-elements {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.game-icon {
+  position: absolute;
+  font-size: 24px;
+  animation: floatIcon 8s ease-in-out infinite;
+  opacity: 0.1;
 }
 
 @keyframes floatIcon {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
 }
 
-.header {
+/* 主卡片 */
+.main-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 420px;
+  height: 600px;
+  max-width: 90vw;
+  padding: 40px;
+  position: relative;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+}
+
+.main-card.register-mode {
+  width: 640px;
+  max-width: 95vw;
+}
+
+/* 头部样式 */
+.card-header {
   text-align: center;
-  margin-bottom: 35px;
+  margin-bottom: 30px;
 }
 
-.title {
+.logo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
   font-size: 32px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  margin-bottom: 12px;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.subtitle {
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.brand-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.welcome-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
   color: #666;
-  font-size: 16px;
   opacity: 0.8;
 }
 
-.tabs {
+/* 标签切换 */
+.tab-container {
+  position: relative;
   display: flex;
-  margin-bottom: 35px;
-  background: rgba(102, 126, 234, 0.08);
-  border-radius: 30px;
-  padding: 6px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 30px;
+}
+
+.tab-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-slider.slide-right {
+  left: calc(50% + 4px);
 }
 
 .tab {
   flex: 1;
-  padding: 14px;
+  padding: 12px 16px;
   text-align: center;
-  border-radius: 24px;
   cursor: pointer;
-  transition: all 0.4s ease;
-  font-weight: 600;
+  transition: all 0.3s ease;
+  font-weight: 500;
   color: #666;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-  transform: translateY(-3px);
+  color: #6366f1;
 }
 
-.form-container {
+.tab-icon {
+  font-size: 16px;
+}
+
+/* 表单样式 */
+.form-wrapper {
   position: relative;
-}
-
-.form {
-  transition: all 1s ease;
-}
-
-.form.shrinking {
-  transform: scale(0);
-  opacity: 0;
-  border-radius: 50%;
+  min-height: 200px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .success-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 100;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+}
+
+.success-animation {
+  text-align: center;
+  transform: scale(0);
+  transition: all 0.5s ease;
+}
+
+.success-animation.active {
+  transform: scale(1);
 }
 
 .success-circle {
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #10b981, #059669);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: scale(0);
-  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  box-shadow: 0 20px 40px rgba(78, 205, 196, 0.4);
-}
-
-.success-circle.active {
-  transform: scale(1);
+  margin: 0 auto 16px;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
 }
 
 .checkmark {
-  font-size: 40px;
+  font-size: 32px;
   color: white;
   font-weight: bold;
-  opacity: 0;
   transform: scale(0);
-  transition: all 0.6s ease;
+  transition: all 0.3s ease;
 }
 
 .checkmark.show {
-  opacity: 1;
   transform: scale(1);
 }
 
-.form-row {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 25px;
+.success-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #10b981;
 }
 
-.form-row .form-group {
+.main-form {
+  transition: all 0.5s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.main-form.shrinking {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+.form-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 20px;
+}
+
+.form-content.register-form {
+  gap: 16px;
+}
+
+.input-row {
+  display: flex;
+  gap: 16px;
+}
+
+.input-row .input-group {
   flex: 1;
   margin-bottom: 0;
 }
 
-.form-group {
-  margin-bottom: 25px;
+.input-group {
+  position: relative;
+  margin-bottom: 0;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #9ca3af;
+  z-index: 1;
 }
 
 .form-input {
   width: 100%;
-  padding: 18px 25px;
-  border: 2px solid rgba(102, 126, 234, 0.15);
-  border-radius: 30px;
+  padding: 16px 16px 16px 48px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  transition: all 0.4s ease;
+  background: white;
+  transition: all 0.3s ease;
   outline: none;
 }
 
 .form-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 30px rgba(102, 126, 234, 0.25);
-  transform: translateY(-8px);
-  background: white;
-  z-index: 10;
-  position: relative;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.submit-btn {
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* 按钮样式 */
+.submit-button {
   width: 100%;
-  padding: 18px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 16px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  border-radius: 30px;
-  font-size: 18px;
-  font-weight: 700;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s ease;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  margin-top: 20px;
 }
 
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 
-.submit-btn:disabled {
+.submit-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.error-message {
-  color: #ff6b6b;
-  font-size: 14px;
-  margin-top: 15px;
-  text-align: center;
-  animation: shake 0.6s ease;
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 消息提示 */
+.message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 16px;
+  animation: slideIn 0.3s ease;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .success-message {
-  color: #4ecdc4;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 底部样式 */
+.card-footer {
+  margin-top: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.footer-text {
   font-size: 14px;
-  margin-top: 15px;
-  text-align: center;
-  animation: bounce 0.6s ease;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 25px;
-  color: #666;
-  font-size: 15px;
+  color: #6b7280;
   opacity: 0.8;
 }
 
-.loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* 响应式 */
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .container {
+  .login-container {
+    padding: 15px;
+  }
+
+  .main-card {
     width: 95vw !important;
-    padding: 40px 30px;
+    height: 90vh;
+    padding: 30px 20px;
   }
 
-  .form-row {
+  .input-row {
     flex-direction: column;
-    gap: 0;
+    gap: 16px;
   }
 
-  .form-row .form-group {
-    margin-bottom: 25px;
+  .input-row .input-group {
+    margin-bottom: 0;
+  }
+
+  .welcome-title {
+    font-size: 20px;
+  }
+
+  .brand-title {
+    font-size: 24px;
   }
 }
 </style>
