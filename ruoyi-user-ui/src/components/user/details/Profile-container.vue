@@ -384,7 +384,7 @@ const uploadAvatar = async () => {
     reader.onload = async (e) => {
       try {
         // 保存图片文件
-        await fetch('/user/upload/save-avatar', {
+        await fetch('/user/profile/save-avatar', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

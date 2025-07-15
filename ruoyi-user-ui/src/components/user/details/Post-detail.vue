@@ -698,7 +698,7 @@ h1 {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  //background: #007bff url() center/cover;
+//background: #007bff url() center/cover;
   background: #007bff center/cover;
   color: white;
   display: flex;

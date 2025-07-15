@@ -125,6 +125,7 @@ import {useRoute, useRouter} from 'vue-router'
 import axios from 'axios'
 import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
 import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue";
+import API_URLS from '@/api/apiUrls.js'; // 引入 API_URLS
 
 export default defineComponent({
   name: "GamePage",
@@ -175,14 +176,11 @@ export default defineComponent({
     const selectedTypeId = ref(null)
     const activeTab = ref('all')
 
-    // API 基础地址
-    const API_BASE = 'http://localhost:8080'
-
     // 获取游戏列表
     const fetchGameList = async (params = {}) => {
       loading.value = true
       try {
-        const response = await axios.get(`${API_BASE}/user/game/list`, {params})
+        const response = await axios.get(API_URLS.getAllGames(), {params})
         if (response.data.code === 200) {
           gameList.value = response.data.data || []
         } else {
@@ -200,9 +198,7 @@ export default defineComponent({
     const fetchHotGameList = async (limit = 20) => {
       loading.value = true
       try {
-        const response = await axios.get(`${API_BASE}/user/game/hot`, {
-          params: {limit}
-        })
+        const response = await axios.get(API_URLS.getHotGameList(limit))
         if (response.data.code === 200) {
           gameList.value = response.data.data || []
         } else {
@@ -220,7 +216,7 @@ export default defineComponent({
     const fetchGameListByType = async (typeId) => {
       loading.value = true
       try {
-        const response = await axios.get(`${API_BASE}/user/game/type/${typeId}`)
+        const response = await axios.get(API_URLS.getGameListByType(typeId))
         if (response.data.code === 200) {
           gameList.value = response.data.data || []
         } else {
@@ -238,9 +234,7 @@ export default defineComponent({
     const searchGameByName = async (name) => {
       loading.value = true
       try {
-        const response = await axios.get(`${API_BASE}/user/game/search`, {
-          params: {name}
-        })
+        const response = await axios.get(API_URLS.searchGameByName(name))
         if (response.data.code === 200) {
           gameList.value = response.data.data || []
         } else {
@@ -257,7 +251,7 @@ export default defineComponent({
     // 获取游戏类型列表
     const fetchGameTypes = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/user/gameType/all`)
+        const response = await axios.get(API_URLS.getAllGameTypes())
         if (response.data.code === 200) {
           gameTypes.value = response.data.data || []
         }

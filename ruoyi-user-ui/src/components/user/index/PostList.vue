@@ -295,18 +295,18 @@ export default {
     },
 
     viewPost(post) {
-      //this.incrementViewCount(post.postId)
+      this.incrementViewCount(post.postId)
       window.open(`/postDetail/${post.postId}`, '_blank')
       //this.$emit('view-post', post)
     },
 
-    /*async incrementViewCount(postId) {
+    async incrementViewCount(postId) {
       try {
         await axios.get(`http://localhost:8080/user/post/${postId}`)
       } catch (error) {
         console.error('更新浏览量失败:', error)
       }
-    },*/
+    },
 
     getImageUrl(path) {
       if (!path) return ''

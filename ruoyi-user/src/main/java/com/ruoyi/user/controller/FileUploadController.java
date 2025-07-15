@@ -67,7 +67,7 @@ public class FileUploadController {
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 
             // 验证图片大小（2MB限制）
-            if (imageBytes.length > 2 * 1024 * 1024) {
+            if (imageBytes.length > 5 * 1024 * 1024) {
                 return R.fail("头像大小不能超过2MB");
             }
 
@@ -125,7 +125,7 @@ public class FileUploadController {
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 
             // 验证图片大小（5MB限制）
-            if (imageBytes.length > 5 * 1024 * 1024) {
+            if (imageBytes.length > 10 * 1024 * 1024) {
                 return R.fail("图片大小不能超过5MB");
             }
 

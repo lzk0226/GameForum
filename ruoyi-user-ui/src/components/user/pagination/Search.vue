@@ -35,7 +35,6 @@ const navigateToSection = (section) => {
 // 导航到游戏类型页面
 const navigateToGameType = (gameType) => {
   const url = `/gamepage?typeId=${gameType.typeId}`
-  //const url = `/gamepage`
   window.open(url, '_blank')
 }
 

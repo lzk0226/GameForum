@@ -458,7 +458,7 @@ async function uploadImage() {
     return new Promise((resolve, reject) => {
       reader.onload = async (e) => {
         try {
-          const response = await fetch('/user/upload/save-post-image', {
+          const response = await fetch('/user/post/save-post-image', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authData.token}`,
