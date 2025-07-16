@@ -98,9 +98,10 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import API_URLS from '@/api/apiUrls.js'
 
 const router = useRouter()
-const baseURL = 'http://localhost:8080'
+const baseURL = API_URLS.getBASEURL()
 
 // 常量配置
 const gameIcons = ['⚔️', '🛡️', '🎯', '⭐']
