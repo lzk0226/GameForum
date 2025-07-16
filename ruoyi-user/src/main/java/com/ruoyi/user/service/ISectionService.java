@@ -35,4 +35,8 @@ public interface ISectionService {
      * 查询所有版块列表
      */
     public List<Section> selectAllSectionList();
+    /**
+     * 根据板块ID查询对应的游戏ID
+     */
+    public Integer selectGameIdBySectionId(Integer sectionId);
 }

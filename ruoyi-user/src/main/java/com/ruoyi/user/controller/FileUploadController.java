@@ -68,7 +68,7 @@ public class FileUploadController {
 
             // 验证图片大小（2MB限制）
             if (imageBytes.length > 5 * 1024 * 1024) {
-                return R.fail("头像大小不能超过2MB");
+                return R.fail("头像大小不能超过5MB");
             }
 
             // 保存路径

@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizSectionMapper">
-    
+
     <resultMap type="BizSection" id="BizSectionResult">
         <result property="sectionId"    column="section_id"    />
         <result property="sectionName"    column="section_name"    />
@@ -25,7 +25,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectBizSectionList" parameterType="BizSection" resultMap="BizSectionResult">
         <include refid="selectBizSectionVo"/>
-        <where>  
+        <where>
             <if test="sectionName != null  and sectionName != ''"> and section_name like concat('%', #{sectionName}, '%')</if>
             <if test="sectionDescription != null  and sectionDescription != ''"> and section_description like concat('%', #{sectionDescription}, '%')</if>
             <if test="gameId != null "> and game_id = #{gameId}</if>
@@ -33,7 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
     </select>
-    
+
     <select id="selectBizSectionBySectionId" parameterType="Long" resultMap="BizSectionResult">
         <include refid="selectBizSectionVo"/>
         where section_id = #{sectionId}
@@ -92,7 +92,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteBizSectionBySectionIds" parameterType="String">
-        delete from biz_section where section_id in 
+        delete from biz_section where section_id in
         <foreach item="sectionId" collection="array" open="(" separator="," close=")">
             #{sectionId}
         </foreach>

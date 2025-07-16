@@ -38,4 +38,8 @@ public interface SectionMapper {
      * 查询所有版块列表 (按显示顺序)
      */
     public List<Section> selectAllSectionList();
+    /**
+     * 根据板块ID查询对应的游戏ID
+     */
+    public Integer selectGameIdBySectionId(@Param("sectionId") Integer sectionId);
 }

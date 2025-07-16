@@ -74,4 +74,12 @@ public class SectionController {
         List<Section> list = sectionService.selectAllSectionList();
         return R.ok(list);
     }
+    /**
+     * 根据板块ID查询对应的游戏ID
+     */
+    @GetMapping("/gameId/{sectionId}")
+    public R<Integer> getGameIdBySectionId(@PathVariable("sectionId") Integer sectionId) {
+        Integer gameId = sectionService.selectGameIdBySectionId(sectionId);
+        return gameId != null ? R.ok(gameId) : R.fail("版块不存在或未关联游戏");
+    }
 }

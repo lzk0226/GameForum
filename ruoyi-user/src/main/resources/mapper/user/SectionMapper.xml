@@ -71,5 +71,13 @@
         <include refid="selectSectionVo"/>
         order by s.order_num asc, s.create_time desc
     </select>
+    <!-- 新增：根据板块ID查询对应的游戏ID -->
+    <select id="selectGameIdBySectionId" parameterType="Integer" resultType="Integer">
+        select s.game_id
+        from biz_section s
+        where s.section_id = #{sectionId}
+          and s.status = '0'
+          and s.del_flag = '0'
+    </select>
 
 </mapper>

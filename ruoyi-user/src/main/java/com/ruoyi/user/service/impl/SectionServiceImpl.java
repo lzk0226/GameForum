@@ -70,4 +70,11 @@ public class SectionServiceImpl implements ISectionService {
     public List<Section> selectAllSectionList() {
         return sectionMapper.selectAllSectionList();
     }
+    /**
+     * 根据板块ID查询对应的游戏ID
+     */
+    @Override
+    public Integer selectGameIdBySectionId(Integer sectionId) {
+        return sectionMapper.selectGameIdBySectionId(sectionId);
+    }
 }
