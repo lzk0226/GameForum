@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import API_URLS from '@/api/apiUrls';
+
 export default {
   name: 'RecommendedSections',
   data() {
@@ -56,7 +58,7 @@ export default {
         this.error = null
 
         // 获取热门版块数据，限制10个
-        const response = await fetch('http://localhost:8080/user/section/hot?limit=10')
+        const response = await fetch(API_URLS.getHotSections(10));
         if (!response.ok) {
           throw new Error('获取版块数据失败')
         }
@@ -74,7 +76,7 @@ export default {
 
         // 降级处理，使用所有版块接口
         try {
-          const fallbackResponse = await fetch('http://localhost:8080/user/section/list')
+          const fallbackResponse = await fetch(API_URLS.getAllSectionList());
           if (fallbackResponse.ok) {
             const fallbackResult = await fallbackResponse.json()
             if (fallbackResult.code === 200) {

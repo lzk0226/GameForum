@@ -24,6 +24,7 @@
 
 <script>
 import axios from 'axios'
+import API_URLS from '@/api/apiUrls.js'; // 引入 API URL 配置
 
 export default {
   name: 'Announcement',
@@ -51,7 +52,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('http://localhost:8080/user/announcements/list')
+        const response = await axios.get(API_URLS.getAnnouncementsList())
 
         if (response.data.success && response.data.code === 200) {
           this.announcements = response.data.data || []
@@ -77,12 +78,6 @@ export default {
       } catch (error) {
         return dateString
       }
-    },
-
-    showAllAnnouncements() {
-      // 这里可以跳转到完整的公告页面或展开显示所有公告
-      console.log('显示所有公告')
-      // 例如: this.$router.push('/announcements')
     }
   }
 }

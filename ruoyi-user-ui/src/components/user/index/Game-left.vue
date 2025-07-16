@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import API_URLS from '@/api/apiUrls.js'; // 引入 API URL 配置
+
 export default {
   name: 'GameRecommendation',
   data() {
@@ -51,7 +53,7 @@ export default {
         this.error = null
 
         // 获取所有游戏数据
-        const gameResponse = await fetch('http://localhost:8080/user/game/list')
+        const gameResponse = await fetch(API_URLS.getAllGames())
         if (!gameResponse.ok) {
           throw new Error('获取游戏数据失败')
         }
@@ -62,7 +64,7 @@ export default {
         }
 
         // 获取所有游戏类型数据
-        const typeResponse = await fetch('http://localhost:8080/user/gameType/all')
+        const typeResponse = await fetch(API_URLS.getAllGameTypes())
         if (!typeResponse.ok) {
           throw new Error('获取游戏类型数据失败')
         }

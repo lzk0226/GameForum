@@ -72,7 +72,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String path = "D:/IdeaStash/test/public/images/headPortrait/";
+            String path = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/images/headPortrait/";
             File dir = new File(path);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -130,7 +130,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String path = "D:/IdeaStash/test/public/images/user/post/";
+            String path = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/images/user/post/";
             File dir = new File(path);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -212,7 +212,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String fullPath = "D:/IdeaStash/test/public/" + pathPrefix;
+            String fullPath = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/" + pathPrefix;
             File dir = new File(fullPath);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -258,7 +258,7 @@ public class FileUploadController {
                 return R.fail("无效的文件路径");
             }
 
-            String fullPath = "D:/IdeaStash/test/public/" + relativePath;
+            String fullPath = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/" + relativePath;
             File file = new File(fullPath);
 
             if (!file.exists()) {

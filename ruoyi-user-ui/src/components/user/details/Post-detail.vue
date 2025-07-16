@@ -195,7 +195,7 @@
 import axios from 'axios'
 import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue"
 import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
-
+import API_URLS from '@/api/apiUrls.js' // 引入 API_URLS
 
 export default {
   name: 'PostDetail',
@@ -216,8 +216,9 @@ export default {
       showImagePreview: false,
       previewImageUrl: '',
       currentUserId: null,
+      gameId: null, // 添加 gameId 字段
       isAtTop: true,
-      theme: 'light',  // light / dark
+      theme: 'light',
       cleanupScrollListener: null
     }
   },
@@ -255,7 +256,6 @@ export default {
       applyTheme(this.theme);
     },
     // 获取当前用户信息
-    // 获取当前用户信息
     async getCurrentUser() {
       if (!this.isLoggedIn) return
       try {
@@ -272,7 +272,7 @@ export default {
           return
         }
 
-        const {data} = await axios.get(`http://localhost:8080/user/profile/${userId}`, {
+        const {data} = await axios.get(API_URLS.getUserProfile(userId), {
           headers: this.getAuthHeaders()
         })
         if (data.success || data.code === 200) {
@@ -290,6 +290,7 @@ export default {
       }
     },
 
+    // 修改 loadPostDetail 方法
     async loadPostDetail() {
       if (!this.postId) {
         this.loading = false
@@ -297,10 +298,14 @@ export default {
       }
 
       try {
-        const {data} = await axios.get(`http://localhost:8080/user/post/${this.postId}`)
+        const {data} = await axios.get(API_URLS.getPostDetail(this.postId))
         if (data.success || data.code === 200) {
           this.post = data.data
           document.title = this.post.postTitle || '帖子详情'
+
+          // 获取游戏ID
+          await this.getGameIdBySectionId()
+
           if (this.isLoggedIn) await this.checkLikeStatus()
         } else {
           this.$message?.error(data.message || '帖子不存在')
@@ -313,11 +318,28 @@ export default {
       }
     },
 
+// 新增获取游戏ID的方法
+    async getGameIdBySectionId() {
+      if (!this.post?.sectionId) return
+
+      try {
+        const {data} = await axios.get(API_URLS.getGameIdBySectionId(this.post.sectionId))
+        if (data.success || data.code === 200) {
+          this.gameId = data.data
+          console.log('获取到游戏ID:', this.gameId)
+        } else {
+          console.warn('获取游戏ID失败:', data.message)
+        }
+      } catch (error) {
+        console.error('获取游戏ID失败:', error)
+      }
+    },
+
     async loadComments() {
       if (!this.postId) return
       this.loadingComments = true
       try {
-        const {data} = await axios.get(`http://localhost:8080/user/comment/post/${this.postId}`, {
+        const {data} = await axios.get(API_URLS.getPostComments(this.postId), {
           headers: this.getAuthHeaders()
         })
         if (data.success || data.code === 200) {
@@ -333,7 +355,7 @@ export default {
     async checkLikeStatus() {
       if (!this.postId || !this.isLoggedIn) return
       try {
-        const {data} = await axios.get(`http://localhost:8080/user/post/like/check/${this.postId}`, {
+        const {data} = await axios.get(API_URLS.checkPostLikeStatus(this.postId), {
           headers: this.getAuthHeaders()
         })
         if (data.success || data.code === 200) {
@@ -350,7 +372,7 @@ export default {
 
       this.likeLoading = true
       try {
-        const url = `http://localhost:8080/user/post/like/${this.postId}`
+        const url = API_URLS.togglePostLike(this.postId)
         let response
 
         if (this.hasLiked) {
@@ -377,17 +399,21 @@ export default {
       }
     },
 
+    // 修改 submitComment 方法
     async submitComment() {
       if (!this.newComment.trim()) return
       this.submittingComment = true
+
       try {
         const requestData = {
           postId: parseInt(this.postId),
           commentContent: this.newComment.trim(),
-          gameId: this.post.gameId // 添加gameId
+          gameId: this.gameId || this.post.gameId // 优先使用查询到的gameId
         }
 
-        const {data} = await axios.post('http://localhost:8080/user/comment', requestData, {
+        console.log('发送评论请求数据:', requestData)
+
+        const {data} = await axios.post(API_URLS.createComment(), requestData, {
           headers: this.getAuthHeaders()
         })
 
@@ -417,31 +443,24 @@ export default {
       this.replyContent = ''
     },
 
-    // 修复后的 submitReply 方法
+    // 修改 submitReply 方法
     async submitReply(parentId) {
       if (!this.replyContent.trim()) return
       this.submittingReply = true
 
       try {
-        // 简化请求数据，移除可能有问题的字段
         const requestData = {
           postId: parseInt(this.postId),
           commentContent: this.replyContent.trim(),
-          parentId: parseInt(parentId) // 确保 parentId 是数字类型
+          parentId: parseInt(parentId),
+          gameId: this.gameId || this.post.gameId // 优先使用查询到的gameId
         }
 
-        // 只有在确实需要 gameId 且存在时才添加
-        if (this.post.gameId) {
-          requestData.gameId = this.post.gameId
-        }
+        console.log('发送回复请求数据:', requestData)
 
-        //console.log('发送回复请求:', requestData) // 调试日志
-
-        const {data} = await axios.post('http://localhost:8080/user/comment', requestData, {
+        const {data} = await axios.post(API_URLS.createComment(), requestData, {
           headers: this.getAuthHeaders()
         })
-
-        //console.log('回复响应:', data) // 调试日志
 
         if (data.success || data.code === 200) {
           this.$message?.success('回复成功')
@@ -456,7 +475,6 @@ export default {
         console.error('回复请求失败:', error)
         console.error('错误详情:', error.response?.data)
 
-        // 显示更详细的错误信息
         if (error.response?.data?.message) {
           this.$message?.error(error.response.data.message)
         } else if (error.response?.data?.msg) {
@@ -475,7 +493,7 @@ export default {
 
       comment.likeLoading = true
       try {
-        const url = `http://localhost:8080/user/comment/like/${comment.commentId}`
+        const url = API_URLS.toggleCommentLike(comment.commentId)
         let response
 
         if (comment.hasLiked) {
@@ -515,7 +533,7 @@ export default {
 
       comment.deleting = true
       try {
-        const {data} = await axios.delete(`http://localhost:8080/user/comment/${comment.commentId}`, {
+        const {data} = await axios.delete(API_URLS.deleteComment(comment.commentId), {
           headers: this.getAuthHeaders()
         })
 
@@ -698,7 +716,7 @@ h1 {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-//background: #007bff url() center/cover;
+  //background: #007bff url() center/cover;
   background: #007bff center/cover;
   color: white;
   display: flex;

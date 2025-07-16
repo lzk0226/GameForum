@@ -163,6 +163,7 @@ import {useRoute, useRouter} from 'vue-router'
 import axios from 'axios'
 import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
 import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue";
+import API_URLS from '@/api/apiUrls.js'; // 引入 API URL 配置
 
 export default defineComponent({
   name: "Section",
@@ -222,9 +223,6 @@ export default defineComponent({
     // 获取板块ID
     const sectionId = ref(route.query.sectionId)
 
-    // API基础URL
-    const API_BASE = ''
-
     // 懒加载观察器
     let intersectionObserver = null
 
@@ -233,7 +231,7 @@ export default defineComponent({
       if (!gameId) return
 
       try {
-        const response = await axios.get(`/user/game/${gameId}`)
+        const response = await axios.get(API_URLS.getGameDetail(gameId));
         if (response.data.code === 200 && response.data.data) {
           const gameData = response.data.data
           if (gameData.gameIcon) {
@@ -288,7 +286,7 @@ export default defineComponent({
       error.value = ''
 
       try {
-        const response = await axios.get(`/user/section/${sectionId.value}`)
+        const response = await axios.get(API_URLS.getSectionById(sectionId.value));
         if (response.data.code === 200) {
           sectionInfo.value = response.data.data
 
@@ -327,7 +325,7 @@ export default defineComponent({
       }
 
       try {
-        let url = `/user/post/section/${sectionId.value}`
+        let url = '';
         const params = {
           page: reset ? 1 : currentPage.value,
           size: pageSize.value,
@@ -336,11 +334,13 @@ export default defineComponent({
 
         // 根据排序类型选择不同的接口
         if (sortType.value === 'hot') {
-          url = `/user/post/hot`
+          url = API_URLS.getHotPosts();
           params.limit = pageSize.value
         } else if (sortType.value === 'top') {
-          url = `/user/post/top`
+          url = API_URLS.getTopPosts();
           params.sectionId = sectionId.value
+        } else {
+          url = API_URLS.getPostsBySection(sectionId.value);
         }
 
         const response = await axios.get(url, {params})
@@ -418,7 +418,7 @@ export default defineComponent({
     const getImageUrl = (photo) => {
       if (!photo) return ''
       if (photo.startsWith('http')) return photo
-      return `${API_BASE}/${photo}`
+      return `/${photo}`
     }
 
     // 监听路由参数变化

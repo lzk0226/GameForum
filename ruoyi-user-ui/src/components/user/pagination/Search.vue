@@ -2,6 +2,7 @@
 import {onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import axios from 'axios'
+import { API_URLS } from '@/api/apiUrls'
 
 
 const route = useRoute()
@@ -16,25 +17,25 @@ const hasMore = ref(true)
 
 // 导航到游戏详情页
 const navigateToGame = (game) => {
-  const url = `/game?gameId=${game.gameId}`
+  const url = API_URLS.getGamePage(game.gameId)
   window.open(url, '_blank')
 }
 
 // 导航到帖子详情页
 const navigateToPost = (post) => {
-  const url = `/postDetail/${post.postId}`
+  const url = API_URLS.getPostDetailPage(post.postId)
   window.open(url, '_blank')
 }
 
 // 导航到版块页面
 const navigateToSection = (section) => {
-  const url = `/section?sectionId=${section.sectionId}`
+  const url = API_URLS.getSectionPage(section.sectionId)
   window.open(url, '_blank')
 }
 
 // 导航到游戏类型页面
 const navigateToGameType = (gameType) => {
-  const url = `/gamepage?typeId=${gameType.typeId}`
+  const url = API_URLS.getGameTypePage(gameType.typeId)
   window.open(url, '_blank')
 }
 
@@ -80,7 +81,7 @@ const tabs = [
 // API 调用函数
 const searchGames = async (query, page = 1) => {
   try {
-    const response = await axios.get(`/user/game/search?name=${encodeURIComponent(query)}`)
+    const response = await axios.get(API_URLS.searchGamesByName(query))
     return response.data
   } catch (error) {
     console.error('搜索游戏失败:', error)
@@ -90,7 +91,7 @@ const searchGames = async (query, page = 1) => {
 
 const searchPosts = async (query, page = 1) => {
   try {
-    const response = await axios.get(`/user/post/search?title=${encodeURIComponent(query)}`)
+    const response = await axios.get(API_URLS.searchPostsByTitle(query))
     return response.data
   } catch (error) {
     console.error('搜索帖子失败:', error)
@@ -100,7 +101,7 @@ const searchPosts = async (query, page = 1) => {
 
 const searchSections = async (query, page = 1) => {
   try {
-    const response = await axios.get(`/user/section/search?name=${encodeURIComponent(query)}`)
+    const response = await axios.get(API_URLS.searchSectionsByName(query))
     return response.data
   } catch (error) {
     console.error('搜索版块失败:', error)
@@ -110,7 +111,7 @@ const searchSections = async (query, page = 1) => {
 
 const searchGameTypes = async (query, page = 1) => {
   try {
-    const response = await axios.get(`/user/gameType/search?name=${encodeURIComponent(query)}`)
+    const response = await axios.get(API_URLS.searchGameTypesByName(query))
     return response.data
   } catch (error) {
     console.error('搜索游戏类型失败:', error)

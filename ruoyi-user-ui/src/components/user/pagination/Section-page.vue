@@ -107,7 +107,8 @@
 import {defineComponent, onMounted, ref, watch} from 'vue'
 import axios from 'axios'
 import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
-import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue";
+import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue"
+import API_URLS from '@/api/apiUrls.js'; // 引入 API_URLS
 
 
 export default defineComponent({
@@ -162,7 +163,7 @@ export default defineComponent({
     let searchTimer = null
 
     // API 基础路径
-    const API_BASE = 'http://localhost:8080'
+    const API_BASE = API_URLS.getBASEURL();
 
     // 获取所有游戏类型
     const fetchGameTypes = async () => {

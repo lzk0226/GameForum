@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import API_URLS from '@/api/apiUrls.js';
+
 export default {
   name: 'NavigationBar',
   data() {
@@ -115,33 +117,31 @@ export default {
 
     handleSearch() {
       if (this.searchQuery.trim()) {
-        // 构建搜索页面的完整URL
-        const searchUrl = this.$router.resolve({
-          path: '/search',
-          query: {q: this.searchQuery}
-        }).href
-
-        // 在新标签页中打开搜索结果
-        window.open(searchUrl, '_blank')
+        // 修复：正确使用 Vue Router 的路由方法
+        this.$router.push({
+          name: 'Search', // 确保路由配置中有命名为 'Search' 的路由
+          query: { q: this.searchQuery }
+        })
       }
     },
 
     goToNewPost() {
       if (!this.userToken) {
-        this.$router.push('/loginregister')
+        this.$router.push(API_URLS.getLoginRegisterPage())
         return
       }
-      this.$router.push('/newpost')
+      this.$router.push(API_URLS.getNewPostPage())
     },
 
     handleUserClick() {
-      this.$router.push(this.userToken ? '/profileContainer' : '/loginregister')
+      this.$router.push(this.userToken ? API_URLS.getProfileContainerPage() : API_URLS.getLoginRegisterPage())
     }
   }
 }
 </script>
 
 <style scoped>
+/* 样式部分保持不变 */
 .navigation-bar {
   width: 100%;
   background: #ffffff;

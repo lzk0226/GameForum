@@ -1,22 +1,35 @@
-/*
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import os from 'os'
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-})*/
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+// 自动获取本机局域网 IP（过滤虚拟网卡、Docker、NAT 等）
+function getLocalIP() {
+  const interfaces = os.networkInterfaces()
+  const virtualKeywords = ['vm', 'virtual', 'docker', 'loopback', 'hyper', 'nat', 'vbox']
 
-// https://vitejs.dev/config/
+  for (const name in interfaces) {
+    if (virtualKeywords.some(keyword => name.toLowerCase().includes(keyword))) {
+      continue // 忽略虚拟网卡
+    }
+
+    for (const iface of interfaces[name]) {
+      if (
+          iface.family === 'IPv4' &&
+          !iface.internal &&
+          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段
+      ) {
+        return iface.address
+      }
+    }
+  }
+
+  return '127.0.0.1' // fallback
+}
+
+const localIP = getLocalIP()
+console.log(`✅ 当前自动获取的局域网 IP: ${localIP}`)
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -25,17 +38,17 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
     port: 5173,
     proxy: {
       '/user': {
-        target: 'http://localhost:8080',
+        target: `http://${localIP}:5713`,
         changeOrigin: true,
         secure: false,
-        // rewrite: (path) => path.replace(/^\/user/, '')
       },
       '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: false,
+        target: `http://${localIP}:8080`,
+        changeOrigin: true,
         secure: false,
       },
     },

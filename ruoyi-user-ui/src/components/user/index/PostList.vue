@@ -92,6 +92,7 @@
 
 <script>
 import axios from 'axios'
+import { API_URLS } from '@/api/apiUrls'
 
 export default {
   name: 'PostList',
@@ -131,12 +132,8 @@ export default {
           headers: this.getAuthHeaders()
         })
 
-        //console.log('API响应:', response.data)
-
         if (response.data.success || response.data.code === 200) {
           const newPosts = response.data.data || []
-          //console.log('解析到的帖子数据:', newPosts)
-
           const postsWithLikeStatus = await this.initializePostsLikeStatus(newPosts)
 
           if (reset) {
@@ -163,20 +160,20 @@ export default {
     },
 
     getApiConfig() {
-      let url = 'http://localhost:8080/user/post/list'
+      let url = API_URLS.getPostList()
       let params = {}
 
       if (this.showMyPosts) {
-        url = 'http://localhost:8080/user/post/my'
+        url = API_URLS.getMyPosts()
       } else if (this.showHotPosts) {
-        url = 'http://localhost:8080/user/post/hot'
+        url = API_URLS.getHotPosts()
         params.limit = this.pageSize
       } else if (this.sectionId) {
-        url = `http://localhost:8080/user/post/section/${this.sectionId}`
+        url = API_URLS.getPostsBySection(this.sectionId)
       } else if (this.userId) {
-        url = `http://localhost:8080/user/post/user/${this.userId}`
+        url = API_URLS.getPostsByUser(this.userId)
       } else if (this.isSearchMode && this.searchKeyword) {
-        url = 'http://localhost:8080/user/post/search'
+        url = API_URLS.searchPosts()
         params.title = this.searchKeyword
       }
 
@@ -205,7 +202,7 @@ export default {
     async checkLikeStatus(postId) {
       try {
         const response = await axios.get(
-            `http://localhost:8080/user/post/like/check/${postId}`,
+            API_URLS.checkPostLikeStatus(postId),
             {headers: this.getAuthHeaders()}
         )
         return (response.data.success || response.data.code === 200) ? response.data.data || false : false
@@ -227,22 +224,18 @@ export default {
 
         if (post.hasLiked) {
           // 取消点赞
-          //console.log('取消点赞请求:', `http://localhost:8080/user/post/like/${post.postId}`)
           response = await axios.delete(
-              `http://localhost:8080/user/post/like/${post.postId}`,
+              API_URLS.deletePostLike(post.postId),
               {headers: this.getAuthHeaders()}
           )
         } else {
           // 点赞
-          //console.log('点赞请求:', `http://localhost:8080/user/post/like/${post.postId}`)
           response = await axios.post(
-              `http://localhost:8080/user/post/like/${post.postId}`,
+              API_URLS.createPostLike(post.postId),
               {},
               {headers: this.getAuthHeaders()}
           )
         }
-
-        //console.log('点赞/取消点赞响应:', response.data)
 
         if (response.data.success || response.data.code === 200) {
           // 更新点赞状态和数量
@@ -297,12 +290,11 @@ export default {
     viewPost(post) {
       this.incrementViewCount(post.postId)
       window.open(`/postDetail/${post.postId}`, '_blank')
-      //this.$emit('view-post', post)
     },
 
     async incrementViewCount(postId) {
       try {
-        await axios.get(`http://localhost:8080/user/post/${postId}`)
+        await axios.get(API_URLS.incrementViewCount(postId))
       } catch (error) {
         console.error('更新浏览量失败:', error)
       }

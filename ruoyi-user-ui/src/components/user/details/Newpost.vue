@@ -134,6 +134,7 @@ import {onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {Plus} from '@element-plus/icons-vue'
 import {useRoute, useRouter} from 'vue-router'
+import API_URLS from '@/api/apiUrls.js'
 
 // 路由
 const router = useRouter()
@@ -205,7 +206,7 @@ watch(() => route.query.sectionId, (newSectionId) => {
 // 新增方法
 async function loadGameTypes() {
   try {
-    const result = await apiRequest('/user/gameType/all')
+    const result = await apiRequest(API_URLS.getAllGameTypes())
     if (result) gameTypeList.value = result.data
   } catch (error) {
     console.error('加载游戏类型失败:', error)
@@ -214,7 +215,7 @@ async function loadGameTypes() {
 
 async function loadGames() {
   try {
-    const result = await apiRequest('/user/game/list')
+    const result = await apiRequest(API_URLS.getAllGames())
     if (result) gameList.value = result.data
   } catch (error) {
     console.error('加载游戏列表失败:', error)
@@ -223,7 +224,7 @@ async function loadGames() {
 
 async function loadSections() {
   try {
-    const result = await apiRequest('/user/section/all')
+    const result = await apiRequest(API_URLS.getAllSections())
     if (result) sectionList.value = result.data
   } catch (error) {
     console.error('加载版块列表失败:', error)
@@ -414,7 +415,7 @@ const handleFileSelect = (event) => {
   const file = event.target.files[0]
   if (!file) return
 
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > 10 * 1024 * 1024) {
     ElMessage.error('图片大小不能超过 5MB')
     return
   }
@@ -458,7 +459,7 @@ async function uploadImage() {
     return new Promise((resolve, reject) => {
       reader.onload = async (e) => {
         try {
-          const response = await fetch('/user/post/save-post-image', {
+          const response = await fetch(API_URLS.uploadPostImage(), {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authData.token}`,
@@ -510,7 +511,7 @@ async function submitPost() {
     }
 
     // 提交帖子数据
-    const result = await apiRequest('/user/post', {
+    const result = await apiRequest(API_URLS.createPost(), {
       method: 'POST',
       body: JSON.stringify({
         postTitle: postForm.postTitle,

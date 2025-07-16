@@ -1,42 +1,39 @@
 <script>
-import {defineComponent, onMounted, ref} from 'vue'
-import {useRoute} from 'vue-router'
+import { defineComponent, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
-import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
+import { applyTheme, createScrollListener, scrollToTop, toggleTheme } from '@/utils/backToTopUtils.js'
+import API_URLS from '@/api/apiUrls.js'
 import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue"
 
 export default defineComponent({
   name: "Game",
-  components: {BackToTopToggle},
+  components: { BackToTopToggle },
   data() {
     return {
       isAtTop: true,
-      theme: 'light',  // light / dark
+      theme: 'light',
       cleanupScrollListener: null
     }
   },
   mounted() {
-    // 使用工具函数创建滚动监听器
     this.cleanupScrollListener = createScrollListener((atTop) => {
       this.isAtTop = atTop;
-    });
-
-    // 应用初始主题
-    applyTheme(this.theme);
+    })
+    applyTheme(this.theme)
   },
   beforeUnmount() {
-    // 清理滚动监听器
     if (this.cleanupScrollListener) {
-      this.cleanupScrollListener();
+      this.cleanupScrollListener()
     }
   },
   methods: {
     handleScrollTop() {
-      scrollToTop();
+      scrollToTop()
     },
     handleToggleTheme() {
-      this.theme = toggleTheme(this.theme);
-      applyTheme(this.theme);
+      this.theme = toggleTheme(this.theme)
+      applyTheme(this.theme)
     }
   },
   setup() {
@@ -46,7 +43,6 @@ export default defineComponent({
     const error = ref('')
     const currentImageIndex = ref(0)
 
-    // 获取游戏详情
     const fetchGameDetail = async () => {
       try {
         loading.value = true
@@ -57,7 +53,8 @@ export default defineComponent({
           return
         }
 
-        const response = await axios.get(`http://localhost:8080/user/game/${gameId}`)
+        // ✅ 使用配置文件中的接口
+        const response = await axios.get(API_URLS.getGameDetail(gameId))
 
         if (response.data.code === 200) {
           game.value = response.data.data
@@ -72,12 +69,10 @@ export default defineComponent({
       }
     }
 
-    // 切换图片
     const switchImage = (index) => {
       currentImageIndex.value = index
     }
 
-    // 上一张图片
     const prevImage = () => {
       if (game.value?.gameImageList?.length > 0) {
         currentImageIndex.value = currentImageIndex.value === 0
@@ -86,7 +81,6 @@ export default defineComponent({
       }
     }
 
-    // 下一张图片
     const nextImage = () => {
       if (game.value?.gameImageList?.length > 0) {
         currentImageIndex.value = currentImageIndex.value === game.value.gameImageList.length - 1
@@ -95,7 +89,6 @@ export default defineComponent({
       }
     }
 
-    // 格式化时间
     const formatDate = (dateString) => {
       if (!dateString) return ''
       const date = new Date(dateString)
@@ -118,10 +111,12 @@ export default defineComponent({
       switchImage,
       prevImage,
       nextImage,
-      formatDate
+      formatDate,
+      fetchGameDetail  // ⚠️ 添加这个，否则 retry 按钮无法调用
     }
   }
 })
+
 </script>
 
 <template>

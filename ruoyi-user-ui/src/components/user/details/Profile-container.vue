@@ -371,22 +371,29 @@ const handleFileSelect = (event) => {
 }
 
 // 上传头像
+// 修改 uploadAvatar 方法中的文件名生成
+// 上传头像
 const uploadAvatar = async () => {
   if (!selectedFile.value || loading.value) return
 
   loading.value = true
   try {
     const ext = selectedFile.value.name.split('.').pop()
-    const fileName = `${userInfo.value.userId}.${ext}`
+    // 使用随机命名：avatar_时间戳_随机字符串.扩展名
+    const fileName = `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`
     const avatarPath = `images/headPortrait/${fileName}`
 
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
-        // 保存图片文件
-        await fetch('/user/profile/save-avatar', {
+        // 添加 Authorization 头
+        const authData = getAuthData()
+        await fetch('/user/upload/save-avatar', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authData.token}` // 添加这行
+          },
           body: JSON.stringify({
             fileName,
             base64Data: e.target.result
