@@ -17,7 +17,7 @@ import java.io.OutputStream;
 @RequestMapping("/user/public")
 public class ImageAccessController {
 
-    private static final String BASE_PATH = "D:/IdeaStash/test/public/";
+    private static final String BASE_PATH = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/";
 
     /**
      * 访问头像图片
