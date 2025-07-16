@@ -66,7 +66,7 @@ public class FileUploadController {
             String base64Image = base64Data.contains(",") ? base64Data.split(",")[1] : base64Data;
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 
-            // 验证图片大小（2MB限制）
+            // 验证图片大小（5MB限制）
             if (imageBytes.length > 5 * 1024 * 1024) {
                 return R.fail("头像大小不能超过5MB");
             }
