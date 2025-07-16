@@ -254,25 +254,13 @@ async function autoFillFromSectionId(sectionId) {
       console.warn('未找到对应的游戏类型:', targetGame.gameTypeId)
       return
     }
-
-    // 按顺序填充选择框
     postForm.gameTypeId = targetGameType.typeId
-
-    // 触发游戏类型变化，更新游戏列表
     handleGameTypeChange(targetGameType.typeId)
-
-    // 延迟设置游戏ID，确保filteredGames已更新
     setTimeout(() => {
       postForm.gameId = targetGame.gameId
-
-      // 触发游戏变化，更新版块列表
       handleGameChange(targetGame.gameId)
-
-      // 延迟设置版块ID，确保filteredSections已更新
       setTimeout(() => {
         postForm.sectionId = sectionId
-
-        // 显示自动填充成功的提示
         ElMessage.success(`已自动选择：${targetGameType.typeName} - ${targetGame.gameName} - ${targetSection.sectionName}`)
       }, 100)
     }, 100)
@@ -284,7 +272,6 @@ async function autoFillFromSectionId(sectionId) {
 }
 
 const handleGameTypeChange = (typeId) => {
-  // 如果不是自动填充触发的，则清空后续选择
   if (postForm.gameId && !gameList.value.find(game => game.gameId === postForm.gameId && game.gameTypeId === typeId)) {
     postForm.gameId = null
   }
