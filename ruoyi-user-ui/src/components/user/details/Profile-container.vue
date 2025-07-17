@@ -349,7 +349,7 @@ const deactivateAccount = async () => {
     })
 
     localStorage.clear()
-    router.push('/login')
+    router.push('/loginregister')
     alert('账户已注销')
   } catch (error) {
     alert(error.message || '注销失败')
