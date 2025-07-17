@@ -326,9 +326,12 @@ export default {
         const {data} = await axios.get(API_URLS.getGameIdBySectionId(this.post.sectionId))
         if (data.success || data.code === 200) {
           this.gameId = data.data
+          console.log('获取到游戏ID:', this.gameId)
         } else {
+          console.warn('获取游戏ID失败:', data.message)
         }
       } catch (error) {
+        console.error('获取游戏ID失败:', error)
       }
     },
 
@@ -482,7 +485,8 @@ export default {
       } finally {
         this.submittingReply = false
       }
-    },
+    }
+    ,
 
     async toggleCommentLike(comment) {
       if (!this.isLoggedIn) return this.$message?.error('请先登录')

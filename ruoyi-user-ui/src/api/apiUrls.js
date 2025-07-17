@@ -52,6 +52,11 @@ export const API_URLS = {
     getSectionPage: (sectionId) => `/section?sectionId=${sectionId}`,
     getGameTypePage: (typeId) => `/gamepage?typeId=${typeId}`,
     getSearchPage: (query) => `/search?q=${encodeURIComponent(query)}`,
+
+    uploadAvatar: () => `${BASE_URL}/user/upload/save-avatar`,
+    updateProfile: () => `${BASE_URL}/user/profile/update`,
+    updatePassword: () => `${BASE_URL}/user/profile/updatePassword`,
+    deactivateAccount: (userId) => `${BASE_URL}/user/profile/deactivate/${userId}`,
 }
 
 export default API_URLS

@@ -125,6 +125,7 @@ export default {
 
       try {
         const {url, params} = this.getApiConfig()
+        //console.log('正在请求:', url, params)
 
         const response = await axios.get(url, {
           params,

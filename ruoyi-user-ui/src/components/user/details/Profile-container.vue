@@ -148,8 +148,9 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from 'vue'
-import {useRouter} from 'vue-router'
+import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { API_URLS } from '@/api/apiUrls.js'
 
 const router = useRouter()
 
@@ -227,20 +228,29 @@ const apiRequest = async (url, options = {}) => {
   const authData = getAuthData()
   if (!authData) return null
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${authData.token}`,
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
-  })
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${authData.token}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+      }
+    })
 
-  const result = await response.json()
-  if (result.code !== 200) {
-    throw new Error(result.message || '请求失败')
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    if (result.code !== 200) {
+      throw new Error(result.message || '请求失败')
+    }
+    return result
+  } catch (error) {
+    console.error('API request error:', error)
+    throw error
   }
-  return result
 }
 
 // 模态框管理
@@ -249,19 +259,21 @@ const openModal = (type) => {
 }
 
 const closeModal = () => {
+  const currentModal = activeModal.value
   activeModal.value = null
+
   // 重置表单
-  if (activeModal.value === 'password') {
+  if (currentModal === 'password') {
     Object.assign(passwordForm, {
       userId: passwordForm.userId,
       oldPassword: '',
       newPassword: '',
       confirmPassword: ''
     })
-  } else if (activeModal.value === 'avatar') {
+  } else if (currentModal === 'avatar') {
     selectedFile.value = null
     previewUrl.value = ''
-  } else if (activeModal.value === 'deactivate') {
+  } else if (currentModal === 'deactivate') {
     deactivateConfirm.value = ''
   }
 }
@@ -280,7 +292,7 @@ const updateProfile = async () => {
 
   loading.value = true
   try {
-    await apiRequest('/user/profile/update', {
+    await apiRequest(API_URLS.updateProfile(), {
       method: 'PUT',
       body: JSON.stringify(editForm)
     })
@@ -291,7 +303,7 @@ const updateProfile = async () => {
     closeModal()
     alert('更新成功')
   } catch (error) {
-    alert(error.message)
+    alert(error.message || '更新失败')
   } finally {
     loading.value = false
   }
@@ -308,7 +320,7 @@ const updatePassword = async () => {
 
   loading.value = true
   try {
-    await apiRequest('/user/profile/updatePassword', {
+    await apiRequest(API_URLS.updatePassword(), {
       method: 'PUT',
       body: JSON.stringify({
         userId: passwordForm.userId,
@@ -320,7 +332,7 @@ const updatePassword = async () => {
     closeModal()
     alert('密码修改成功')
   } catch (error) {
-    alert(error.message)
+    alert(error.message || '密码修改失败')
   } finally {
     loading.value = false
   }
@@ -332,7 +344,7 @@ const deactivateAccount = async () => {
 
   loading.value = true
   try {
-    await apiRequest(`/user/profile/deactivate/${userInfo.value.userId}`, {
+    await apiRequest(API_URLS.deactivateAccount(userInfo.value.userId), {
       method: 'PUT'
     })
 
@@ -340,7 +352,7 @@ const deactivateAccount = async () => {
     router.push('/login')
     alert('账户已注销')
   } catch (error) {
-    alert(error.message)
+    alert(error.message || '注销失败')
   } finally {
     loading.value = false
   }
@@ -371,28 +383,31 @@ const handleFileSelect = (event) => {
 }
 
 // 上传头像
-// 修改 uploadAvatar 方法中的文件名生成
-// 上传头像
 const uploadAvatar = async () => {
   if (!selectedFile.value || loading.value) return
 
   loading.value = true
   try {
     const ext = selectedFile.value.name.split('.').pop()
-    // 使用随机命名：avatar_时间戳_随机字符串.扩展名
     const fileName = `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`
     const avatarPath = `images/headPortrait/${fileName}`
 
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
-        // 添加 Authorization 头
+        // 获取认证数据
         const authData = getAuthData()
-        await fetch('/user/upload/save-avatar', {
+        if (!authData) {
+          alert('用户认证失败，请重新登录')
+          return
+        }
+
+        // 上传头像文件
+        const uploadResponse = await fetch(API_URLS.uploadAvatar(), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authData.token}` // 添加这行
+            'Authorization': `Bearer ${authData.token}`
           },
           body: JSON.stringify({
             fileName,
@@ -400,8 +415,18 @@ const uploadAvatar = async () => {
           })
         })
 
+        // 检查上传响应
+        if (!uploadResponse.ok) {
+          throw new Error('头像上传失败')
+        }
+
+        const uploadResult = await uploadResponse.json()
+        if (uploadResult.code !== 200) {
+          throw new Error(uploadResult.message || '头像上传失败')
+        }
+
         // 更新用户头像路径
-        await apiRequest('/user/profile/update', {
+        await apiRequest(API_URLS.updateProfile(), {
           method: 'PUT',
           body: JSON.stringify({
             userId: userInfo.value.userId,
@@ -415,6 +440,7 @@ const uploadAvatar = async () => {
         closeModal()
         alert('头像更换成功')
       } catch (error) {
+        console.error('头像上传错误:', error)
         alert(error.message || '头像上传失败')
       } finally {
         loading.value = false
@@ -423,7 +449,8 @@ const uploadAvatar = async () => {
 
     reader.readAsDataURL(selectedFile.value)
   } catch (error) {
-    alert('头像上传失败')
+    console.error('文件读取错误:', error)
+    alert('文件读取失败')
     loading.value = false
   }
 }
