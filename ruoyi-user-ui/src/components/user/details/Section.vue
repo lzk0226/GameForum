@@ -21,7 +21,7 @@
       <div v-if="sectionInfo" class="section-header">
         <div class="section-info">
           <div class="section-icon">
-            <img v-if="gameIcon" :src="gameIcon" :alt="sectionInfo.sectionName"/>
+            <img v-if="gameIcon" :src="getImageUrl(gameIcon)" :alt="sectionInfo.sectionName"/>
             <div v-else class="default-icon">{{ sectionInfo.sectionName?.charAt(0) || 'S' }}</div>
           </div>
           <div class="section-details">
@@ -163,10 +163,16 @@ import {useRoute, useRouter} from 'vue-router'
 import axios from 'axios'
 import {applyTheme, createScrollListener, scrollToTop, toggleTheme} from '@/utils/backToTopUtils.js'
 import BackToTopToggle from "@/components/user/index/BackToTopToggle.vue";
-import API_URLS from '@/api/apiUrls.js'; // 引入 API URL 配置
+import API_URLS from '@/api/apiUrls.js';
+import game from "@/components/user/details/Game.vue"; // 引入 API URL 配置
 
 export default defineComponent({
   name: "Section",
+  computed: {
+    game() {
+      return game
+    }
+  },
   components: {BackToTopToggle},
   data() {
     return {
@@ -415,11 +421,25 @@ export default defineComponent({
     }
 
     // 获取图片URL
-    const getImageUrl = (photo) => {
-      if (!photo) return ''
-      if (photo.startsWith('http')) return photo
-      return `/${photo}`
+    const getImageUrl = (path) => {
+      if (!path) return ''
+      let cleanPath = path.replace(/\\/g, '/')
+      if (cleanPath.startsWith('http')) return cleanPath
+
+      // 去除开头多余的斜杠
+      if (cleanPath.startsWith('/')) {
+        cleanPath = cleanPath.substring(1)
+      }
+
+      // 确保 BASE_URL 结尾没有斜杠
+      let baseUrl = API_URLS.getGameIcon()
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.slice(0, -1)
+      }
+
+      return `${baseUrl}/${cleanPath}`
     }
+
 
     // 监听路由参数变化
     watch(() => route.query.sectionId, (newSectionId) => {

@@ -17,7 +17,8 @@ import java.io.OutputStream;
 @RequestMapping("/user/public")
 public class ImageAccessController {
 
-    private static final String BASE_PATH = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/";
+    //private static final String BASE_PATH = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/";
+    private static final String BASE_PATH = "C:/gameform/public/";
 
     /**
      * 访问头像图片
@@ -25,6 +26,22 @@ public class ImageAccessController {
     @GetMapping("/images/headPortrait/{fileName}")
     public void getAvatar(@PathVariable String fileName, HttpServletResponse response) throws IOException {
         serveImage("images/headPortrait/" + fileName, response);
+    }
+
+    /**
+     * 访问游戏图标
+     */
+    @GetMapping("/images/games/icon/{fileName}")
+    public void getGameIcon(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+        serveImage("images/games/icon/" + fileName, response);
+    }
+
+    /**
+     * 访问游戏图片
+     */
+    @GetMapping("/images/games/images/{fileName}")
+    public void getGameImage(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+        serveImage("images/games/images/" + fileName, response);
     }
 
     /**

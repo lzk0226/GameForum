@@ -348,6 +348,13 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+const getIconUrl = (path) => {
+  if (!path) return ''
+  const cleanPath = path.replace(/\\/g, '/')
+  if (cleanPath.startsWith('http')) return cleanPath
+  return API_URLS.getSectionIcon() + cleanPath
+}
 </script>
 
 <template>
@@ -420,7 +427,7 @@ onBeforeUnmount(() => {
                 @click="navigateToGame(game)"
             >
               <div class="game-cover">
-                <img :src="game.gameIcon || '/placeholder-game.jpg'" :alt="game.gameName"/>
+                <img :src="getIconUrl(game.gameIcon) || '/placeholder-game.jpg'" :alt="game.gameName"/>
               </div>
               <div class="game-info">
                 <h4 class="game-name">{{ game.gameName }}</h4>

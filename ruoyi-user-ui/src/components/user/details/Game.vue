@@ -69,6 +69,20 @@ export default defineComponent({
       }
     }
 
+    const getImageUrl = (path) => {
+      if (!path) return ''
+      const cleanPath = path.replace(/\\/g, '/')
+      if (cleanPath.startsWith('http')) return cleanPath
+      return API_URLS.getGamePhoto() + cleanPath
+    }
+
+    const getIconUrl = (path) => {
+      if (!path) return ''
+      const cleanPath = path.replace(/\\/g, '/')
+      if (cleanPath.startsWith('http')) return cleanPath
+      return API_URLS.getSectionIcon() + cleanPath
+    }
+
     const switchImage = (index) => {
       currentImageIndex.value = index
     }
@@ -112,7 +126,9 @@ export default defineComponent({
       prevImage,
       nextImage,
       formatDate,
-      fetchGameDetail  // ⚠️ 添加这个，否则 retry 按钮无法调用
+      fetchGameDetail,  // ⚠️ 添加这个，否则 retry 按钮无法调用
+      getImageUrl,
+      getIconUrl
     }
   }
 })
@@ -139,7 +155,7 @@ export default defineComponent({
       <!-- 游戏头部信息 -->
       <div class="game-header">
         <div class="game-icon">
-          <img :src="game.gameIcon" :alt="game.gameName"/>
+          <img :src="getIconUrl(game.gameIcon)" :alt="game.gameName"/>
         </div>
         <div class="game-info">
           <h1 class="game-title">{{ game.gameName }}</h1>
@@ -164,7 +180,7 @@ export default defineComponent({
           <button @click="prevImage" class="nav-btn prev-btn">‹</button>
           <div class="main-image">
             <img
-                :src="game.gameImageList[currentImageIndex]"
+                :src="getImageUrl(game.gameImageList[currentImageIndex])"
                 :alt="`${game.gameName} 截图 ${currentImageIndex + 1}`"
             />
           </div>
@@ -180,7 +196,7 @@ export default defineComponent({
               :class="{ active: index === currentImageIndex }"
               @click="switchImage(index)"
           >
-            <img :src="image" :alt="`缩略图 ${index + 1}`"/>
+            <img :src="getImageUrl(image)" :alt="`缩略图 ${index + 1}`"/>
           </div>
         </div>
       </div>

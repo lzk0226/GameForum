@@ -7,7 +7,7 @@
       <div class="profile-header">
         <div class="avatar-section">
           <div class="avatar-wrapper" @click="openModal('avatar')">
-            <img :src="userInfo.avatar || '/images/headPortrait/default.jpg'" alt="头像" class="avatar"/>
+            <img :src="getImageUrl(userInfo.avatar) || '/images/headPortrait/default.jpg'" alt="头像" class="avatar"/>
             <div class="avatar-overlay">
               <span>更换头像</span>
             </div>
@@ -200,6 +200,13 @@ const getAuthData = () => {
     router.push('/login')
     return null
   }
+}
+
+const getImageUrl = (path) => {
+  if (!path) return ''
+  const cleanPath = path.replace(/\\/g, '/')
+  if (cleanPath.startsWith('http')) return cleanPath
+  return API_URLS.getGamePhoto() + cleanPath
 }
 
 // 初始化用户信息

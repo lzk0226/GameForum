@@ -569,12 +569,20 @@ export default {
       this.previewImageUrl = ''
     },
 
-    getImageUrl(path) {
+    /*getImageUrl(path) {
       if (!path) return ''
       const cleanPath = path.replace(/\\/g, '/')
       if (cleanPath.startsWith('http')) return cleanPath
       if (cleanPath.startsWith('/')) return `http://localhost:8080${cleanPath}`
       return `/${cleanPath}`
+    },*/
+    getImageUrl(path) {
+      if (!path) return ''
+      const cleanPath = path.replace(/\\/g, '/')
+      // 如果已经是完整的 http 链接，直接返回
+      if (cleanPath.startsWith('http')) return cleanPath
+      // 拼接成固定的图片读取地址
+      return API_URLS.getPostPhotos()+cleanPath
     },
 
     formatTime(timeStr) {

@@ -39,7 +39,7 @@
         <div class="user-avatar" @click="handleUserClick">
           <img
               v-if="userToken && userAvatar"
-              :src="userAvatar"
+              :src="getImageUrl(userAvatar)"
               :alt="userName"
               class="avatar-img"
           >
@@ -135,7 +135,26 @@ export default {
 
     handleUserClick() {
       this.$router.push(this.userToken ? API_URLS.getProfileContainerPage() : API_URLS.getLoginRegisterPage())
-    }
+    },
+
+    getImageUrl(path) {
+      if (!path) return ''
+      let cleanPath = path.replace(/\\/g, '/')
+      if (cleanPath.startsWith('http')) return cleanPath
+
+      // 去除开头多余的斜杠
+      if (cleanPath.startsWith('/')) {
+        cleanPath = cleanPath.substring(1)
+      }
+
+      // 确保 BASE_URL 结尾没有斜杠
+      let baseUrl = API_URLS.getPhotos()  // 或改为你实际使用的头像基础路径
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.slice(0, -1)
+      }
+
+      return `${baseUrl}/${cleanPath}`
+    },
   }
 }
 </script>

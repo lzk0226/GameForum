@@ -39,24 +39,23 @@ export const API_URLS = {
     incrementViewCount: (postId) => `${BASE_URL}/user/post/${postId}`,
     deletePostLike: (postId) => `${BASE_URL}/user/post/like/${postId}`,
     createPostLike: (postId) => `${BASE_URL}/user/post/like/${postId}`,
-
-    // 新增的搜索相关API
     searchGamesByName: (name) => `${BASE_URL}/user/game/search?name=${encodeURIComponent(name)}`,
     searchPostsByTitle: (title) => `${BASE_URL}/user/post/search?title=${encodeURIComponent(title)}`,
     searchSectionsByName: (name) => `${BASE_URL}/user/section/search?name=${encodeURIComponent(name)}`,
     searchGameTypesByName: (name) => `${BASE_URL}/user/gameType/search?name=${encodeURIComponent(name)}`,
-
-    // 页面导航URL
     getGamePage: (gameId) => `/game?gameId=${gameId}`,
     getPostDetailPage: (postId) => `/postDetail/${postId}`,
     getSectionPage: (sectionId) => `/section?sectionId=${sectionId}`,
     getGameTypePage: (typeId) => `/gamepage?typeId=${typeId}`,
-    getSearchPage: (query) => `/search?q=${encodeURIComponent(query)}`,
-
     uploadAvatar: () => `${BASE_URL}/user/upload/save-avatar`,
     updateProfile: () => `${BASE_URL}/user/profile/update`,
     updatePassword: () => `${BASE_URL}/user/profile/updatePassword`,
     deactivateAccount: (userId) => `${BASE_URL}/user/profile/deactivate/${userId}`,
+    getPhotos: () => `${BASE_URL}/user/public/`,
+    getPostPhotos: () => `${BASE_URL}/user/public/`,
+    getGameIcon: () => `${BASE_URL}/user/public/`,
+    getSectionIcon: () => `${BASE_URL}/user/public/`,
+    getGamePhoto: () => `${BASE_URL}/user/public/`
 }
 
 export default API_URLS

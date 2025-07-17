@@ -352,10 +352,11 @@ export default defineComponent({
     }
 
     // 获取图片URL
-    const getImageUrl = (imagePath) => {
-      if (!imagePath) return '/placeholder-game.jpg'
-      if (imagePath.startsWith('http')) return imagePath
-      return `/${imagePath}`
+    const getImageUrl = (path) => {
+      if (!path) return ''
+      const cleanPath = path.replace(/\\/g, '/')
+      if (cleanPath.startsWith('http')) return cleanPath
+      return API_URLS.getGamePhoto() + cleanPath
     }
 
     // 截断文本

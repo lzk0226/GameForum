@@ -25,6 +25,8 @@ public class FileUploadController {
 
     @Autowired
     private JwtUtils jwtUtils;
+    //private static final String BASE_PATH = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/";
+    private static final String BASE_PATH = "C:/gameform/public/";
 
     /**
      * 验证token
@@ -72,7 +74,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String path = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/images/headPortrait/";
+            String path = BASE_PATH + "images/headPortrait/";
             File dir = new File(path);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -130,7 +132,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String path = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/images/user/post/";
+            String path = BASE_PATH + "images/user/post/";
             File dir = new File(path);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -212,7 +214,7 @@ public class FileUploadController {
             }
 
             // 保存路径
-            String fullPath = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/" + pathPrefix;
+            String fullPath = BASE_PATH + pathPrefix;
             File dir = new File(fullPath);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
@@ -258,7 +260,7 @@ public class FileUploadController {
                 return R.fail("无效的文件路径");
             }
 
-            String fullPath = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/" + relativePath;
+            String fullPath = BASE_PATH + relativePath;
             File file = new File(fullPath);
 
             if (!file.exists()) {
