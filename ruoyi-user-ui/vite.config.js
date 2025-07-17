@@ -42,10 +42,10 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 80,
     proxy: {
       '/user': {
-        target: `http://${localIP}:5713`,
+        target: `http://${localIP}:80`,
         changeOrigin: true,
         secure: false,
       },
