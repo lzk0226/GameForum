@@ -16,8 +16,8 @@ function getLocalIP() {
     for (const iface of interfaces[name]) {
       if (
           iface.family === 'IPv4' &&
-          !iface.internal &&
-          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段
+          !iface.internal /*&&
+          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段*/
       ) {
         return iface.address
       }
@@ -36,6 +36,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  define: {
+    'import.meta.env.VITE_BASE_URL': JSON.stringify(`http://${localIP}:8080`)
   },
   server: {
     host: '0.0.0.0',
