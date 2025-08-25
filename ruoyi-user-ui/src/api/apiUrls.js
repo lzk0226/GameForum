@@ -1,5 +1,6 @@
 // src/api/apiUrls.js
-const BASE_URL = import.meta.env.VITE_BASE_URL
+//const BASE_URL = import.meta.env.VITE_BASE_URL//生产环境
+const BASE_URL = "http://110.41.1.63:8080"//部署环境
 
 export const API_URLS = {
     getBASEURL: () => `${BASE_URL}`,

@@ -95,7 +95,7 @@ jwt:
   # JWT签名密钥（生产环境请使用更复杂的密钥）
   secret: mySecretKey123456789012345678901234567890abcd
   # 访问token过期时间（小时）
-  expiration: 24
+  expiration: 168
   # 刷新token过期时间（小时，建议7天）
   refresh: 168
 

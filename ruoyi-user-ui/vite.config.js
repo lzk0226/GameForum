@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+/*import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import os from 'os'
@@ -16,8 +16,8 @@ function getLocalIP() {
     for (const iface of interfaces[name]) {
       if (
           iface.family === 'IPv4' &&
-          !iface.internal /*&&
-          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段*/
+          !iface.internal /!*&&
+          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段*!/
       ) {
         return iface.address
       }
@@ -58,6 +58,40 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    assetsDir: 'assets',
+  },
+})*/
+
+
+//部署环境
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  define: {
+    'import.meta.env.VITE_BASE_URL': JSON.stringify(`http://110.41.1.63:8080`)
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 80,
+    proxy: {
+      '/user': {
+        target: `http://110.41.1.63:80`,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api': {
+        target: `http://110.41.1.63:8080`,
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+  build: {
+    outDir: 'user',
     assetsDir: 'assets',
   },
 })

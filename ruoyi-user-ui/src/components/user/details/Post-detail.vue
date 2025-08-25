@@ -318,7 +318,7 @@ export default {
       }
     },
 
-// 新增获取游戏ID的方法
+    // 获取游戏ID的方法
     async getGameIdBySectionId() {
       if (!this.post?.sectionId) return
 
@@ -399,7 +399,7 @@ export default {
       }
     },
 
-    // 修改 submitComment 方法
+    // 发布评论方法
     async submitComment() {
       if (!this.newComment.trim()) return
       this.submittingComment = true
