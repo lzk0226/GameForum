@@ -219,4 +219,116 @@
         delete from biz_post_like
         where user_id = #{userId} and post_id = #{postId}
     </delete>
+
+    <!-- 添加到PostMapper.xml中的扩展查询方法 -->
+
+    <!-- 获取所有帖子点赞记录 -->
+    <select id="selectAllPostLikes" resultType="java.util.HashMap">
+        select user_id, post_id from biz_post_like
+    </select>
+
+    <!-- 获取所有评论记录 -->
+    <select id="selectAllComments" resultType="java.util.HashMap">
+        select user_id, post_id from biz_comment
+        where status = '0' and del_flag = '0'
+    </select>
+
+    <!-- 获取所有帖子记录 -->
+    <select id="selectAllPosts" resultMap="PostResult">
+        select post_id, user_id, section_id, like_count, comment_count, view_count
+        from biz_post
+        where status = '0' and del_flag = '0'
+    </select>
+
+    <!-- 获取用户偏好的版块 -->
+    <select id="selectUserPreferredSections" parameterType="Long" resultType="Integer">
+        select p.section_id, count(*) as interaction_count
+        from (
+                 -- 用户发帖的版块
+                 select section_id from biz_post
+                 where user_id = #{userId} and status = '0' and del_flag = '0'
+
+                 union all
+
+                 -- 用户点赞帖子的版块
+                 select p.section_id from biz_post_like pl
+                                              join biz_post p on pl.post_id = p.post_id
+                 where pl.user_id = #{userId} and p.status = '0' and p.del_flag = '0'
+
+                 union all
+
+                 -- 用户评论帖子的版块
+                 select p.section_id from biz_comment c
+                                              join biz_post p on c.post_id = p.post_id
+                 where c.user_id = #{userId} and c.status = '0' and c.del_flag = '0'
+                   and p.status = '0' and p.del_flag = '0'
+             ) p
+        group by p.section_id
+        order by interaction_count desc
+        limit #{limit}
+    </select>
+
+    <!-- 获取指定版块的热门帖子 -->
+    <select id="selectHotPostsBySectionId" parameterType="Integer" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.section_id = #{sectionId} and p.status = '0' and p.del_flag = '0'
+        order by p.hot_flag desc, p.like_count desc, p.view_count desc, p.create_time desc
+        <if test="limit != null and limit > 0">
+            limit #{limit}
+        </if>
+    </select>
+
+    <!-- 检查用户是否与帖子有过交互 -->
+    <select id="hasUserInteracted" parameterType="Long" resultType="boolean">
+        select case when count(*) > 0 then true else false end
+        from (
+                 -- 检查是否点赞过
+                 select 1 from biz_post_like
+                 where user_id = #{userId} and post_id = #{postId}
+
+                 union
+
+                 -- 检查是否评论过
+                 select 1 from biz_comment
+                 where user_id = #{userId} and post_id = #{postId}
+                   and status = '0' and del_flag = '0'
+
+                 union
+
+                 -- 检查是否是作者
+                 select 1 from biz_post
+                 where user_id = #{userId} and post_id = #{postId}
+                   and status = '0' and del_flag = '0'
+             ) interactions
+    </select>
+
+    <!-- 批量获取帖子详情 -->
+    <select id="selectPostsByIds" resultMap="PostResult">
+        <include refid="selectPostVo"/>
+        where p.post_id in
+        <foreach collection="postIds" item="postId" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+        and p.status = '0' and p.del_flag = '0'
+        order by field(p.post_id,
+        <foreach collection="postIds" item="postId" separator=",">
+            #{postId}
+        </foreach>
+        )
+    </select>
+
+    <!-- 根据版块ID查询最近热门帖子 -->
+    <select id="selectRecentHotPostsBySectionId" resultMap="PostResult">
+        SELECT p.post_id, p.post_title, p.post_content, p.user_id, p.section_id,
+               p.like_count, p.comment_count, p.view_count, p.top_flag, p.hot_flag,
+               p.status, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.photo
+        FROM biz_post p
+        WHERE p.section_id = #{sectionId}
+          AND p.del_flag = '0'
+          AND p.status = '0'
+        ORDER BY
+            (p.like_count * 3 + p.comment_count * 2 + p.view_count * 0.1) DESC,
+            p.create_time DESC
+        LIMIT #{limit}
+    </select>
 </mapper>

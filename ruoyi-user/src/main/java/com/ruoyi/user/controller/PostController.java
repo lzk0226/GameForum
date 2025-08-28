@@ -4,6 +4,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.user.R.R;
 import com.ruoyi.user.domain.Post;
 import com.ruoyi.user.emun.ResultCodeEnum;
+import com.ruoyi.user.service.IPostRecommendationService;
 import com.ruoyi.user.service.IPostService;
 import com.ruoyi.user.service.IUserService;
 import com.ruoyi.user.utils.JwtUtils;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -338,7 +341,7 @@ public class PostController {
     }
 
     /**
-     * 点赞帖子
+     * 点赞帖子 - 集成实时行为记录
      */
     @PostMapping("/like/{postId}")
     public R<?> like(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
@@ -374,13 +377,20 @@ public class PostController {
             return R.fail(ResultCodeEnum.VALIDATION_ERROR, "不能给自己的帖子点赞");
         }
 
-        // 执行点赞操作（增加点赞记录和更新点赞数）
+        // 执行点赞操作
         int result = postService.likePost(userId, postId);
-        return result > 0 ? R.ok("点赞成功") : R.fail("点赞失败");
+
+        if (result > 0) {
+            // 记录实时行为
+            recommendationService.recordUserBehavior(userId, postId, "like", existPost.getSectionId());
+            return R.ok("点赞成功");
+        } else {
+            return R.fail("点赞失败");
+        }
     }
 
     /**
-     * 取消点赞帖子
+     * 取消点赞帖子 - 集成实时行为记录
      */
     @DeleteMapping("/like/{postId}")
     public R<?> unlike(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
@@ -411,9 +421,16 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_NOT_LIKED, "您还没有点赞该帖子");
         }
 
-        // 执行取消点赞操作（删除点赞记录和更新点赞数）
+        // 执行取消点赞操作
         int result = postService.unlikePost(userId, postId);
-        return result > 0 ? R.ok("取消点赞成功") : R.fail("取消点赞失败");
+
+        if (result > 0) {
+            // 记录取消点赞行为（负分）
+            recommendationService.recordUserBehavior(userId, postId, "unlike", existPost.getSectionId());
+            return R.ok("取消点赞成功");
+        } else {
+            return R.fail("取消点赞失败");
+        }
     }
 
     /**
@@ -460,4 +477,124 @@ public class PostController {
         Post stats = postService.selectUserPostStats(userId);
         return R.ok(stats);
     }
+
+    // ========== 个性化推荐接口 ==========
+
+    /**
+     * 获取个性化推荐帖子 - 基于协同过滤算法
+     */
+    @Autowired
+    private IPostRecommendationService recommendationService;
+
+    @GetMapping("/recommendations")
+    public R<List<Post>> getPersonalizedRecommendations(
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        // 验证token
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            // 未登录用户返回热门帖子
+            List<Post> hotPosts = postService.selectHotPostList(limit);
+            return R.ok(hotPosts);
+        }
+
+        try {
+            List<Post> recommendations = recommendationService.getRecommendedPosts(userId, limit);
+            return R.ok(recommendations);
+        } catch (Exception e) {
+            // 如果推荐算法出错，降级到热门帖子
+            List<Post> hotPosts = postService.selectHotPostList(limit);
+            return R.ok(hotPosts);
+        }
+    }
+
+    /**
+     * 获取基于内容的推荐帖子
+     */
+    @GetMapping("/recommendations/content")
+    public R<List<Post>> getContentBasedRecommendations(
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            return R.fail(ResultCodeEnum.TOKEN_INVALID);
+        }
+
+        try {
+            List<Post> recommendations = recommendationService.getContentBasedRecommendations(userId, limit);
+            return R.ok(recommendations);
+        } catch (Exception e) {
+            List<Post> hotPosts = postService.selectHotPostList(limit);
+            return R.ok(hotPosts);
+        }
+    }
+
+    /**
+     * 获取混合推荐帖子 - 支持分页
+     */
+    @GetMapping("/recommendations/hybrid")
+    public R<List<Post>> getHybridRecommendations(
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            return R.fail(ResultCodeEnum.TOKEN_INVALID);
+        }
+
+        try {
+            List<Post> recommendations = recommendationService.getHybridRecommendationsWithPaging(
+                    userId, limit, page);
+            return R.ok(recommendations);
+        } catch (Exception e) {
+            // 如果推荐算法出错，降级到热门帖子
+            List<Post> hotPosts = postService.selectHotPostList(limit);
+            return R.ok(hotPosts);
+        }
+    }
+
+    /**
+     * 获取推荐帖子的详细信息（包含推荐类型和原因）
+     */
+    @GetMapping("/recommendations/detailed")
+    public R<Map<String, Object>> getDetailedRecommendations(
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("posts", postService.selectHotPostList(limit));
+            result.put("type", "hot");
+            result.put("reason", "热门推荐");
+            return R.ok(result);
+        }
+
+        try {
+            Map<String, Object> result = new HashMap<>();
+
+            // 获取不同类型的推荐
+            List<Post> collaborativeRecommendations = recommendationService.getRecommendedPosts(userId, limit / 2);
+            List<Post> contentRecommendations = recommendationService.getContentBasedRecommendations(userId, limit / 2);
+            List<Post> hybridRecommendations = recommendationService.getHybridRecommendations(userId, limit);
+
+            result.put("collaborative", collaborativeRecommendations);
+            result.put("content", contentRecommendations);
+            result.put("hybrid", hybridRecommendations);
+            result.put("type", "personalized");
+            result.put("reason", "基于您的兴趣偏好推荐");
+
+            return R.ok(result);
+        } catch (Exception e) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("posts", postService.selectHotPostList(limit));
+            result.put("type", "hot");
+            result.put("reason", "热门推荐");
+            return R.ok(result);
+        }
+    }
+
 }

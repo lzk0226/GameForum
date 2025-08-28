@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 论坛帖子Mapper接口
@@ -161,4 +162,67 @@ public interface PostMapper {
      * @return 影响行数
      */
     int deletePostLike(@Param("userId") Long userId, @Param("postId") Integer postId);
+
+
+    // 在PostMapper.java接口中添加以下方法：
+    /**
+     * 获取所有帖子点赞记录
+     * @return 点赞记录列表
+     */
+    List<Map<String, Object>> selectAllPostLikes();
+
+    /**
+     * 获取所有评论记录
+     * @return 评论记录列表
+     */
+    List<Map<String, Object>> selectAllComments();
+
+    /**
+     * 获取所有帖子记录
+     * @return 帖子列表
+     */
+    List<Post> selectAllPosts();
+
+    /**
+     * 获取用户偏好的版块
+     * @param userId 用户ID
+     * @param limit 限制数量
+     * @return 版块ID列表
+     */
+    List<Integer> selectUserPreferredSections(@Param("userId") Long userId, @Param("limit") Integer limit);
+
+    /**
+     * 获取指定版块的热门帖子
+     * @param sectionId 版块ID
+     * @param limit 限制数量
+     * @return 帖子列表
+     */
+    List<Post> selectHotPostsBySectionId(@Param("sectionId") Integer sectionId, @Param("limit") Integer limit);
+
+    /**
+     * 检查用户是否与帖子有过交互
+     * @param userId 用户ID
+     * @param postId 帖子ID
+     * @return true表示有交互，false表示无交互
+     */
+    Boolean hasUserInteracted(@Param("userId") Long userId, @Param("postId") Integer postId);
+
+    /**
+     * 批量获取帖子详情
+     * @param postIds 帖子ID列表
+     * @return 帖子列表
+     */
+    List<Post> selectPostsByIds(@Param("postIds") List<Integer> postIds);
+
+    /**
+     * 根据版块ID查询最近热门帖子
+     */
+    List<Post> selectRecentHotPostsBySectionId(@Param("sectionId") Integer sectionId,
+                                               @Param("limit") Integer limit);
+
+    /**
+     * 查询帖子详细信息（会增加浏览数）
+     */
+    Post selectPostDetail(Integer postId);
+
 }
