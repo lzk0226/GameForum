@@ -22,7 +22,8 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
     private PostMapper postMapper;
 
     // 用户行为实时缓存 - 内存中存储最近的用户行为
-    private static final Map<Long, List<UserRecentBehavior>> userRecentBehaviors = new ConcurrentHashMap<>();
+    //private static final Map<Long, List<UserRecentBehavior>> userRecentBehaviors = new ConcurrentHashMap<>();
+    private final Map<Long, List<UserRecentBehavior>> userRecentBehaviors = new ConcurrentHashMap<>();
     private static final long BEHAVIOR_EXPIRE_TIME = 24 * 60 * 60 * 1000; // 24小时过期
     private static final int MAX_RECENT_BEHAVIORS = 100; // 每个用户最多保存100个最近行为
 
@@ -49,11 +50,12 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
         }
     }
 
+
     /**
-     * 记录用户行为 - 供点赞、评论等操作调用
+     * 记录用户行为 - 修复版本，清除相关用户的缓存
      */
     public void recordUserBehavior(Long userId, Integer postId, String behaviorType, Integer sectionId) {
-        if (userId == null || postId == null) return;
+        if (userId == null) return;
 
         double score = getScoreByBehaviorType(behaviorType);
         UserRecentBehavior behavior = new UserRecentBehavior(postId, score, behaviorType, sectionId);
@@ -63,8 +65,25 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
         // 清理过期行为和限制数量
         cleanUpUserBehaviors(userId);
 
-        // 清除该用户的推荐缓存
+        // 清除相关用户的推荐缓存
+        evictRelatedUserCaches(userId, postId);
+    }
+
+    /**
+     * 清除相关用户的推荐缓存 - 新增方法
+     */
+    private void evictRelatedUserCaches(Long userId, Integer postId) {
+        // 1. 清除当前用户的缓存
         evictUserRecommendationCache(userId);
+
+        // 2. 找到可能受影响的相似用户并清除他们的缓存
+        List<Long> similarUsers = findSimilarUsersByRecentBehavior(userId,
+                getUserRecentBehaviors(userId));
+
+        for (Long similarUserId : similarUsers) {
+            evictUserRecommendationCache(similarUserId);
+        }
+
     }
 
     /**
@@ -94,8 +113,8 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
         // 限制数量，保留最新的行为
         if (behaviors.size() > MAX_RECENT_BEHAVIORS) {
             behaviors.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
-            behaviors = behaviors.subList(0, MAX_RECENT_BEHAVIORS);
-            userRecentBehaviors.put(userId, behaviors);
+            List<UserRecentBehavior> limitedBehaviors = new ArrayList<>(behaviors.subList(0, MAX_RECENT_BEHAVIORS));
+            userRecentBehaviors.put(userId, limitedBehaviors);
         }
     }
 
@@ -103,32 +122,28 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
      * 清除用户推荐缓存
      */
     @CacheEvict(value = "userRecommendations", key = "#userId")
-    private void evictUserRecommendationCache(Long userId) {
-        // Spring Cache注解会自动清除缓存
-    }
+    public void evictUserRecommendationCache(Long userId) {}
 
     /**
-     * 获取个性化推荐帖子列表 - 实时版本
+     * 获取个性化推荐帖子列表 - 修改缓存策略
      */
     @Override
-    @Cacheable(value = "userRecommendations", key = "#userId", unless = "#result.size() == 0")
+    @Cacheable(value = "userRecommendations",
+            key = "#userId + '_' + T(System).currentTimeMillis() / 300000", // 5分钟缓存
+            unless = "#result.size() == 0")
     public List<Post> getRecommendedPosts(Long userId, Integer limit) {
-        // 1. 获取用户最近行为
+        // 原有逻辑保持不变
         List<UserRecentBehavior> recentBehaviors = getUserRecentBehaviors(userId);
 
-        // 2. 如果没有最近行为，结合历史数据
         if (recentBehaviors.isEmpty()) {
             return getRecommendationsWithHistoricalData(userId, limit);
         }
 
-        // 3. 基于最近行为的实时推荐
         List<Post> realtimeRecommendations = generateRealtimeRecommendations(userId, recentBehaviors, limit);
 
-        // 4. 如果实时推荐不足，补充历史推荐
         if (realtimeRecommendations.size() < limit) {
             List<Post> historicalRecommendations = getRecommendationsWithHistoricalData(userId, limit - realtimeRecommendations.size());
 
-            // 合并并去重
             Set<Integer> existingPostIds = realtimeRecommendations.stream()
                     .map(Post::getPostId)
                     .collect(Collectors.toSet());
@@ -141,7 +156,7 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
             }
         }
 
-        return realtimeRecommendations;
+        return new ArrayList<>(realtimeRecommendations);
     }
 
     /**
@@ -283,7 +298,7 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
     }
 
     /**
-     * 修复的混合推荐分页方法 - 支持真正的分页
+     * 修复的混合推荐分页方法 - 支持分页
      */
     public List<Post> getHybridRecommendationsWithPaging(Long userId, Integer limit, Integer page) {
         if (userId == null || limit == null || page == null || page < 1) {
@@ -518,40 +533,60 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
 
     @Override
     public List<Post> getHybridRecommendations(Long userId, Integer limit) {
-        // 确保推荐池足够大，以支持分页
-        int effectiveLimit = Math.max(limit != null ? limit : 10, 50); // 最少50个推荐
-        int halfLimit = effectiveLimit / 2;
+        int effectiveLimit = Math.max(limit != null ? limit : 10, 50);
 
-        List<Post> collaborativeRecommendations = getRecommendedPosts(userId, halfLimit + 10);
-        List<Post> contentRecommendations = getContentBasedRecommendations(userId, halfLimit + 10);
+        // 根据用户活跃度调整推荐策略权重
+        UserActivity userActivity = getUserActivity(userId);
+        double collaborativeWeight = calculateCollaborativeWeight(userActivity);
+        double contentWeight = 1.0 - collaborativeWeight;
+
+        int collaborativeLimit = (int) (effectiveLimit * collaborativeWeight);
+        int contentLimit = (int) (effectiveLimit * contentWeight);
+
+        List<Post> collaborativeRecommendations = getRecommendedPosts(userId, collaborativeLimit + 20);
+        List<Post> contentRecommendations = getContentBasedRecommendations(userId, contentLimit + 20);
+
+        // 添加时间戳和用户ID作为随机种子，确保不同用户不同时间获得不同结果
+        Random random = new Random(System.currentTimeMillis() + userId.hashCode());
 
         Set<Integer> seenPostIds = new HashSet<>();
         List<Post> hybridRecommendations = new ArrayList<>();
 
-        // 交替添加协同过滤和内容推荐的结果
+        // 动态权重交替添加推荐结果
         int maxSize = Math.max(collaborativeRecommendations.size(), contentRecommendations.size());
 
         for (int i = 0; i < maxSize && hybridRecommendations.size() < effectiveLimit; i++) {
-            // 添加协同过滤推荐
-            if (i < collaborativeRecommendations.size()) {
+            // 使用随机权重决定添加顺序
+            boolean addCollaborativeFirst = random.nextDouble() < collaborativeWeight;
+
+            if (addCollaborativeFirst && i < collaborativeRecommendations.size()) {
                 Post post = collaborativeRecommendations.get(i);
                 if (seenPostIds.add(post.getPostId())) {
                     hybridRecommendations.add(post);
                 }
             }
 
-            // 添加内容推荐
             if (i < contentRecommendations.size() && hybridRecommendations.size() < effectiveLimit) {
                 Post post = contentRecommendations.get(i);
                 if (seenPostIds.add(post.getPostId())) {
                     hybridRecommendations.add(post);
                 }
             }
+
+            if (!addCollaborativeFirst && i < collaborativeRecommendations.size()
+                    && hybridRecommendations.size() < effectiveLimit) {
+                Post post = collaborativeRecommendations.get(i);
+                if (seenPostIds.add(post.getPostId())) {
+                    hybridRecommendations.add(post);
+                }
+            }
         }
 
-        // 如果还不够，用热门帖子填充
+        // 添加一些随机的热门内容确保多样性
         if (hybridRecommendations.size() < effectiveLimit) {
             List<Post> hotPosts = postMapper.selectHotPostList(effectiveLimit);
+            Collections.shuffle(hotPosts, random); // 随机打散热门内容
+
             for (Post post : hotPosts) {
                 if (seenPostIds.add(post.getPostId()) && hybridRecommendations.size() < effectiveLimit) {
                     hybridRecommendations.add(post);
@@ -559,6 +594,53 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
             }
         }
 
+        // 最终随机打散结果，增加多样性
+        Collections.shuffle(hybridRecommendations, random);
+
         return hybridRecommendations;
+    }
+
+    /**
+     * 获取用户活跃度信息 - 新增方法
+     */
+    private UserActivity getUserActivity(Long userId) {
+        List<UserRecentBehavior> behaviors = getUserRecentBehaviors(userId);
+
+        long recentLikes = behaviors.stream().filter(b -> "like".equals(b.behaviorType)).count();
+        long recentComments = behaviors.stream().filter(b -> "comment".equals(b.behaviorType)).count();
+        long recentPosts = behaviors.stream().filter(b -> "post".equals(b.behaviorType)).count();
+
+        return new UserActivity(recentLikes, recentComments, recentPosts, behaviors.size());
+    }
+
+    /**
+     * 计算协同过滤权重 - 新增方法
+     */
+    private double calculateCollaborativeWeight(UserActivity activity) {
+        // 活跃用户更依赖协同过滤，新用户更依赖内容推荐
+        if (activity.totalBehaviors < 5) {
+            return 0.3; // 新用户，更多依赖内容推荐
+        } else if (activity.totalBehaviors < 20) {
+            return 0.5; // 中等活跃用户，平衡权重
+        } else {
+            return 0.7; // 高活跃用户，更多依赖协同过滤
+        }
+    }
+
+    /**
+     * 用户活跃度数据结构 - 新增类
+     */
+    private static class UserActivity {
+        long recentLikes;
+        long recentComments;
+        long recentPosts;
+        int totalBehaviors;
+
+        public UserActivity(long likes, long comments, long posts, int total) {
+            this.recentLikes = likes;
+            this.recentComments = comments;
+            this.recentPosts = posts;
+            this.totalBehaviors = total;
+        }
     }
 }
