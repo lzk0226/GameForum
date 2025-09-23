@@ -168,27 +168,39 @@ export default {
 .title {
   margin: 0px auto 30px auto;
   text-align: center;
-  color: #707070;
+  color: #ffffff; // 改为白色，更突出
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4); // 添加阴影增加对比
 }
 
+
 .login-form {
-  border-radius: 6px;
-  background: #ffffff;
+  border-radius: 12px; // 圆角
+  background: rgba(255, 255, 255, 0.25); // 半透明白色
+  backdrop-filter: blur(10px); // 高斯模糊，磨砂效果
+  -webkit-backdrop-filter: blur(10px); // Safari 支持
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); // 阴影增加层次
   width: 400px;
-  padding: 25px 25px 5px 25px;
+  padding: 40px 25px 20px 25px;
   z-index: 1;
+
   .el-input {
-    height: 38px;
+    height: 40px;
     input {
-      height: 38px;
+      height: 40px;
     }
   }
+
   .input-icon {
     height: 39px;
     width: 14px;
     margin-left: 2px;
   }
+
+  .el-button {
+    border-radius: 6px;
+  }
 }
+
 .login-tip {
   font-size: 13px;
   text-align: center;

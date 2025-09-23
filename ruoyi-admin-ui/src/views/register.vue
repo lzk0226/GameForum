@@ -156,34 +156,42 @@ export default {
   background-image: url("../assets/images/login-background.jpg");
   background-size: cover;
 }
+
 .title {
   margin: 0px auto 30px auto;
   text-align: center;
-  color: #707070;
+  color: #ffffff; // 改为白色
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4); // 添加阴影增加可读性
 }
 
 .register-form {
-  border-radius: 6px;
-  background: #ffffff;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25); // 半透明白色
+  backdrop-filter: blur(10px); // 磨砂效果
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); // 阴影增强层次
   width: 400px;
-  padding: 25px 25px 5px 25px;
+  padding: 40px 25px 20px 25px;
+  z-index: 1;
+
   .el-input {
-    height: 38px;
+    height: 40px;
     input {
-      height: 38px;
+      height: 40px;
     }
   }
+
   .input-icon {
     height: 39px;
     width: 14px;
     margin-left: 2px;
   }
+
+  .el-button {
+    border-radius: 6px;
+  }
 }
-.register-tip {
-  font-size: 13px;
-  text-align: center;
-  color: #bfbfbf;
-}
+
 .register-code {
   width: 33%;
   height: 38px;
@@ -193,6 +201,7 @@ export default {
     vertical-align: middle;
   }
 }
+
 .el-register-footer {
   height: 40px;
   line-height: 40px;
@@ -205,7 +214,9 @@ export default {
   font-size: 12px;
   letter-spacing: 1px;
 }
+
 .register-code-img {
   height: 38px;
 }
+
 </style>

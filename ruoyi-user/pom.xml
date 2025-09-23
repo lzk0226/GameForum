@@ -8,7 +8,7 @@
     <!-- 指定若依主项目为父模块 -->
     <parent>
         <groupId>com.ruoyi</groupId>
-        <artifactId>ruoyi</artifactId>
+        <artifactId>GameForm</artifactId>
         <version>3.8.9</version>
     </parent>
 
