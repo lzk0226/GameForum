@@ -99,15 +99,17 @@ export default {
         }
       })
 
-      // 将游戏按类型分组，每个类型最多3款游戏
+      // 将游戏按类型分组，每个类型最多2款游戏
       games.forEach(game => {
-        if (typeMap[game.gameTypeId] && typeMap[game.gameTypeId].games.length < 3) {
+        if (typeMap[game.gameTypeId] && typeMap[game.gameTypeId].games.length < 2) {
           typeMap[game.gameTypeId].games.push(game)
         }
       })
 
-      // 返回有游戏的类型
-      return Object.values(typeMap).filter(type => type.games.length > 0)
+      // 返回有游戏的类型，限制最多3个类型
+      return Object.values(typeMap)
+          .filter(type => type.games.length > 0)
+          .slice(0, 3) // 限制最多显示3个游戏类型
     },
 
     toggleGameType(typeId) {

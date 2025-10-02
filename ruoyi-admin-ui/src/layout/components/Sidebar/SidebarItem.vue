@@ -1,5 +1,7 @@
+<!-- ============================================ -->
+<!-- SidebarItem.vue -->
 <template>
-  <div v-if="!item.hidden">
+  <div v-if="!item.hidden" class="glass-menu-item">
     <template v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow">
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path, onlyOneChild.query)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
@@ -36,7 +38,6 @@ export default {
   components: { Item, AppLink },
   mixins: [FixiOSBug],
   props: {
-    // route object
     item: {
       type: Object,
       required: true
@@ -63,17 +64,14 @@ export default {
         if (item.hidden) {
           return false
         }
-        // Temp set(will be used if only has one showing child)
         this.onlyOneChild = item
         return true
       })
 
-      // When there is only one child router, the child router is displayed by default
       if (showingChildren.length === 1) {
         return true
       }
 
-      // Show parent if there are no child router to display
       if (showingChildren.length === 0) {
         this.onlyOneChild = { ... parent, path: '', noShowingChildren: true }
         return true
@@ -97,3 +95,22 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.glass-menu-item {
+  ::v-deep .nest-menu {
+    .el-menu-item {
+      min-width: auto !important;
+      background: rgba(0, 0, 0, 0.1) !important;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      &.is-active {
+        background: rgba(255, 140, 0, 0.3) !important;
+      }
+    }
+  }
+}
+</style>
