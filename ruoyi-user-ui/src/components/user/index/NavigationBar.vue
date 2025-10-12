@@ -3,7 +3,8 @@
     <div class="nav-content">
       <!-- 左侧：论坛/商城切换 -->
       <div class="nav-tabs">
-        <button class="nav-tab active" @click="switchToForum">论坛</button>
+<!--        <button class="nav-tab active" @click="switchToForum">论坛</button>-->
+        <button class="nav-tab active" @click="switchToForum">手机端下载</button>
         <!--        <button class="nav-tab" @click="switchToShopping">商城</button>-->
       </div>
 
@@ -71,6 +72,10 @@ export default {
   mounted() {
     this.checkUserStatus()
   },
+  // NavigationBar.vue 的完整 methods 部分
+
+  // NavigationBar.vue 的完整 methods 部分
+
   methods: {
     checkUserStatus() {
       try {
@@ -108,7 +113,55 @@ export default {
     },
 
     switchToForum() {
-      console.log('当前在论坛页面')
+      // 直接下载APK
+      this.downloadApk();
+    },
+
+    downloadApk() {
+      // 创建隐藏的下载链接
+      const downloadUrl = API_URLS.getApkDownloadUrl();
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'GameForm.apk';
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 显示下载提示
+      this.showDownloadNotification();
+    },
+
+    showDownloadNotification() {
+      // 简单的通知提示
+      const notification = document.createElement('div');
+      notification.textContent = '正在下载 GameForm.apk...';
+      notification.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      font-size: 14px;
+      animation: slideIn 0.3s ease;
+    `;
+
+      document.body.appendChild(notification);
+
+      // 3秒后自动移除
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
     },
 
     switchToShopping() {
@@ -329,6 +382,28 @@ export default {
   .user-avatar {
     width: 32px;
     height: 32px;
+  }
+  /* 下载通知动画 */
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
   }
 }
 </style>

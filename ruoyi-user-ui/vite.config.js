@@ -1,4 +1,5 @@
-/*import { defineConfig } from 'vite'
+/*
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import os from 'os'
@@ -27,7 +28,8 @@ function getLocalIP() {
   return '127.0.0.1' // fallback
 }
 
-const localIP = getLocalIP()
+//const localIP = getLocalIP()
+const localIP = 'localhost'
 console.log(`✅ 当前自动获取的局域网 IP: ${localIP}`)
 
 export default defineConfig({
@@ -60,7 +62,8 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
   },
-})*/
+})
+*/
 
 
 //部署环境

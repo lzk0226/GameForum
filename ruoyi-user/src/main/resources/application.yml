@@ -92,8 +92,8 @@ spring:
         max-wait: -1ms
 
 jwt:
-  # JWT签名密钥（生产环境请使用更复杂的密钥）
-  secret: mySecretKey123456789012345678901234567890abcd
+  # 确保密钥长度至少32字符，用于HS256算法
+  secret: "4k8pMn2qZv9wXy3cVb5nTg7hJl1kPm6"
   # 访问token过期时间（小时）
   expiration: 168
   # 刷新token过期时间（小时，建议7天）
@@ -101,13 +101,13 @@ jwt:
 
 
 # token配置
-token:
-  # 令牌自定义标识
-  header: Authorization
-  # 令牌密钥
-  secret: abcdefghijklmnopqrstuvwxyz
-  # 令牌有效期（默认30分钟）
-  expireTime: 30
+#token:
+#  # 令牌自定义标识
+#  header: Authorization
+#  # 令牌密钥
+#  secret: abcdefghijklmnopqrstuvwxyz
+#  # 令牌有效期（默认30分钟）
+#  expireTime: 30
 
 # MyBatis配置
 mybatis:

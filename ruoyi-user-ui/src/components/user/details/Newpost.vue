@@ -19,7 +19,7 @@
         <el-form-item label="帖子标题" prop="postTitle">
           <el-input
               v-model="postForm.postTitle"
-              placeholder="请输入帖子标题（最多100字符）"
+              placeholder="请输入帖子标题(最多100字符)"
               maxlength="100"
               show-word-limit
               clearable></el-input>
@@ -77,42 +77,15 @@
           </el-select>
         </el-form-item>
 
-        <!-- 图片上传 -->
-        <el-form-item label="上传图片" prop="photo">
-          <div class="upload-section">
-            <div class="upload-area" @click="$refs.fileInput.click()">
-              <input
-                  ref="fileInput"
-                  type="file"
-                  @change="handleFileSelect"
-                  accept="image/*"
-                  style="display: none"
-              />
-              <div v-if="!imagePreview" class="upload-placeholder">
-                <el-icon class="upload-icon">
-                  <Plus/>
-                </el-icon>
-                <div class="upload-text">点击选择图片</div>
-                <div class="upload-tip">支持 JPG、PNG、GIF 格式，大小不超过 5MB</div>
-              </div>
-              <div v-else class="image-preview">
-                <img :src="imagePreview" alt="预览图片"/>
-                <div class="image-overlay">
-                  <el-button type="danger" size="small" @click.stop="removeImage">
-                    删除图片
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-form-item>
-
-        <!-- 帖子内容 -->
+        <!-- 帖子内容(富文本编辑器) -->
         <el-form-item label="帖子内容" prop="postContent">
           <div class="editor-container">
             <div ref="editorRef" class="editor"></div>
             <div class="content-tip">
-              支持富文本编辑，最多10000字符
+              支持富文本编辑，可插入图片。纯文本最多10000字符（图片不计入字数）
+              <span class="char-count" :class="{'over-limit': textCharCount > 10000}">
+                当前字数：{{ textCharCount }}/10000
+              </span>
             </div>
           </div>
         </el-form-item>
@@ -130,47 +103,84 @@
 </template>
 
 <script setup>
-import {onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {Plus} from '@element-plus/icons-vue'
 import {useRoute, useRouter} from 'vue-router'
 import API_URLS from '@/api/apiUrls.js'
 
-// 路由
 const router = useRouter()
 const route = useRoute()
 
-// 状态管理
 const loading = ref(true)
-
-// 表单引用
 const postFormRef = ref()
 const editorRef = ref()
-const fileInput = ref()
 
-// 富文本编辑器实例
 let quillEditor = null
 
-// 新增数据
 const gameTypeList = ref([])
 const gameList = ref([])
 const filteredGames = ref([])
 const filteredSections = ref([])
 
-// 表单数据
 const postForm = reactive({
   postTitle: '',
   postContent: '',
   sectionId: null,
-  photo: '',
   gameTypeId: null,
   gameId: null
 })
 
-// 版块列表
 const sectionList = ref([])
 
-// 表单验证规则
+/**
+ * 计算纯文本字符数（不包含base64图片和HTML标签）
+ * 与后端逻辑保持一致
+ */
+function calculatePureTextLength(htmlContent) {
+  if (!htmlContent) return 0
+
+  // 第一步：移除所有base64图片
+  let withoutBase64 = htmlContent.replace(
+      /<img[^>]+src="data:image\/\w+;base64,[^"]*"[^>]*>/gi,
+      ''
+  )
+
+  // 第二步：移除所有HTML标签
+  let plainText = withoutBase64.replace(/<[^>]+>/g, '')
+
+  // 第三步：解码HTML实体
+  plainText = plainText
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+
+  // 第四步：去除前后空格并返回长度
+  return plainText.trim().length
+}
+
+// 计算纯文本字符数（不包括图片标签）
+const textCharCount = computed(() => {
+  return calculatePureTextLength(postForm.postContent)
+})
+
+// 内容验证器
+function validateContent(rule, value, callback) {
+  const pureTextLen = calculatePureTextLength(value)
+
+  if (!value || value.trim() === '' || value === '<p><br></p>') {
+    callback(new Error('请输入帖子内容'))
+  } else if (pureTextLen > 10000) {
+    callback(new Error('纯文本内容不能超过10000字符'))
+  } else {
+    // ✅ 不再检查 value.length（因为可能包含 base64 图片）
+    callback()
+  }
+}
+
+
 const formRules = {
   postTitle: [
     {required: true, message: '请输入帖子标题', trigger: 'blur'},
@@ -191,19 +201,14 @@ const formRules = {
   ]
 }
 
-// 图片相关
-const imagePreview = ref('')
-const selectedFile = ref(null)
 const publishing = ref(false)
 
-// 监听路由参数变化
 watch(() => route.query.sectionId, (newSectionId) => {
   if (newSectionId && !loading.value) {
     autoFillFromSectionId(parseInt(newSectionId))
   }
 }, {immediate: true})
 
-// 新增方法
 async function loadGameTypes() {
   try {
     const result = await apiRequest(API_URLS.getAllGameTypes())
@@ -231,48 +236,26 @@ async function loadSections() {
   }
 }
 
-// 根据 sectionId 自动填充相关选择框
 async function autoFillFromSectionId(sectionId) {
   try {
-    // 查找对应的版块
     const targetSection = sectionList.value.find(section => section.sectionId === sectionId)
-    if (!targetSection) {
-      console.warn('未找到对应的版块:', sectionId)
-      return
-    }
+    if (!targetSection) return
 
-    // 查找对应的游戏
     const targetGame = gameList.value.find(game => game.gameId === targetSection.gameId)
-    if (!targetGame) {
-      console.warn('未找到对应的游戏:', targetSection.gameId)
-      return
-    }
+    if (!targetGame) return
 
-    // 查找对应的游戏类型
     const targetGameType = gameTypeList.value.find(type => type.typeId === targetGame.gameTypeId)
-    if (!targetGameType) {
-      console.warn('未找到对应的游戏类型:', targetGame.gameTypeId)
-      return
-    }
+    if (!targetGameType) return
 
-    // 按顺序填充选择框
     postForm.gameTypeId = targetGameType.typeId
-
-    // 触发游戏类型变化，更新游戏列表
     handleGameTypeChange(targetGameType.typeId)
 
-    // 延迟设置游戏ID，确保filteredGames已更新
     setTimeout(() => {
       postForm.gameId = targetGame.gameId
-
-      // 触发游戏变化，更新版块列表
       handleGameChange(targetGame.gameId)
 
-      // 延迟设置版块ID，确保filteredSections已更新
       setTimeout(() => {
         postForm.sectionId = sectionId
-
-        // 显示自动填充成功的提示
         ElMessage.success(`已自动选择：${targetGameType.typeName} - ${targetGame.gameName} - ${targetSection.sectionName}`)
       }, 100)
     }, 100)
@@ -284,7 +267,6 @@ async function autoFillFromSectionId(sectionId) {
 }
 
 const handleGameTypeChange = (typeId) => {
-  // 如果不是自动填充触发的，则清空后续选择
   if (postForm.gameId && !gameList.value.find(game => game.gameId === postForm.gameId && game.gameTypeId === typeId)) {
     postForm.gameId = null
   }
@@ -297,7 +279,6 @@ const handleGameTypeChange = (typeId) => {
 }
 
 const handleGameChange = (gameId) => {
-  // 如果不是自动填充触发的，则清空版块选择
   if (postForm.sectionId && !sectionList.value.find(section => section.sectionId === postForm.sectionId && section.gameId === gameId)) {
     postForm.sectionId = null
   }
@@ -305,7 +286,6 @@ const handleGameChange = (gameId) => {
   filteredSections.value = sectionList.value.filter(section => section.gameId === gameId)
 }
 
-// 获取认证数据
 const getAuthData = () => {
   const accessToken = localStorage.getItem('accessToken')
   const userInfoStr = localStorage.getItem('userInfo')
@@ -328,7 +308,6 @@ const getAuthData = () => {
   }
 }
 
-// API 请求封装
 const apiRequest = async (url, options = {}) => {
   const authData = getAuthData()
   if (!authData) return null
@@ -349,20 +328,8 @@ const apiRequest = async (url, options = {}) => {
   return result
 }
 
-// 内容验证器
-function validateContent(rule, value, callback) {
-  if (!value || value.trim() === '' || value === '<p><br></p>') {
-    callback(new Error('请输入帖子内容'))
-  } else if (value.length > 10000) {
-    callback(new Error('内容长度不能超过10000字符'))
-  } else {
-    callback()
-  }
-}
-
 // 初始化富文本编辑器
 function initEditor() {
-  // 使用 CDN 加载 Quill 编辑器
   if (typeof Quill === 'undefined') {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
@@ -383,24 +350,27 @@ function initEditor() {
 function createEditor() {
   quillEditor = new Quill(editorRef.value, {
     theme: 'snow',
-    placeholder: '请输入帖子内容...',
+    placeholder: '请输入帖子内容，可以插入图片...',
     modules: {
-      toolbar: [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{'header': 1}, {'header': 2}],
-        [{'list': 'ordered'}, {'list': 'bullet'}],
-        [{'script': 'sub'}, {'script': 'super'}],
-        [{'indent': '-1'}, {'indent': '+1'}],
-        [{'direction': 'rtl'}],
-        [{'size': ['small', false, 'large', 'huge']}],
-        [{'header': [1, 2, 3, 4, 5, 6, false]}],
-        [{'color': []}, {'background': []}],
-        [{'font': []}],
-        [{'align': []}],
-        ['clean'],
-        ['link']
-      ]
+      toolbar: {
+        container: [
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{'header': 1}, {'header': 2}],
+          [{'list': 'ordered'}, {'list': 'bullet'}],
+          [{'script': 'sub'}, {'script': 'super'}],
+          [{'indent': '-1'}, {'indent': '+1'}],
+          [{'size': ['small', false, 'large', 'huge']}],
+          [{'header': [1, 2, 3, 4, 5, 6, false]}],
+          [{'color': []}, {'background': []}],
+          [{'align': []}],
+          ['image'], // 图片按钮
+          ['clean']
+        ],
+        handlers: {
+          image: imageHandler // 自定义图片处理
+        }
+      }
     }
   })
 
@@ -410,120 +380,146 @@ function createEditor() {
   })
 }
 
-// 文件选择处理
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+// 自定义图片处理函数
+function imageHandler() {
+  const input = document.createElement('input')
+  input.setAttribute('type', 'file')
+  input.setAttribute('accept', 'image/*')
 
-  if (file.size > 10 * 1024 * 1024) {
-    ElMessage.error('图片大小不能超过 5MB')
-    return
-  }
+  input.onchange = async () => {
+    const file = input.files[0]
+    if (!file) return
 
-  if (!file.type.startsWith('image/')) {
-    ElMessage.error('请选择图片文件')
-    return
-  }
+    // 验证文件大小
+    if (file.size > 10 * 1024 * 1024) {
+      ElMessage.error('图片大小不能超过10MB')
+      return
+    }
 
-  selectedFile.value = file
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      ElMessage.error('请选择图片文件')
+      return
+    }
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imagePreview.value = e.target.result
-  }
-  reader.readAsDataURL(file)
-}
-
-// 删除图片
-function removeImage() {
-  imagePreview.value = ''
-  selectedFile.value = null
-  postForm.photo = ''
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-}
-
-// 上传图片到服务器
-async function uploadImage() {
-  if (!selectedFile.value) return ''
-
-  try {
-    const authData = getAuthData()
-    if (!authData) return ''
-
-    const ext = selectedFile.value.name.split('.').pop()
-    const fileName = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`
-
-    const reader = new FileReader()
-    return new Promise((resolve, reject) => {
-      reader.onload = async (e) => {
-        try {
-          const response = await fetch(API_URLS.uploadPostImage(), {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authData.token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              fileName,
-              base64Data: e.target.result
-            })
-          })
-
-          const result = await response.json()
-          if (result.code === 200) {
-            resolve(`images/user/post/${fileName}`)
-          } else {
-            reject(new Error(result.message || '图片上传失败'))
-          }
-        } catch (error) {
-          reject(error)
-        }
+    try {
+      // 转换为base64
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const range = quillEditor.getSelection(true)
+        // 插入base64图片到编辑器
+        quillEditor.insertEmbed(range.index, 'image', e.target.result)
+        // 移动光标到图片后面
+        quillEditor.setSelection(range.index + 1)
       }
-      reader.onerror = reject
-      reader.readAsDataURL(selectedFile.value)
-    })
-  } catch (error) {
-    throw new Error('图片上传失败: ' + error.message)
+      reader.readAsDataURL(file)
+
+      ElMessage.success('图片已插入')
+    } catch (error) {
+      console.error('图片插入失败:', error)
+      ElMessage.error('图片插入失败')
+    }
   }
+
+  input.click()
+}
+
+/**
+ * 提取并压缩HTML中的base64图片
+ * 将base64图片转换为相对路径，减少传输数据量
+ */
+async function processContentBeforeSubmit(content, authHeader) {
+  if (!content) return content
+
+  const base64ImgPattern = /<img[^>]+src="(data:image\/(\w+);base64,([^"]+))"[^>]*>/gi
+  const matches = [...content.matchAll(base64ImgPattern)]
+
+  if (matches.length === 0) {
+    return content
+  }
+
+  let processedContent = content
+  let successCount = 0
+
+  // 逐个处理base64图片
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i]
+    const fullMatch = match[0]
+    const base64Data = match[3]
+    const imageType = match[2]
+
+    try {
+      // 上传图片到后端
+      const uploadResult = await apiRequest(API_URLS.uploadPostImage(), {
+        method: 'POST',
+        body: JSON.stringify({
+          fileName: `post_${Date.now()}_${Math.random().toString(36).substring(2, 10)}_${i}.${imageType}`,
+          base64Data: base64Data
+        }),
+        headers: {
+          'Authorization': `Bearer ${getAuthData().token}`
+        }
+      })
+
+      if (uploadResult && uploadResult.data) {
+        // 替换为服务器返回的相对路径
+        const relativePath = uploadResult.data
+        const replacement = `<img src="${relativePath}" alt="post-image-${i}" />`
+        processedContent = processedContent.replace(fullMatch, replacement)
+        successCount++
+      }
+    } catch (error) {
+      //console.error(`上传第${i + 1}张图片失败:`, error)
+      //ElMessage.warning(`第${i + 1}张图片上传失败，将保留原图片`)
+    }
+  }
+
+  return processedContent
 }
 
 // 提交帖子
 async function submitPost() {
-  // 验证表单
   try {
     await postFormRef.value.validate()
   } catch {
     return
   }
 
-  // 检查登录状态
   const authData = getAuthData()
   if (!authData) return
 
   publishing.value = true
 
   try {
-    // 上传图片（如果有）
-    if (selectedFile.value) {
-      postForm.photo = await uploadImage()
+    ElMessage.info('正在处理图片...')
+
+    // 先处理内容中的base64图片，转换为服务器路径
+    const processedContent = await processContentBeforeSubmit(
+        postForm.postContent,
+        `Bearer ${authData.token}`
+    )
+
+    // 再次验证处理后的纯文本长度
+    const pureTextLength = calculatePureTextLength(processedContent)
+
+    if (pureTextLength > 10000) {
+      ElMessage.error('纯文本内容超过10000字符限制')
+      publishing.value = false
+      return
     }
 
-    // 提交帖子数据
+    // 提交处理后的内容（不含base64）
     const result = await apiRequest(API_URLS.createPost(), {
       method: 'POST',
       body: JSON.stringify({
         postTitle: postForm.postTitle,
-        postContent: postForm.postContent,
-        sectionId: postForm.sectionId,
-        photo: postForm.photo
+        postContent: processedContent,
+        sectionId: postForm.sectionId
       })
     })
 
     if (result) {
       ElMessage.success('帖子发布成功!')
-      // 跳转到帖子列表或帖子详情页
       router.push('/')
     }
   } catch (error) {
@@ -548,43 +544,34 @@ function resetForm() {
     type: 'warning'
   }).then(() => {
     postFormRef.value.resetFields()
-    removeImage()
     if (quillEditor) {
       quillEditor.setContents([])
     }
     postForm.postContent = ''
-
-    // 重置筛选列表
     filteredGames.value = []
     filteredSections.value = []
-
     ElMessage.success('表单已重置')
   })
 }
 
 // 初始化
 const init = async () => {
-  // 检查登录状态
   const authData = getAuthData()
   if (!authData) return
 
   try {
-    // 加载所有数据
     await Promise.all([
       loadGameTypes(),
       loadGames(),
       loadSections()
     ])
 
-    // 延迟初始化编辑器，确保DOM已渲染
     setTimeout(() => {
       initEditor()
     }, 100)
 
-    // 检查路由参数并自动填充
     const sectionId = route.query.sectionId
     if (sectionId) {
-      // 延迟执行自动填充，确保数据已加载完成
       setTimeout(() => {
         autoFillFromSectionId(parseInt(sectionId))
       }, 200)
@@ -598,19 +585,16 @@ const init = async () => {
   }
 }
 
-// 组件挂载
 onMounted(() => {
   init()
 })
 
-// 组件卸载前清理
 onBeforeUnmount(() => {
   if (quillEditor) {
     quillEditor = null
   }
 })
 </script>
-
 <style scoped>
 .newPost {
   max-width: 800px;
@@ -653,87 +637,6 @@ onBeforeUnmount(() => {
   margin-top: 20px;
 }
 
-.upload-section {
-  width: 100%;
-}
-
-.upload-area {
-  border: 2px dashed #d9d9d9;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.3s;
-  overflow: hidden;
-}
-
-.upload-area:hover {
-  border-color: #409eff;
-}
-
-.upload-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  background: #fafafa;
-  transition: all 0.3s;
-}
-
-.upload-area:hover .upload-placeholder {
-  background: #f5f7fa;
-}
-
-.upload-icon {
-  font-size: 28px;
-  color: #c0c4cc;
-  margin-bottom: 16px;
-}
-
-.upload-text {
-  color: #606266;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.upload-tip {
-  color: #909399;
-  font-size: 12px;
-}
-
-.image-preview {
-  position: relative;
-  display: inline-block;
-  width: 200px;
-  height: 150px;
-  margin: 10px;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.image-preview:hover .image-overlay {
-  opacity: 1;
-}
-
 .editor-container {
   border: 1px solid #dcdfe6;
   border-radius: 4px;
@@ -741,7 +644,7 @@ onBeforeUnmount(() => {
 }
 
 .editor {
-  height: 300px;
+  height: 400px;
 }
 
 .content-tip {
@@ -750,6 +653,19 @@ onBeforeUnmount(() => {
   color: #909399;
   font-size: 12px;
   border-top: 1px solid #ebeef5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-weight: 500;
+  color: #606266;
+}
+
+.char-count.over-limit {
+  color: #f56c6c;
+  font-weight: 600;
 }
 
 .form-actions {
@@ -775,13 +691,20 @@ onBeforeUnmount(() => {
 }
 
 :deep(.ql-editor) {
-  min-height: 250px;
+  min-height: 350px;
   padding: 12px 15px;
 }
 
 :deep(.ql-editor.ql-blank::before) {
   color: #c0c4cc;
   font-style: normal;
+}
+
+:deep(.ql-editor img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px 0;
 }
 
 /* 响应式设计 */
@@ -800,9 +723,14 @@ onBeforeUnmount(() => {
     min-width: 80px;
   }
 
-  .image-preview {
-    width: 150px;
-    height: 120px;
+  .editor {
+    height: 300px;
+  }
+
+  .content-tip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
   }
 }
 </style>

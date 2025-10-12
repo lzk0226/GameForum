@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
- * JWT工具类 - 兼容0.9.1版本
+ * JWT工具类 - 与若依框架TokenService保持一致
  * @Author : SockLightDust
  * @Date : 2025/5/25
  */
@@ -21,36 +21,29 @@ import java.util.concurrent.TimeUnit;
 public class JwtUtils {
 
     /**
-     * JWT签名密钥
+     * JWT签名密钥 - 必须与TokenService中的token.secret一致
      */
-    @Value("${jwt.secret:mySecretKey123456789012345678901234567890}")
+    @Value("${token.secret}")
     private String jwtSecretKey;
 
     /**
-     * JWT过期时间（小时）
+     * JWT过期时间（分钟）- 与TokenService保持一致
      */
-    @Value("${jwt.expiration:24}")
-    private int tokenExpirationHours;
-
-    /**
-     * JWT刷新时间（小时）
-     */
-    @Value("${jwt.refresh:168}")
-    private int refreshTokenExpirationHours;
+    @Value("${token.expireTime}")
+    private int tokenExpirationMinutes;
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    private static final long MILLIS_SECOND = 1000;
+    private static final long MILLIS_MINUTE = 60 * MILLIS_SECOND;
+
     /**
-     * 生成JWT token
-     *
-     * @param userId   用户ID
-     * @param userName 用户名
-     * @return JWT token
+     * 生成JWT token - 使用HS512算法，与TokenService一致
      */
     public String generateToken(Long userId, String userName) {
         Date currentTime = new Date();
-        Date tokenExpirationTime = new Date(currentTime.getTime() + tokenExpirationHours * 3600000L);
+        Date tokenExpirationTime = new Date(currentTime.getTime() + tokenExpirationMinutes * MILLIS_MINUTE);
 
         return Jwts.builder()
                 .setSubject(userName)
@@ -58,20 +51,18 @@ public class JwtUtils {
                 .claim("userName", userName)
                 .setIssuedAt(currentTime)
                 .setExpiration(tokenExpirationTime)
-                .signWith(SignatureAlgorithm.HS256, jwtSecretKey)
+                .signWith(SignatureAlgorithm.HS512, jwtSecretKey)
                 .compact();
     }
 
     /**
-     * 生成刷新token
-     *
-     * @param userId   用户ID
-     * @param userName 用户名
-     * @return 刷新token
+     * 生成刷新token - 使用HS512算法
      */
     public String generateRefreshToken(Long userId, String userName) {
         Date currentTime = new Date();
-        Date refreshTokenExpirationTime = new Date(currentTime.getTime() + refreshTokenExpirationHours * 3600000L);
+        // 刷新token有效期为原有效期的2倍
+        long refreshExpirationMillis = (long) tokenExpirationMinutes * 2 * MILLIS_MINUTE;
+        Date refreshTokenExpirationTime = new Date(currentTime.getTime() + refreshExpirationMillis);
 
         return Jwts.builder()
                 .setSubject(userName)
@@ -80,15 +71,12 @@ public class JwtUtils {
                 .claim("tokenType", "refresh")
                 .setIssuedAt(currentTime)
                 .setExpiration(refreshTokenExpirationTime)
-                .signWith(SignatureAlgorithm.HS256, jwtSecretKey)
+                .signWith(SignatureAlgorithm.HS512, jwtSecretKey)
                 .compact();
     }
 
     /**
      * 从token中获取用户ID
-     *
-     * @param token JWT token
-     * @return 用户ID
      */
     public Long getUserIdFromToken(String token) {
         Claims tokenClaims = parseTokenClaims(token);
@@ -101,9 +89,6 @@ public class JwtUtils {
 
     /**
      * 从token中获取用户名
-     *
-     * @param token JWT token
-     * @return 用户名
      */
     public String getUserNameFromToken(String token) {
         Claims tokenClaims = parseTokenClaims(token);
@@ -112,9 +97,6 @@ public class JwtUtils {
 
     /**
      * 从token中获取过期时间
-     *
-     * @param token JWT token
-     * @return 过期时间
      */
     public Date getExpirationDateFromToken(String token) {
         Claims tokenClaims = parseTokenClaims(token);
@@ -122,10 +104,7 @@ public class JwtUtils {
     }
 
     /**
-     * 解析JWT token获取Claims
-     *
-     * @param token JWT token
-     * @return Claims
+     * 解析JWT token获取Claims - 使用HS512算法解析，与TokenService一致
      */
     private Claims parseTokenClaims(String token) {
         try {
@@ -140,9 +119,6 @@ public class JwtUtils {
 
     /**
      * 验证token是否有效
-     *
-     * @param token JWT token
-     * @return 是否有效
      */
     public boolean validateToken(String token) {
         try {
@@ -165,10 +141,8 @@ public class JwtUtils {
     }
 
     /**
-     * 判断token是否即将过期（1小时内过期）
-     *
-     * @param token JWT token
-     * @return 是否即将过期
+     * 判断token是否即将过期（20分钟内过期则需要刷新）
+     * 与TokenService的verifyToken逻辑保持一致
      */
     public boolean isTokenExpiringSoon(String token) {
         Date tokenExpirationDate = getExpirationDateFromToken(token);
@@ -177,13 +151,12 @@ public class JwtUtils {
         }
 
         long millisecondsUntilExpiration = tokenExpirationDate.getTime() - System.currentTimeMillis();
-        return millisecondsUntilExpiration < 3600000; // 1小时 = 3600000毫秒
+        long MILLIS_MINUTE_TWENTY = 20 * 60 * 1000L;
+        return millisecondsUntilExpiration <= MILLIS_MINUTE_TWENTY;
     }
 
     /**
      * 将token加入黑名单
-     *
-     * @param token JWT token
      */
     public void invalidateToken(String token) {
         try {
@@ -196,50 +169,38 @@ public class JwtUtils {
                 }
             }
         } catch (Exception ex) {
-            // 记录日志
             System.err.println("Failed to invalidate token: " + ex.getMessage());
         }
     }
 
     /**
      * 检查token是否在黑名单中
-     *
-     * @param token JWT token
-     * @return 是否在黑名单中
      */
     private boolean checkTokenInBlacklist(String token) {
         try {
             String blacklistKey = "blacklist:" + token;
             return Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey));
         } catch (Exception ex) {
-            // 如果Redis连接失败，为了安全起见返回false（允许通过）
             return false;
         }
     }
 
     /**
      * 获取token过期时间（秒）
-     *
-     * @return 过期时间秒数
      */
     public long getExpiration() {
-        return tokenExpirationHours * 3600L; // 转换为秒
+        return (long) tokenExpirationMinutes * 60;
     }
 
     /**
      * 获取刷新token过期时间（秒）
-     *
-     * @return 刷新token过期时间秒数
      */
     public long getRefreshExpiration() {
-        return refreshTokenExpirationHours * 3600L; // 转换为秒
+        return (long) tokenExpirationMinutes * 2 * 60;
     }
 
     /**
      * 从token中获取剩余有效时间（秒）
-     *
-     * @param token JWT token
-     * @return 剩余有效时间秒数
      */
     public long getRemainingTime(String token) {
         Date tokenExpirationDate = getExpirationDateFromToken(token);
@@ -247,6 +208,6 @@ public class JwtUtils {
             return 0;
         }
         long remainingTimeMillis = tokenExpirationDate.getTime() - System.currentTimeMillis();
-        return Math.max(0, remainingTimeMillis / 1000); // 转换为秒，不能为负数
+        return Math.max(0, remainingTimeMillis / 1000);
     }
 }

@@ -40,6 +40,9 @@ public class PostController {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private FileUploadController fileUploadController;
+
     // 图片文件扩展名正则表达式
     private static final Pattern IMAGE_PATTERN = Pattern.compile(".*\\.(jpg|jpeg|png|gif|bmp|webp|svg)$", Pattern.CASE_INSENSITIVE);
 
@@ -72,7 +75,7 @@ public class PostController {
     }
 
     /**
-     * 获取帖子详细信息（会增加浏览数）
+     * 帖子详情
      */
     @GetMapping(value = "/{postId}")
     public R<Post> getInfo(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId) {
@@ -80,8 +83,184 @@ public class PostController {
         if (post == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
+
+        // 将帖子内容中的图片路径转换为base64
+        if (StringUtils.isNotEmpty(post.getPostContent())) {
+            String processedContent = fileUploadController.convertImagePathsToBase64(post.getPostContent());
+            post.setPostContent(processedContent);
+        }
+
         return R.ok(post);
     }
+
+    /**
+     * 计算纯文本内容的长度（不包含base64图片和HTML标签）
+     */
+    private Long calculatePureTextLength(String htmlContent) {
+        if (StringUtils.isEmpty(htmlContent)) {
+            return 0L;
+        }
+
+        // 移除base64图片
+        String withoutBase64 = htmlContent.replaceAll(
+                "<img[^>]+src=\"data:image/\\w+;base64,[^\"]+\"[^>]*>",
+                ""
+        );
+
+        // 移除所有HTML标签
+        String plainText = withoutBase64.replaceAll("<[^>]+>", "");
+
+        // 解码HTML实体
+        plainText = plainText.replace("&nbsp;", " ")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'");
+
+        return (long) plainText.length();
+    }
+
+    /**
+     * 验证纯文本内容长度
+     */
+    private boolean validateContentLength(String htmlContent, long maxLength) {
+        Long pureTextLength = calculatePureTextLength(htmlContent);
+        return pureTextLength <= maxLength;
+    }
+
+    // ============ 在新增帖子中使用 ============
+    @PostMapping
+    public R<?> add(@Valid @RequestBody Post post,
+                    @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        // 验证token
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            return R.fail(ResultCodeEnum.TOKEN_INVALID);
+        }
+
+        // 验证必要字段
+        if (StringUtils.isEmpty(post.getPostTitle())) {
+            return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
+        }
+        if (StringUtils.isEmpty(post.getPostContent())) {
+            return R.fail(ResultCodeEnum.POST_CONTENT_EMPTY);
+        }
+        if (post.getSectionId() == null) {
+            return R.fail(ResultCodeEnum.POST_SECTION_EMPTY);
+        }
+
+        // 验证标题长度
+        if (post.getPostTitle().length() > 100) {
+            return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
+        }
+
+        // 处理富文本内容：提取base64图片并保存
+        Map<String, Object> processResult = fileUploadController.processRichTextContent(
+                post.getPostContent(), authHeader
+        );
+
+        String processedContent = (String) processResult.get("content");
+        String firstImagePath = (String) processResult.get("firstImagePath");
+
+        // 验证纯文本内容长度（不计入base64和HTML标签）
+        // 这里设置为100000字符的纯文本内容限制
+        if (!validateContentLength(processedContent, 100000L)) {
+            return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
+        }
+
+        // 设置处理后的内容
+        post.setPostContent(processedContent);
+
+        // 设置第一张图片作为photo字段
+        if (firstImagePath != null) {
+            post.setPhoto(firstImagePath);
+        }
+
+        // 设置用户信息
+        post.setUserId(userId);
+        String userName = jwtUtils.getUserNameFromToken(authHeader.substring(7));
+        post.setCreateBy(userName);
+
+        int result = postService.insertPost(post);
+        return result > 0 ? R.ok("发布成功") : R.fail("发布失败");
+    }
+
+    // ============ 在修改帖子中使用 ============
+    @PutMapping
+    public R<?> edit(@Valid @RequestBody Post post,
+                     @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        // 验证token
+        Long userId = validateTokenAndGetUserId(authHeader);
+        if (userId == null) {
+            return R.fail(ResultCodeEnum.TOKEN_INVALID);
+        }
+
+        if (post.getPostId() == null) {
+            return R.fail(ResultCodeEnum.VALIDATION_ERROR, "帖子ID不能为空");
+        }
+
+        // 验证帖子是否存在
+        Post existPost = postService.selectPostById(post.getPostId());
+        if (existPost == null) {
+            return R.fail(ResultCodeEnum.POST_NOT_FOUND);
+        }
+
+        // 检查帖子状态
+        if ("2".equals(existPost.getDelFlag())) {
+            return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
+        }
+        if (!"0".equals(existPost.getStatus())) {
+            return R.fail(ResultCodeEnum.POST_STATUS_DISABLED);
+        }
+
+        // 验证用户权限（只能修改自己的帖子）
+        if (!userId.equals(existPost.getUserId())) {
+            return R.fail(ResultCodeEnum.POST_PERMISSION_DENIED);
+        }
+
+        // 验证必要字段
+        if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().trim().isEmpty()) {
+            return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
+        }
+        if (StringUtils.isNotEmpty(post.getPostContent()) && post.getPostContent().trim().isEmpty()) {
+            return R.fail(ResultCodeEnum.POST_CONTENT_EMPTY);
+        }
+
+        // 验证标题长度
+        if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().length() > 100) {
+            return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
+        }
+
+        // 如果更新了内容，处理富文本
+        if (StringUtils.isNotEmpty(post.getPostContent())) {
+            Map<String, Object> processResult = fileUploadController.processRichTextContent(
+                    post.getPostContent(), authHeader
+            );
+
+            String processedContent = (String) processResult.get("content");
+            String firstImagePath = (String) processResult.get("firstImagePath");
+
+            // 验证纯文本内容长度（不计入base64和HTML标签）
+            if (!validateContentLength(processedContent, 100000L)) {
+                return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
+            }
+
+            post.setPostContent(processedContent);
+
+            // 更新第一张图片
+            if (firstImagePath != null) {
+                post.setPhoto(firstImagePath);
+            }
+        }
+
+        String userName = jwtUtils.getUserNameFromToken(authHeader.substring(7));
+        post.setUpdateBy(userName);
+
+        int result = postService.updatePost(post);
+        return result > 0 ? R.ok("修改成功") : R.fail("修改失败");
+    }
+
 
     /**
      * 获取帖子基本信息（不增加浏览数）
@@ -166,6 +345,7 @@ public class PostController {
     /**
      * 新增帖子
      */
+    /*
     @PostMapping
     public R<?> add(@Valid @RequestBody Post post,
                     @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -209,9 +389,11 @@ public class PostController {
         return result > 0 ? R.ok("发布成功") : R.fail("发布失败");
     }
 
+    */
     /**
      * 修改帖子
      */
+    /*
     @PutMapping
     public R<?> edit(@Valid @RequestBody Post post,
                      @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -271,7 +453,7 @@ public class PostController {
         int result = postService.updatePost(post);
         return result > 0 ? R.ok("修改成功") : R.fail("修改失败");
     }
-
+*/
     /**
      * 隐藏帖子（用户端的"删除"操作，实际是逻辑删除）
      */

@@ -55,7 +55,11 @@ export const API_URLS = {
     getPostPhotos: () => `${BASE_URL}/user/public/`,
     getGameIcon: () => `${BASE_URL}/user/public/`,
     getSectionIcon: () => `${BASE_URL}/user/public/`,
-    getGamePhoto: () => `${BASE_URL}/user/public/`
+    getGamePhoto: () => `${BASE_URL}/user/public/`,
+    // APK下载相关
+    getApkDownloadUrl() {
+        return `${BASE_URL}/user/download/apk`;
+    },
 }
 
 export default API_URLS
