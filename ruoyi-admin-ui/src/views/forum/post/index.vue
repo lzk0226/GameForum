@@ -264,7 +264,7 @@ export default {
         viewCount: null,
         topFlag: null,
         hotFlag: null,
-        status: null,
+        status: 0,
       },
       // 表单参数
       form: {},
@@ -402,15 +402,23 @@ export default {
         }
       })
     },
-    /** 删除按钮操作 */
+    /** 删除按钮操作（改为逻辑删除） */
     handleDelete(row) {
-      const postIds = row.postId || this.ids
-      this.$modal.confirm('是否确认删除论坛帖子编号为"' + postIds + '"的数据项？').then(function() {
-        return delPost(postIds)
-      }).then(() => {
-        this.getList()
-        this.$modal.msgSuccess("删除成功")
-      }).catch(() => {})
+      const postIds = row.postId ? [row.postId] : this.ids
+      this.$modal.confirm('是否确认将论坛帖子编号为 "' + postIds.join(', ') + '" 的帖子标记为已删除？')
+        .then(() => {
+          // 循环修改状态
+          const requests = postIds.map(id => {
+            const updateData = { postId: id, status: 2 } // 2 表示已删除
+            return updatePost(updateData)
+          })
+          return Promise.all(requests)
+        })
+        .then(() => {
+          this.getList()
+          this.$modal.msgSuccess("帖子已标记为删除")
+        })
+        .catch(() => {})
     },
     /** 导出按钮操作 */
     handleExport() {
