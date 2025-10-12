@@ -11,7 +11,7 @@
  Target Server Version : 80036
  File Encoding         : 65001
 
- Date: 19/06/2025 11:21:35
+ Date: 12/10/2025 20:26:19
 */
 
 SET NAMES utf8mb4;
@@ -22,11 +22,11 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `biz_announcement`;
 CREATE TABLE `biz_announcement`  (
-  `titel` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-  `content` varchar(512) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-  `time` datetime NULL DEFAULT NULL,
-  `photo` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
-  `issuer_id` int NOT NULL,
+  `titel` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '标题',
+  `content` varchar(512) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '内容',
+  `time` datetime NULL DEFAULT NULL COMMENT '时间',
+  `photo` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '图片',
+  `issuer_id` int NOT NULL COMMENT '发布人',
   PRIMARY KEY (`titel`, `content`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
@@ -38,241 +38,6 @@ INSERT INTO `biz_announcement` VALUES ('停机维护', '维护', '2025-05-28 10:
 INSERT INTO `biz_announcement` VALUES ('更新', '更新', '2025-05-28 10:09:28', NULL, 1);
 INSERT INTO `biz_announcement` VALUES ('系统维护通知', '系统停机维护', '2025-05-28 09:24:09', NULL, 1);
 INSERT INTO `biz_announcement` VALUES ('网站更新公告', '网站更新', '2025-05-28 08:39:50', NULL, 1);
-
--- ----------------------------
--- Table structure for biz_balance_log
--- ----------------------------
-DROP TABLE IF EXISTS `biz_balance_log`;
-CREATE TABLE `biz_balance_log`  (
-  `log_id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID',
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `change_type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '变动类型（RECHARGE：充值，CONSUME：消费，REFUND：退款，FREEZE：冻结，UNFREEZE：解冻）',
-  `change_amount` decimal(10, 2) NOT NULL COMMENT '变动金额',
-  `before_balance` decimal(10, 2) NOT NULL COMMENT '变动前余额',
-  `after_balance` decimal(10, 2) NOT NULL COMMENT '变动后余额',
-  `related_order_id` bigint NULL DEFAULT NULL COMMENT '关联订单ID',
-  `description` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '变动说明',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`log_id`) USING BTREE,
-  INDEX `idx_log_user`(`user_id` ASC) USING BTREE,
-  INDEX `idx_log_type`(`change_type` ASC) USING BTREE,
-  INDEX `idx_log_create_time`(`create_time` ASC) USING BTREE,
-  INDEX `idx_log_user_time`(`user_id` ASC, `create_time` ASC) USING BTREE,
-  INDEX `idx_balance_log_user_type_time`(`user_id` ASC, `change_type` ASC, `create_time` DESC) USING BTREE,
-  CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '余额变动日志表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_balance_log
--- ----------------------------
-INSERT INTO `biz_balance_log` VALUES (1, 1, 'RECHARGE', 2000.00, 0.00, 2000.00, NULL, '支付宝充值', '2025-05-23 12:00:00');
-INSERT INTO `biz_balance_log` VALUES (2, 2, 'RECHARGE', 500.00, 0.00, 500.00, NULL, '微信充值', '2025-05-23 12:00:00');
-INSERT INTO `biz_balance_log` VALUES (3, 1, 'CONSUME', -159.00, 2000.00, 1841.00, 1, '购买赛博朋克2077', '2025-05-23 14:25:00');
-INSERT INTO `biz_balance_log` VALUES (4, 1, 'CONSUME', -39.00, 1841.00, 1802.00, 3, '购买巫师3年度版', '2025-05-23 16:40:00');
-INSERT INTO `biz_balance_log` VALUES (5, 1, 'RECHARGE', 100.00, 1802.00, 1902.00, NULL, '支付宝充值', '2025-05-23 17:00:00');
-INSERT INTO `biz_balance_log` VALUES (6, 2, 'CONSUME', -89.00, 500.00, 411.00, 2, '购买CS2 Prime升级', '2025-05-23 15:15:00');
-INSERT INTO `biz_balance_log` VALUES (7, 2, 'CONSUME', -79.00, 411.00, 332.00, 4, '购买GTA5 Premium版', '2025-05-23 17:30:00');
-
--- ----------------------------
--- Table structure for biz_cdk_category
--- ----------------------------
-DROP TABLE IF EXISTS `biz_cdk_category`;
-CREATE TABLE `biz_cdk_category`  (
-  `category_id` int NOT NULL AUTO_INCREMENT COMMENT '分类ID',
-  `category_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '分类名称',
-  `parent_id` int NULL DEFAULT 0 COMMENT '父分类ID（0表示顶级分类）',
-  `sort_order` int NULL DEFAULT 0 COMMENT '排序权重',
-  `icon` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '分类图标',
-  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '状态（0正常 1停用）',
-  `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '更新者',
-  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
-  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`category_id`) USING BTREE,
-  INDEX `idx_category_parent`(`parent_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'CDK商品分类表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_cdk_category
--- ----------------------------
-INSERT INTO `biz_cdk_category` VALUES (1, '热门游戏', 0, 1, 'hot-games.png', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '热门游戏分类');
-INSERT INTO `biz_cdk_category` VALUES (2, 'RPG游戏', 1, 1, 'rpg-games.png', '0', 'admin', '2025-05-23 12:00:00', '', NULL, 'RPG类游戏');
-INSERT INTO `biz_cdk_category` VALUES (3, '射击游戏', 1, 2, 'fps-games.png', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '射击类游戏');
-INSERT INTO `biz_cdk_category` VALUES (4, '独立游戏', 0, 2, 'indie-games.png', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '独立开发游戏');
-INSERT INTO `biz_cdk_category` VALUES (5, 'DLC内容', 0, 3, 'dlc-content.png', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '游戏DLC扩展包');
-
--- ----------------------------
--- Table structure for biz_cdk_order
--- ----------------------------
-DROP TABLE IF EXISTS `biz_cdk_order`;
-CREATE TABLE `biz_cdk_order`  (
-  `order_id` bigint NOT NULL AUTO_INCREMENT COMMENT '订单ID',
-  `order_no` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '订单号',
-  `user_id` bigint NOT NULL COMMENT '购买用户ID',
-  `product_id` int NOT NULL COMMENT '商品ID',
-  `product_name` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '商品名称（冗余存储）',
-  `quantity` int NOT NULL DEFAULT 1 COMMENT '购买数量',
-  `unit_price` decimal(10, 2) NOT NULL COMMENT '单价',
-  `total_amount` decimal(10, 2) NOT NULL COMMENT '总金额',
-  `discount_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '优惠金额',
-  `actual_amount` decimal(10, 2) NOT NULL COMMENT '实付金额',
-  `payment_method` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '支付方式（ALIPAY，WECHAT，BALANCE等）',
-  `payment_no` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '支付流水号',
-  `order_status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '订单状态（0待支付 1已支付 2已发货 3已完成 4已取消 5已退款）',
-  `delivery_status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '发货状态（0未发货 1已发货 2发货失败）',
-  `contact_email` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '联系邮箱',
-  `buyer_note` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '买家留言',
-  `admin_note` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '管理员备注',
-  `pay_time` datetime NULL DEFAULT NULL COMMENT '支付时间',
-  `delivery_time` datetime NULL DEFAULT NULL COMMENT '发货时间',
-  `complete_time` datetime NULL DEFAULT NULL COMMENT '完成时间',
-  `expire_time` datetime NULL DEFAULT NULL COMMENT '订单过期时间',
-  `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '更新者',
-  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
-  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `del_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表未删除，1代表已删除）',
-  PRIMARY KEY (`order_id`) USING BTREE,
-  UNIQUE INDEX `uk_order_no`(`order_no` ASC) USING BTREE,
-  INDEX `idx_order_user`(`user_id` ASC) USING BTREE,
-  INDEX `idx_order_product`(`product_id` ASC) USING BTREE,
-  INDEX `idx_order_status`(`order_status` ASC) USING BTREE,
-  INDEX `idx_order_create_time`(`create_time` ASC) USING BTREE,
-  INDEX `idx_order_user_status`(`user_id` ASC, `order_status` ASC) USING BTREE,
-  INDEX `idx_order_status_time`(`order_status` ASC, `create_time` ASC) USING BTREE,
-  INDEX `idx_order_user_status_time`(`user_id` ASC, `order_status` ASC, `create_time` DESC) USING BTREE,
-  INDEX `idx_order_payment_status`(`payment_method` ASC, `order_status` ASC) USING BTREE,
-  CONSTRAINT `fk_order_product` FOREIGN KEY (`product_id`) REFERENCES `biz_cdk_product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_order_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `chk_order_amount_positive` CHECK ((`total_amount` >= 0) and (`actual_amount` >= 0) and (`discount_amount` >= 0)),
-  CONSTRAINT `chk_order_status` CHECK (`order_status` in (_utf8mb4'0',_utf8mb4'1',_utf8mb4'2',_utf8mb4'3',_utf8mb4'4',_utf8mb4'5'))
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'CDK订单表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_cdk_order
--- ----------------------------
-INSERT INTO `biz_cdk_order` VALUES (1, 'ORD20250523001', 1, 1, '赛博朋克2077 Steam版', 1, 159.00, 159.00, 0.00, 159.00, 'BALANCE', NULL, '3', '1', 'admin@example.com', '希望能早点发货', '自动发货完成', '2025-05-23 14:25:00', '2025-05-23 14:30:00', '2025-05-23 14:30:00', '2025-05-23 18:25:00', 'admin', '2025-05-23 14:20:00', '', '2025-05-23 14:30:00', '订单已完成', '0');
-INSERT INTO `biz_cdk_order` VALUES (2, 'ORD20250523002', 2, 2, 'CS2 Prime升级', 1, 89.00, 89.00, 0.00, 89.00, 'ALIPAY', 'ALI20250523789456123', '3', '1', 'user2@example.com', '', '自动发货', '2025-05-23 15:15:00', '2025-05-23 15:20:00', '2025-05-23 15:20:00', '2025-05-23 19:15:00', 'ry', '2025-05-23 15:10:00', '', '2025-05-23 15:20:00', '订单已完成', '0');
-INSERT INTO `biz_cdk_order` VALUES (3, 'ORD20250523003', 1, 4, '巫师3：狂猎 年度版', 1, 39.00, 39.00, 0.00, 39.00, 'BALANCE', NULL, '3', '1', 'admin@example.com', '经典RPG！', '自动发货', '2025-05-23 16:40:00', '2025-05-23 16:45:00', '2025-05-23 16:45:00', '2025-05-23 20:40:00', 'admin', '2025-05-23 16:35:00', '', '2025-05-23 16:45:00', '订单已完成', '0');
-INSERT INTO `biz_cdk_order` VALUES (4, 'ORD20250523004', 2, 5, 'GTA5 Premium版', 1, 79.00, 79.00, 0.00, 79.00, 'WECHAT', 'WX20250523456789012', '1', '0', 'user2@example.com', '什么时候发货？', '等待发货', '2025-05-23 17:30:00', NULL, NULL, '2025-05-23 21:30:00', 'ry', '2025-05-23 17:25:00', '', '2025-05-23 17:30:00', '等待发货', '0');
-
--- ----------------------------
--- Table structure for biz_cdk_order_item
--- ----------------------------
-DROP TABLE IF EXISTS `biz_cdk_order_item`;
-CREATE TABLE `biz_cdk_order_item`  (
-  `item_id` bigint NOT NULL AUTO_INCREMENT COMMENT '订单项ID',
-  `order_id` bigint NOT NULL COMMENT '订单ID',
-  `stock_id` bigint NOT NULL COMMENT '库存ID',
-  `cdk_code` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT 'CDK码',
-  `delivery_status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '发货状态（0未发货 1已发货）',
-  `delivery_time` datetime NULL DEFAULT NULL COMMENT '发货时间',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`item_id`) USING BTREE,
-  INDEX `idx_orderitem_order`(`order_id` ASC) USING BTREE,
-  INDEX `idx_orderitem_stock`(`stock_id` ASC) USING BTREE,
-  CONSTRAINT `fk_orderitem_order` FOREIGN KEY (`order_id`) REFERENCES `biz_cdk_order` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_orderitem_stock` FOREIGN KEY (`stock_id`) REFERENCES `biz_cdk_stock` (`stock_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'CDK订单项表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_cdk_order_item
--- ----------------------------
-INSERT INTO `biz_cdk_order_item` VALUES (1, 1, 3, 'CB2077-STEAM-MNO345-PQR678', '1', '2025-05-23 14:30:00', '2025-05-23 14:30:00');
-INSERT INTO `biz_cdk_order_item` VALUES (2, 2, 5, 'CS2-PRIME-DEF456-UVW012', '1', '2025-05-23 15:20:00', '2025-05-23 15:20:00');
-INSERT INTO `biz_cdk_order_item` VALUES (3, 3, 7, 'WITCHER3-GOTY-CCC333-DDD444', '1', '2025-05-23 16:45:00', '2025-05-23 16:45:00');
-
--- ----------------------------
--- Table structure for biz_cdk_product
--- ----------------------------
-DROP TABLE IF EXISTS `biz_cdk_product`;
-CREATE TABLE `biz_cdk_product`  (
-  `product_id` int NOT NULL AUTO_INCREMENT COMMENT 'CDK商品ID',
-  `product_name` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '商品名称',
-  `product_description` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT '商品描述',
-  `game_id` int NOT NULL COMMENT '关联游戏ID',
-  `product_type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '商品类型（GAME_KEY：游戏本体，DLC：DLC内容，ITEM：游戏道具）',
-  `original_price` decimal(10, 2) NOT NULL COMMENT '原价',
-  `sale_price` decimal(10, 2) NOT NULL COMMENT '售价',
-  `discount_rate` decimal(3, 2) NULL DEFAULT 1.00 COMMENT '折扣率（1.00表示无折扣）',
-  `stock_count` int NOT NULL DEFAULT 0 COMMENT '库存数量',
-  `sold_count` int NULL DEFAULT 0 COMMENT '已售数量',
-  `platform` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '平台（STEAM，EPIC，ORIGIN等）',
-  `region` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT 'CN' COMMENT '区域（CN，US，EU等）',
-  `auto_delivery` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '1' COMMENT '是否自动发货（0否 1是）',
-  `sort_order` int NULL DEFAULT 0 COMMENT '排序权重',
-  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '状态（0正常 1停用 2售罄）',
-  `del_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
-  `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '更新者',
-  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
-  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`product_id`) USING BTREE,
-  INDEX `idx_product_game`(`game_id` ASC) USING BTREE,
-  INDEX `idx_product_platform`(`platform` ASC) USING BTREE,
-  INDEX `idx_product_type`(`product_type` ASC) USING BTREE,
-  INDEX `idx_product_status_sort`(`status` ASC, `sort_order` ASC) USING BTREE,
-  INDEX `idx_product_game_status`(`game_id` ASC, `status` ASC) USING BTREE,
-  CONSTRAINT `fk_product_game` FOREIGN KEY (`game_id`) REFERENCES `biz_game` (`game_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `chk_product_price_positive` CHECK ((`original_price` >= 0) and (`sale_price` >= 0) and (`discount_rate` > 0) and (`discount_rate` <= 1))
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'CDK商品表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_cdk_product
--- ----------------------------
-INSERT INTO `biz_cdk_product` VALUES (1, '赛博朋克2077 Steam版', '《赛博朋克2077》Steam平台激活码，包含游戏本体，支持中文', 1, 'GAME_KEY', 298.00, 159.00, 0.53, 3, 1, 'STEAM', 'CN', '1', 1, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', '热门RPG游戏');
-INSERT INTO `biz_cdk_product` VALUES (2, '反恐精英2 Prime升级', 'CS2 Prime会员升级，享受Prime匹配和独家掉落', 2, 'DLC', 105.00, 89.00, 0.85, 1, 1, 'STEAM', 'CN', '1', 2, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', 'CS2升级包');
-INSERT INTO `biz_cdk_product` VALUES (3, '文明6 豪华版', '《文明VI》豪华版，包含游戏本体+季票', 3, 'GAME_KEY', 399.00, 199.00, 0.50, 0, 0, 'STEAM', 'CN', '1', 3, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', '策略游戏经典');
-INSERT INTO `biz_cdk_product` VALUES (4, '巫师3：狂猎 年度版', '《巫师3》年度版，包含游戏本体和所有DLC', 4, 'GAME_KEY', 199.00, 39.00, 0.20, 1, 1, 'STEAM', 'CN', '1', 4, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', 'RPG神作特惠');
-INSERT INTO `biz_cdk_product` VALUES (5, 'GTA5 Premium版', '《侠盗猎车手V》豪华版，包含在线模式现金包', 5, 'GAME_KEY', 199.00, 79.00, 0.40, 1, 0, 'STEAM', 'CN', '1', 5, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', '开放世界经典');
-INSERT INTO `biz_cdk_product` VALUES (6, '赛博朋克2077：往日之影', '《赛博朋克2077》DLC扩展包：往日之影', 1, 'DLC', 149.00, 129.00, 0.87, 0, 0, 'STEAM', 'CN', '1', 6, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 19:25:39', '赛博朋克DLC');
-
--- ----------------------------
--- Table structure for biz_cdk_stock
--- ----------------------------
-DROP TABLE IF EXISTS `biz_cdk_stock`;
-CREATE TABLE `biz_cdk_stock`  (
-  `stock_id` bigint NOT NULL AUTO_INCREMENT COMMENT '库存ID',
-  `product_id` int NOT NULL COMMENT '商品ID',
-  `cdk_code` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT 'CDK码',
-  `batch_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '批次号',
-  `cost_price` decimal(10, 2) NULL DEFAULT NULL COMMENT '成本价',
-  `expire_time` datetime NULL DEFAULT NULL COMMENT '过期时间',
-  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '状态（0未售出 1已售出 2已冻结 3已过期）',
-  `sold_time` datetime NULL DEFAULT NULL COMMENT '售出时间',
-  `sold_order_id` bigint NULL DEFAULT NULL COMMENT '售出订单ID',
-  `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '更新者',
-  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
-  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (`stock_id`) USING BTREE,
-  UNIQUE INDEX `uk_cdk_code`(`cdk_code` ASC) USING BTREE,
-  INDEX `idx_stock_product`(`product_id` ASC) USING BTREE,
-  INDEX `idx_stock_status`(`status` ASC) USING BTREE,
-  INDEX `idx_stock_batch`(`batch_number` ASC) USING BTREE,
-  INDEX `idx_stock_product_status`(`product_id` ASC, `status` ASC) USING BTREE,
-  INDEX `idx_stock_product_status_expire`(`product_id` ASC, `status` ASC, `expire_time` ASC) USING BTREE,
-  INDEX `idx_stock_batch_status`(`batch_number` ASC, `status` ASC) USING BTREE,
-  CONSTRAINT `fk_stock_product` FOREIGN KEY (`product_id`) REFERENCES `biz_cdk_product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `chk_stock_status` CHECK (`status` in (_utf8mb4'0',_utf8mb4'1',_utf8mb4'2',_utf8mb4'3'))
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'CDK库存表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_cdk_stock
--- ----------------------------
-INSERT INTO `biz_cdk_stock` VALUES (1, 1, 'CB2077-STEAM-ABC123-DEF456', 'BATCH001', 120.00, '2026-12-31 23:59:59', '0', NULL, NULL, 'admin', '2025-05-23 12:00:00', '', NULL, '赛博朋克CDK');
-INSERT INTO `biz_cdk_stock` VALUES (2, 1, 'CB2077-STEAM-GHI789-JKL012', 'BATCH001', 120.00, '2026-12-31 23:59:59', '0', NULL, NULL, 'admin', '2025-05-23 12:00:00', '', NULL, '');
-INSERT INTO `biz_cdk_stock` VALUES (3, 1, 'CB2077-STEAM-MNO345-PQR678', 'BATCH001', 120.00, '2026-12-31 23:59:59', '1', '2025-05-23 14:30:00', 1, 'admin', '2025-05-23 12:00:00', '', '2025-05-23 14:30:00', '已售出');
-INSERT INTO `biz_cdk_stock` VALUES (4, 2, 'CS2-PRIME-ABC123-XYZ789', 'BATCH002', 60.00, '2026-06-30 23:59:59', '0', NULL, NULL, 'admin', '2025-05-23 12:00:00', '', NULL, 'CS2 Prime');
-INSERT INTO `biz_cdk_stock` VALUES (5, 2, 'CS2-PRIME-DEF456-UVW012', 'BATCH002', 60.00, '2026-06-30 23:59:59', '1', '2025-05-23 15:20:00', 2, 'admin', '2025-05-23 12:00:00', '', '2025-05-23 15:20:00', '已售出');
-INSERT INTO `biz_cdk_stock` VALUES (6, 4, 'WITCHER3-GOTY-AAA111-BBB222', 'BATCH003', 25.00, '2027-12-31 23:59:59', '0', NULL, NULL, 'admin', '2025-05-23 12:00:00', '', NULL, '巫师3年度版');
-INSERT INTO `biz_cdk_stock` VALUES (7, 4, 'WITCHER3-GOTY-CCC333-DDD444', 'BATCH003', 25.00, '2027-12-31 23:59:59', '1', '2025-05-23 16:45:00', 3, 'admin', '2025-05-23 12:00:00', '', '2025-05-23 16:45:00', '已售出');
-INSERT INTO `biz_cdk_stock` VALUES (8, 5, 'GTA5-PREMIUM-EEE555-FFF666', 'BATCH004', 50.00, '2026-12-31 23:59:59', '0', NULL, NULL, 'admin', '2025-05-23 12:00:00', '', NULL, 'GTA5豪华版');
-INSERT INTO `biz_cdk_stock` VALUES (9, 1, 'dfsf-343-fs3-4f', 'BATCH001', 11.00, '2025-05-31 00:00:00', '0', NULL, NULL, '', '2025-05-23 13:56:02', '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for biz_comment
@@ -303,7 +68,7 @@ CREATE TABLE `biz_comment`  (
   CONSTRAINT `fk_comment_parent` FOREIGN KEY (`parent_id`) REFERENCES `biz_comment` (`comment_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_comment_post` FOREIGN KEY (`post_id`) REFERENCES `biz_post` (`post_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '评论表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 44 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '评论表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of biz_comment
@@ -322,6 +87,35 @@ INSERT INTO `biz_comment` VALUES (11, '666666666', 12, 1, 101, NULL, 0, '1', '0'
 INSERT INTO `biz_comment` VALUES (12, '你好', 1, 1, 101, NULL, 0, '1', '2', 'addd', '2025-05-29 17:07:24', 'addd', '2025-05-29 17:40:46', NULL);
 INSERT INTO `biz_comment` VALUES (13, '你好你好', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-05-29 17:15:36', '', NULL, NULL);
 INSERT INTO `biz_comment` VALUES (14, '你好', 1, 1, 101, 13, 0, '0', '2', 'addd', '2025-05-29 17:15:50', 'addd', '2025-06-19 09:02:01', NULL);
+INSERT INTO `biz_comment` VALUES (15, '万元神', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-06-20 00:41:47', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (16, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:29', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (17, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:32', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (18, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:34', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (19, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:36', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (20, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:38', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (21, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:40', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (22, 'cs', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:41', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (23, '测试', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 15:30:43', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (24, '4535353', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 18:59:03', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (25, '56466456', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 19:03:02', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (26, '你好你好你好', 1, 1, 101, NULL, 0, '0', '0', 'addd', '2025-07-15 19:04:34', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (27, '你好你好', 25, 1, 111, NULL, 0, '0', '0', 'lppp', '2025-07-15 23:23:29', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (28, '的说法是', 1, 1, 111, NULL, 0, '0', '0', 'lppp', '2025-07-16 00:24:42', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (29, '的分手费', 1, 1, 111, 28, 0, '0', '0', 'lppp', '2025-07-16 00:24:48', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (30, '大大', 1, 1, 111, NULL, 0, '0', '0', 'lppp', '2025-07-16 00:26:44', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (31, '大大', 1, 1, 111, 30, 0, '0', '0', 'lppp', '2025-07-16 00:26:48', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (32, '222222222222222', 28, 1, 111, NULL, 0, '0', '0', 'lppp', '2025-07-16 13:33:12', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (33, '33333333333333333333333333333333333333333333333333333333333333333', 28, 1, 111, NULL, 0, '0', '0', 'lppp', '2025-07-16 13:33:16', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (34, '342', 1, 1, 111, 1, 0, '0', '0', 'lppp', '2025-07-16 13:56:49', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (35, 'dad', 1, 1, 101, 1, 0, '0', '0', 'addd', '2025-07-16 15:46:50', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (36, '让他担任广东', 1, 1, 111, 1, 0, '0', '0', 'lppp', '2025-07-16 20:36:43', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (37, '你好你好', 1, NULL, 111, NULL, 0, '0', '0', 'lppp', '2025-07-16 22:15:04', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (38, 'dada', 487, 7, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 12:32:00', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (39, 'dadadadadadadad', 487, 7, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 12:32:04', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (40, '财政赤字', 493, 6, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 12:49:35', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (41, '擦擦', 493, 6, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 12:49:38', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (42, '出租车', 493, 6, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 12:51:00', '', NULL, NULL);
+INSERT INTO `biz_comment` VALUES (43, 'v', 491, NULL, 111, NULL, 0, '0', '0', 'lppp', '2025-10-12 14:10:07', '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for biz_comment_like
@@ -340,8 +134,8 @@ CREATE TABLE `biz_comment_like`  (
 -- ----------------------------
 -- Records of biz_comment_like
 -- ----------------------------
-INSERT INTO `biz_comment_like` VALUES (101, 1, '2025-06-19 09:01:16');
-INSERT INTO `biz_comment_like` VALUES (101, 2, '2025-06-19 09:01:08');
+INSERT INTO `biz_comment_like` VALUES (111, 1, '2025-07-18 00:11:21');
+INSERT INTO `biz_comment_like` VALUES (111, 2, '2025-10-11 21:14:58');
 
 -- ----------------------------
 -- Table structure for biz_game
@@ -363,7 +157,7 @@ CREATE TABLE `biz_game`  (
   `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`game_id`) USING BTREE,
   INDEX `fk_game_type`(`game_type_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '游戏表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '游戏表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of biz_game
@@ -371,15 +165,25 @@ CREATE TABLE `biz_game`  (
 INSERT INTO `biz_game` VALUES (1, '赛博朋克2077', '《赛博朋克2077》是一款开放世界动作冒险RPG游戏，故事发生在夜之城——一座痴迷于权力、魅力和身体改造的大都市。', 1, 'images/games/icon/1.jpg', 'images/games/images/1.jpg,images/games/images/2.jpg', '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 13:32:23', '知名RPG游戏');
 INSERT INTO `biz_game` VALUES (2, '反恐精英2', 'Counter-Strike 2是备受赞誉的Counter-Strike系列的最新力作，基于Source 2引擎打造。', 2, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '经典FPS游戏');
 INSERT INTO `biz_game` VALUES (3, '文明6', '《文明VI》提供了多种新方式让您与世界互动、在地图上扩张城市、发展文明，以及对抗历史上的伟大领袖以建立起经得起时间考验的强盛文明。', 3, NULL, NULL, '0', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '策略游戏经典');
-INSERT INTO `biz_game` VALUES (4, '巫师3：狂猎', '《巫师3：狂猎》是一款故事丰富的开放世界RPG游戏，设定在一个视觉效果令人惊叹的奇幻世界中，玩家的每个选择都意义重大。', 1, NULL, NULL, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-06-03 16:09:05', 'RPG神作');
+INSERT INTO `biz_game` VALUES (4, '巫师3：狂猎', '《巫师3：狂猎》是一款故事丰富的开放世界RPG游戏，设定在一个视觉效果令人惊叹的奇幻世界中，玩家的每个选择都意义重大。', 1, NULL, NULL, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-07-16 12:35:25', 'RPG神作');
 INSERT INTO `biz_game` VALUES (5, 'GTA5', '《侠盗猎车手V》将驾驶、射击和开放世界的游戏机制发挥到了极致，为玩家呈现了迄今为止最大、最多样化的开放世界。', 4, NULL, NULL, '0', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '开放世界经典');
+INSERT INTO `biz_game` VALUES (6, '模拟城市5', '建设并管理你自己的城市，体验城市规划的挑战与乐趣。', 5, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '经典模拟经营游戏');
+INSERT INTO `biz_game` VALUES (7, 'FIFA 24', '体验最真实的足球比赛，管理球队、参与联赛。', 6, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '热门足球游戏');
+INSERT INTO `biz_game` VALUES (8, '节奏光剑', '跟随音乐节奏挥动光剑，感受沉浸式音乐体验。', 7, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, 'VR音乐节奏游戏');
+INSERT INTO `biz_game` VALUES (9, '生化危机4 重制版', '恐怖生存经典重制，体验更加真实的恐怖氛围。', 8, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '恐怖游戏代表作');
+INSERT INTO `biz_game` VALUES (10, '炉石传说', '暴雪出品卡牌对战游戏，策略与运气并存。', 9, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '热门卡牌游戏');
+INSERT INTO `biz_game` VALUES (11, '城市：天际线', '打造属于你的梦想城市，管理交通、教育、医疗等系统。', 5, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '城市建设模拟');
+INSERT INTO `biz_game` VALUES (12, 'NBA 2K24', '最真实的篮球模拟游戏，打造你的梦幻球队。', 6, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '篮球模拟游戏');
+INSERT INTO `biz_game` VALUES (13, '喵斯快跑', '结合音乐与跑酷的二次元节奏游戏。', 7, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '二次元音乐游戏');
+INSERT INTO `biz_game` VALUES (14, '黎明杀机', '非对称对抗恐怖游戏，扮演杀手或幸存者。', 8, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '多人恐怖游戏');
+INSERT INTO `biz_game` VALUES (15, '影之诗', '日式幻想风卡牌对战游戏，策略深度丰富。', 9, 'images/games/icon/cs2.jpg', 'images/games/icon/cs2.jpg', '0', '0', 'admin', '2025-08-22 20:58:00', '', NULL, '日式卡牌游戏');
 
 -- ----------------------------
 -- Table structure for biz_game_type
 -- ----------------------------
 DROP TABLE IF EXISTS `biz_game_type`;
 CREATE TABLE `biz_game_type`  (
-  `type_id` int NOT NULL AUTO_INCREMENT,
+  `type_id` int NOT NULL AUTO_INCREMENT COMMENT '类型ID',
   `type_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '类型名称',
   `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
@@ -387,7 +191,7 @@ CREATE TABLE `biz_game_type`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`type_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '游戏类型表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '游戏类型表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of biz_game_type
@@ -396,6 +200,11 @@ INSERT INTO `biz_game_type` VALUES (1, 'RPG角色扮演', 'admin', '2025-05-23 1
 INSERT INTO `biz_game_type` VALUES (2, 'FPS射击', 'admin', '2025-05-23 12:00:00', '', NULL, '第一人称射击游戏');
 INSERT INTO `biz_game_type` VALUES (3, '策略游戏', 'admin', '2025-05-23 12:00:00', '', NULL, '策略类游戏');
 INSERT INTO `biz_game_type` VALUES (4, '动作冒险', 'admin', '2025-05-23 12:00:00', '', NULL, '动作冒险游戏');
+INSERT INTO `biz_game_type` VALUES (5, '模拟经营', 'admin', '2025-08-22 20:57:30', '', NULL, '模拟经营类游戏');
+INSERT INTO `biz_game_type` VALUES (6, '体育竞技', 'admin', '2025-08-22 20:57:30', '', NULL, '体育竞技类游戏');
+INSERT INTO `biz_game_type` VALUES (7, '音乐节奏', 'admin', '2025-08-22 20:57:30', '', NULL, '音乐节奏类游戏');
+INSERT INTO `biz_game_type` VALUES (8, '恐怖生存', 'admin', '2025-08-22 20:57:30', '', NULL, '恐怖生存类游戏');
+INSERT INTO `biz_game_type` VALUES (9, '卡牌对战', 'admin', '2025-08-22 20:57:30', '', NULL, '卡牌策略对战游戏');
 
 -- ----------------------------
 -- Table structure for biz_post
@@ -404,7 +213,7 @@ DROP TABLE IF EXISTS `biz_post`;
 CREATE TABLE `biz_post`  (
   `post_id` int NOT NULL AUTO_INCREMENT COMMENT '帖子ID',
   `post_title` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '帖子标题',
-  `post_content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '帖子内容',
+  `post_content` mediumtext CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '帖子内容',
   `user_id` bigint NOT NULL COMMENT '发帖用户ID',
   `section_id` int NOT NULL COMMENT '所属版块ID',
   `like_count` int NULL DEFAULT 0 COMMENT '点赞数',
@@ -413,8 +222,8 @@ CREATE TABLE `biz_post`  (
   `view_count` int NULL DEFAULT 0 COMMENT '浏览数',
   `top_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '置顶标志（0不置顶 1置顶）',
   `hot_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '热门标志（0不热门 1热门）',
-  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '状态（0正常 1停用）',
-  `del_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
+  `status` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '状态（0正常 1停用 2删除）',
+  `del_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',
   `create_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT '' COMMENT '更新者',
@@ -427,29 +236,506 @@ CREATE TABLE `biz_post`  (
   INDEX `idx_post_like_view_count`(`like_count` DESC, `view_count` DESC) USING BTREE,
   CONSTRAINT `fk_post_section` FOREIGN KEY (`section_id`) REFERENCES `biz_section` (`section_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_post_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '论坛帖子表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 496 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '论坛帖子表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of biz_post
 -- ----------------------------
-INSERT INTO `biz_post` VALUES (1, '赛博朋克2077全收集攻略分享', '<p>经过200小时的游戏时间，终于100%完成了《赛博朋克2077》！在这里分享一些收集要素的攻略和心得...</p>', 1, 1, 72, 3, 'images\\user\\post\\hly.jpg', 473, '1', '1', '0', '0', 'admin', '2025-05-23 13:00:00', '', '2025-06-19 09:02:01', '置顶热门帖子');
-INSERT INTO `biz_post` VALUES (2, 'CS2新手入门指南', '作为一个CS老玩家，看到很多新手朋友对CS2不太了解，特地写了这篇新手指南...', 2, 2, 18, 1, 'images\\user\\post\\cy.gif', 91, '0', '1', '0', '0', 'ry', '2025-05-23 14:30:00', '', '2025-05-27 18:38:13', '新手指南帖');
-INSERT INTO `biz_post` VALUES (3, '文明6最强文明排行榜', '根据最新版本的平衡性调整，重新整理了文明6各个文明的强度排行...', 1, 3, 32, 1, 'images\\user\\post\\hly.jpg', 205, '0', '1', '0', '0', 'admin', '2025-05-23 15:45:00', '', '2025-05-27 18:38:13', '攻略分享帖');
-INSERT INTO `biz_post` VALUES (4, '巫师3支线任务推荐', '<p>《巫师3》的支线任务质量非常高，这里推荐几个最值得做的支线任务...</p>', 2, 4, 21, 0, 'images\\user\\post\\hly.jpg', 134, '0', '1', '0', '0', 'ry', '2025-05-23 16:20:00', '', '2025-06-03 16:15:59', '游戏推荐帖');
-INSERT INTO `biz_post` VALUES (5, 'GTA5线上模式赚钱攻略', '<p>分享一些在GTA5线上模式快速赚钱的方法和技巧...</p>', 1, 5, 14, 0, 'images\\user\\post\\hly.jpg', 80, '0', '0', '0', '0', 'admin', '2025-05-23 17:15:00', '', '2025-06-03 17:07:12', '攻略分享');
-INSERT INTO `biz_post` VALUES (6, '21312', '<p>大大的阿达啊</p>', 1, 3, 2, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '2', '0', '', '2025-05-25 22:25:30', '', '2025-05-27 18:38:13', NULL);
-INSERT INTO `biz_post` VALUES (7, '大大', '<p>大大</p>', 1, 3, 2, 0, 'images\\user\\post\\hly.jpg', 1, '0', '0', '2', '0', '', '2025-05-25 22:25:47', '', '2025-05-27 18:38:13', NULL);
-INSERT INTO `biz_post` VALUES (8, '二分色法s', '<p>法沙发沙发</p>', 1, 2, 3, 0, 'images\\user\\post\\hly.jpg', 2, '0', '0', '2', '0', '', '2025-05-25 22:26:21', '', '2025-05-27 18:38:13', NULL);
-INSERT INTO `biz_post` VALUES (9, '哇大大', '<p>大大大</p>', 1, 4, 20, 0, 'images\\user\\post\\hly.jpg', 10, '0', '0', '2', '0', '', '2025-05-25 22:26:31', '', '2025-06-03 16:17:19', NULL);
-INSERT INTO `biz_post` VALUES (10, '的的分手费', '<p>撒大啊</p>', 101, 1, 0, 0, 'images/user/post/post_1748349680398_cruxpzp32.png', 3, '0', '0', '2', '0', 'addd', '2025-05-27 20:41:20', '', NULL, NULL);
-INSERT INTO `biz_post` VALUES (11, 'dfsfs', '<p><span style=\"color: rgb(230, 0, 0);\">dwe dfsfsfs</span></p>', 101, 3, 0, 0, NULL, 4, '0', '0', '2', '0', 'addd', '2025-05-28 09:25:16', '', '2025-06-03 16:16:21', NULL);
-INSERT INTO `biz_post` VALUES (12, '1111111111', '<p>啊啊大家啊大家</p>', 101, 2, 0, 0, 'images/user/post/post_1748400366213_a3ggg9jv9.png', 4, '0', '0', '2', '0', 'addd', '2025-05-28 10:46:06', '', '2025-06-03 15:53:45', NULL);
-INSERT INTO `biz_post` VALUES (13, '实验帖子', '<p>实验</p>', 101, 1, 0, 0, 'images/user/post/post_1748452921579_a7jrq1v35.png', 8, '0', '0', '2', '0', 'addd', '2025-05-29 01:22:02', '', '2025-06-03 16:17:44', NULL);
-INSERT INTO `biz_post` VALUES (14, '而且服务费', '<p>饿色认为</p>', 101, 1, 0, 0, 'images/user/post/post_1748930503135_4c2ugex8b.png', 5, '0', '0', '2', '0', 'addd', '2025-06-03 14:01:43', '', '2025-06-03 16:17:39', NULL);
-INSERT INTO `biz_post` VALUES (15, 'cs2', '<h1><strong><em><u>这是cs2</u></em></strong></h1>', 101, 2, 0, 0, 'images/user/post/post_1748941685054_v5j0i54jc.png', 3, '0', '0', '0', '0', 'addd', '2025-06-03 17:08:05', '', NULL, NULL);
-INSERT INTO `biz_post` VALUES (16, '这是测试', '<p>这是测试内容</p>', 101, 2, 0, 0, 'images/user/post/post_1749430984388_uelttn10o.jpg', 2, '0', '0', '0', '0', 'addd', '2025-06-09 09:03:04', '', NULL, NULL);
-INSERT INTO `biz_post` VALUES (17, '与已故一个一个i', '<p><strong><em><s><u> 据uvv</u></s></em></strong></p>', 101, 1, 0, 0, 'images/user/post/post_1749439861333_6uf8zsbli.jpg', 2, '0', '0', '2', '0', 'addd', '2025-06-09 11:31:01', '', '2025-06-09 11:35:14', NULL);
-INSERT INTO `biz_post` VALUES (18, 'rr657668', '<p>yfuytiyuio</p>', 101, 1, 0, 0, 'images/user/post/post_1749474041587_5xc9yl6bb.png', 12, '0', '0', '0', '0', 'addd', '2025-06-09 21:00:42', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (1, '赛博朋克2077全收集攻略分享', '<p>经过200小时的游戏时间，终于100%完成了《赛博朋克2077》！在这里分享一些收集要素的攻略和心得...</p>', 1, 1, 75, 23, 'images\\user\\post\\hly.jpg', 888, '1', '1', '0', '0', 'admin', '2025-05-23 13:00:00', '', '2025-07-16 22:15:04', '置顶热门帖子');
+INSERT INTO `biz_post` VALUES (2, 'CS2新手入门指南', '作为一个CS老玩家，看到很多新手朋友对CS2不太了解，特地写了这篇新手指南...', 2, 2, 19, 1, 'images\\user\\post\\cy.gif', 96, '0', '1', '0', '0', 'ry', '2025-05-23 14:30:00', '', '2025-05-27 18:38:13', '新手指南帖');
+INSERT INTO `biz_post` VALUES (3, '文明6最强文明排行榜', '根据最新版本的平衡性调整，重新整理了文明6各个文明的强度排行...', 1, 3, 32, 1, 'images\\user\\post\\hly.jpg', 207, '0', '1', '0', '0', 'admin', '2025-05-23 15:45:00', '', '2025-05-27 18:38:13', '攻略分享帖');
+INSERT INTO `biz_post` VALUES (4, '巫师3支线任务推荐', '<p>《巫师3》的支线任务质量非常高，这里推荐几个最值得做的支线任务...</p>', 2, 4, 21, 0, 'images\\user\\post\\hly.jpg', 143, '0', '1', '0', '0', 'ry', '2025-05-23 16:20:00', '', '2025-07-16 13:28:42', '游戏推荐帖');
+INSERT INTO `biz_post` VALUES (5, 'GTA5线上模式赚钱攻略', '<p>分享一些在GTA5线上模式快速赚钱的方法和技巧...</p>', 1, 5, 15, 0, 'images\\user\\post\\hly.jpg', 82, '0', '0', '0', '0', 'admin', '2025-05-23 17:15:00', '', '2025-06-03 17:07:12', '攻略分享');
+INSERT INTO `biz_post` VALUES (6, '21312', '<p>大大的阿达啊</p>', 1, 3, 2, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', '', '2025-05-25 22:25:30', '', '2025-05-27 18:38:13', NULL);
+INSERT INTO `biz_post` VALUES (7, '大大', '<p>大大</p>', 1, 3, 3, 0, 'images\\user\\post\\hly.jpg', 1, '0', '0', '0', '0', '', '2025-05-25 22:25:47', '', '2025-05-27 18:38:13', NULL);
+INSERT INTO `biz_post` VALUES (8, '二分色法s', '<p>法沙发沙发</p>', 1, 2, 4, 0, 'images\\user\\post\\hly.jpg', 2, '0', '0', '0', '0', '', '2025-05-25 22:26:21', '', '2025-05-27 18:38:13', NULL);
+INSERT INTO `biz_post` VALUES (9, '哇大大', '<p>大大大</p>', 1, 4, 21, 0, 'images\\user\\post\\hly.jpg', 11, '0', '0', '0', '0', '', '2025-05-25 22:26:31', '', '2025-06-03 16:17:19', NULL);
+INSERT INTO `biz_post` VALUES (10, '的的分手费', '<p>撒大啊</p>', 101, 1, 0, 0, 'images/user/post/post_1748349680398_cruxpzp32.png', 3, '0', '0', '0', '0', 'addd', '2025-05-27 20:41:20', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (11, 'dfsfs', '<p><span style=\"color: rgb(230, 0, 0);\">dwe dfsfsfs</span></p>', 101, 3, 0, 0, NULL, 4, '0', '0', '0', '0', 'addd', '2025-05-28 09:25:16', '', '2025-06-03 16:16:21', NULL);
+INSERT INTO `biz_post` VALUES (12, '1111111111', '<p>啊啊大家啊大家</p>', 101, 2, 0, 0, 'images/user/post/post_1748400366213_a3ggg9jv9.png', 4, '0', '0', '0', '0', 'addd', '2025-05-28 10:46:06', '', '2025-06-03 15:53:45', NULL);
+INSERT INTO `biz_post` VALUES (13, '实验帖子', '<p>实验</p>', 101, 1, 0, 0, 'images/user/post/post_1748452921579_a7jrq1v35.png', 8, '0', '0', '0', '0', 'addd', '2025-05-29 01:22:02', '', '2025-06-03 16:17:44', NULL);
+INSERT INTO `biz_post` VALUES (14, '而且服务费', '<p>饿色认为</p>', 101, 1, 0, 0, 'images/user/post/post_1748930503135_4c2ugex8b.png', 5, '0', '0', '0', '0', 'addd', '2025-06-03 14:01:43', '', '2025-06-03 16:17:39', NULL);
+INSERT INTO `biz_post` VALUES (15, 'cs2', '<h1><strong><em><u>这是cs2</u></em></strong></h1>', 101, 2, 0, 0, 'images/user/post/post_1748941685054_v5j0i54jc.png', 6, '0', '0', '0', '0', 'addd', '2025-06-03 17:08:05', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (16, '这是测试', '<p>这是测试内容</p>', 101, 2, 0, 0, 'images/user/post/post_1749430984388_uelttn10o.jpg', 5, '0', '0', '0', '0', 'addd', '2025-06-09 09:03:04', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (17, '与已故一个一个i', '<p><strong><em><s><u> 据uvv</u></s></em></strong></p>', 101, 1, 0, 0, 'images/user/post/post_1749439861333_6uf8zsbli.jpg', 2, '0', '0', '0', '0', 'addd', '2025-06-09 11:31:01', '', '2025-06-09 11:35:14', NULL);
+INSERT INTO `biz_post` VALUES (18, 'rr657668', '<p>yfuytiyuio</p>', 101, 1, 0, 0, 'images/user/post/post_1749474041587_5xc9yl6bb.png', 20, '0', '0', '0', '0', 'addd', '2025-06-09 21:00:42', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (19, '453535', '<p>让哥哥人格</p>', 101, 2, 0, 0, NULL, 0, '0', '0', '0', '0', 'addd', '2025-07-05 22:45:07', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (20, '3424', '<p>法沙发沙发</p>', 101, 2, 0, 0, NULL, 6, '0', '0', '0', '0', 'addd', '2025-07-05 22:47:40', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (21, '3424', '<p>分色法</p>', 101, 2, 0, 0, NULL, 2, '0', '0', '0', '0', 'addd', '2025-07-05 22:52:18', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (22, '3424', '<p>粉丝发</p>', 101, 1, 0, 0, NULL, 0, '0', '0', '0', '0', 'addd', '2025-07-05 23:03:11', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (23, '测试120086', '<p>测试</p>', 101, 1, 0, 0, 'images/user/post/post_1751728033691_9at0c3kfu.png', 0, '0', '0', '0', '0', 'addd', '2025-07-05 23:07:14', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (24, '测试问问', '<p>大大</p>', 101, 1, 0, 0, 'images/user/post/post_1751728853913_x4jd4s3iw.png', 0, '0', '0', '0', '0', 'addd', '2025-07-05 23:20:54', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (25, '这是一个新帖子', '<h1><sub><strong><em><s><u>这是新帖子</u></s></em></strong></sub></h1>', 101, 3, 1, 1, 'images/user/post/post_1752588355300_8kbqnoz9o.png', 6, '0', '0', '0', '0', 'addd', '2025-07-15 22:05:55', '', '2025-07-16 13:57:08', NULL);
+INSERT INTO `biz_post` VALUES (26, '测试', '<p>的人虽然</p>', 111, 3, 1, 0, 'images/user/post/post_1752594754058_x4swsn72t.gif', 0, '0', '0', '0', '0', 'lppp', '2025-07-15 23:52:34', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (27, 'dsfs', '<p>sf </p>', 111, 1, 0, 0, 'images/user/post/post_1752597420658_swd5uhpuy.png', 3, '0', '0', '0', '0', 'lppp', '2025-07-16 00:37:01', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (28, '狼', '<p>狼</p>', 111, 4, 0, 2, 'images/user/post/post_1752641036598_hrif7q0or.jpg', 5, '0', '1', '0', '0', 'lppp', '2025-07-16 12:43:57', '', '2025-07-16 13:57:08', NULL);
+INSERT INTO `biz_post` VALUES (29, '联网测试', '<p>测试</p>', 111, 1, 1, 0, 'images/user/post/post_1752649126983_7un64g0qy.png', 11, '0', '0', '0', '0', 'lppp', '2025-07-16 14:58:47', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (30, '联网测试2', '<p>联网测试</p>', 101, 2, 0, 0, 'images/user/post/post_1752652337761_kp5vjcsgx.png', 2, '0', '0', '0', '0', 'addd', '2025-07-16 15:52:18', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (31, '测试', '<p>速度</p>', 111, 2, 0, 0, 'images/user/post/post_1752726080693_yfv77ym1s.png', 0, '0', '0', '0', '0', 'lppp', '2025-07-17 12:21:21', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (32, '2', '<p>2</p>', 111, 1, 0, 0, 'images/user/post/post_1752726197329_9oqnultwc.png', 3, '0', '0', '0', '0', 'lppp', '2025-07-17 12:23:17', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (33, '34', '<p>424</p>', 111, 1, 0, 0, 'images/user/post/post_1752726944596_ktpyznxpw.png', 2, '0', '0', '0', '0', 'lppp', '2025-07-17 12:35:45', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (34, '34', '<p>撒旦撒</p>', 111, 1, 0, 0, 'images/user/post/post_1752727159280_srstjqd9f.png', 1, '0', '0', '0', '0', 'lppp', '2025-07-17 12:39:19', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (35, '是世俗', '<p>的撒大</p>', 111, 1, 0, 0, 'images/user/post/post_1752756973119_ia137y9jg.png', 6, '0', '0', '0', '0', 'lppp', '2025-07-17 20:56:13', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (36, '888', '<p>344</p>', 111, 2, 0, 0, 'images/user/post/post_1752759526568_7wgc0lxxy.png', 2, '0', '0', '0', '0', 'lppp', '2025-07-17 21:38:47', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (37, '这是远程测试', '<p>这是远程测试</p>', 111, 2, 1, 0, 'images/user/post/post_1752766496731_bfqlr8tyk.jpg', 0, '0', '0', '0', '0', 'lppp', '2025-07-17 23:34:57', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (38, '2332', '23232', 111, 1, 0, 0, NULL, 4, '0', '0', '0', '0', 'lppp', '2025-08-21 12:32:53', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (39, '3434', '34434', 111, 2, 0, 0, NULL, 1, '0', '0', '0', '0', 'lppp', '2025-08-21 13:16:41', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (40, '34343', '4343434', 111, 1, 0, 0, 'images/user/post/post_1755755957957_ap8q50kp0.webp', 3, '0', '0', '0', '0', 'lppp', '2025-08-21 13:59:18', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (41, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (42, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (43, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (44, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (45, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (46, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (47, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 1, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (48, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 1, 2, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (49, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (50, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (51, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (52, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (53, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (54, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (55, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 1, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (56, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 1, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (57, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 1, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (58, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 1, 1, 0, 'images\\user\\post\\hly.jpg', 1, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (59, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (60, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 1, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (61, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (62, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (63, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (64, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (65, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (66, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (67, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (68, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 1, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (69, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 2, 2, 0, 'images\\user\\post\\hly.jpg', 1, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (70, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (71, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (72, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (73, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (74, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (75, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (76, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 2, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (77, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (78, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (79, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (80, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 2, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (81, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (82, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (83, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (84, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (85, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 3, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (86, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (87, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (88, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 3, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (89, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (90, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 3, 1, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (91, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (92, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (93, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (94, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (95, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (96, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (97, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (98, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (99, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (100, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 3, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (101, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (102, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (103, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (104, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (105, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (106, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (107, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (108, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (109, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (110, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (111, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (112, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (113, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (114, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (115, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (116, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (117, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (118, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (119, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (120, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 4, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (121, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (122, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (123, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (124, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (125, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (126, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (127, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (128, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (129, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (130, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (131, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (132, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (133, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (134, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (135, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (136, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (137, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (138, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (139, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (140, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 5, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (141, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (142, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (143, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (144, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (145, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (146, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (147, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (148, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (149, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (150, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (151, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (152, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (153, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (154, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (155, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (156, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (157, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (158, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (159, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (160, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 6, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (161, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (162, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (163, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (164, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (165, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (166, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (167, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (168, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (169, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (170, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (171, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (172, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (173, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (174, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (175, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (176, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (177, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (178, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (179, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (180, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 16, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (181, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (182, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (183, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (184, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (185, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (186, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (187, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (188, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (189, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (190, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (191, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (192, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (193, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (194, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (195, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (196, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (197, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (198, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (199, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (200, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 7, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (201, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (202, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (203, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (204, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (205, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (206, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (207, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (208, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (209, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (210, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (211, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (212, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (213, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (214, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (215, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (216, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (217, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (218, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (219, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (220, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 17, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (221, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (222, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (223, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (224, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (225, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (226, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (227, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (228, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (229, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (230, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (231, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (232, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (233, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (234, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (235, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (236, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (237, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (238, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (239, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (240, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 8, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (241, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (242, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (243, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (244, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (245, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (246, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (247, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (248, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (249, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (250, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (251, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (252, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (253, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (254, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (255, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (256, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (257, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (258, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (259, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (260, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 18, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (261, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (262, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (263, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (264, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (265, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (266, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (267, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (268, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (269, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (270, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (271, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (272, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (273, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (274, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (275, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (276, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (277, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (278, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (279, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (280, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 9, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (281, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (282, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (283, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (284, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (285, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (286, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (287, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (288, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (289, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (290, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (291, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (292, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (293, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (294, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (295, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (296, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (297, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (298, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (299, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (300, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 19, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (301, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (302, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (303, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (304, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (305, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (306, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (307, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (308, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (309, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (310, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (311, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (312, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (313, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (314, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (315, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (316, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (317, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (318, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (319, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (320, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 10, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (321, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (322, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (323, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (324, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (325, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (326, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (327, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (328, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (329, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (330, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (331, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (332, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (333, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (334, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (335, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (336, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (337, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (338, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (339, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (340, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 20, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (341, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (342, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (343, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (344, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (345, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (346, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (347, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (348, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (349, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (350, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (351, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (352, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (353, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (354, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (355, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (356, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (357, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (358, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (359, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (360, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 11, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (361, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (362, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (363, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (364, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (365, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (366, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (367, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (368, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (369, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (370, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (371, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (372, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (373, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (374, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (375, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (376, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (377, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (378, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (379, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (380, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 21, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (381, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (382, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (383, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (384, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (385, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (386, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (387, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (388, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (389, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (390, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (391, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (392, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (393, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (394, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (395, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (396, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (397, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (398, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (399, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (400, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 12, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (401, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (402, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (403, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (404, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (405, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (406, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (407, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (408, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (409, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (410, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (411, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (412, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (413, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (414, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (415, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (416, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (417, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (418, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (419, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (420, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 13, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (421, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (422, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (423, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (424, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (425, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (426, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (427, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (428, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (429, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (430, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (431, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (432, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (433, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (434, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (435, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (436, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (437, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (438, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (439, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (440, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 14, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (441, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (442, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (443, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (444, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (445, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (446, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (447, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (448, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (449, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (450, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (451, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (452, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (453, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (454, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (455, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (456, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (457, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (458, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (459, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (460, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 22, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (461, '第 20 帖：水楼闲聊', '今天你又肝到了几点？', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (462, '第 19 帖：官方公告', '把官方最新公告划重点给你看。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (463, '第 18 帖：周边开箱', '限定周边到货，一起云开箱！', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (464, '第 17 帖：同人创作', '晒一张刚画完的同人，求鼓励。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (465, '第 16 帖：BUG反馈', '近期遇到的奇葩 BUG，求修复！', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (466, '第 15 帖：成就指南', '白金/全成就路线，肝帝必备。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (467, '第 14 帖：福利兑换', '最新兑换码合集，先到先得。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (468, '第 13 帖：武器测评', '全武器数据横向对比，帮你选出本命。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (469, '第 12 帖：地图攻略', '复杂地图不再迷路，路线图奉上。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (470, '第 11 帖：角色评测', '新角色强度如何？一文看懂。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (471, '第 10 帖：赛事前瞻', '本周职业比赛看点全解析。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (472, '第 9 帖：MOD分享', '几款必装 MOD，体验翻倍！', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (473, '第 8 帖：配置推荐', '各价位电脑配置单，助你畅玩不掉帧。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (474, '第 7 帖：剧情深挖', '带你梳理隐藏剧情与彩蛋。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (475, '第 6 帖：吐槽大会', '不吐不快，来聊聊让人抓狂的瞬间。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (476, '第 5 帖：高光时刻', '分享一次今天打出的神仙操作。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (477, '第 4 帖：活动提醒', '限时活动已开启，错过就要等一年！', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (478, '第 3 帖：版本解读', '最新版本改动一览，带你快速适应环境。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (479, '第 2 帖：新手答疑', '刚入坑的小伙伴看过来，这里解答你的所有困惑。', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (480, '第 1 帖：攻略速递', '超实用游戏攻略，速来围观！', 1, 15, 0, 0, 'images\\user\\post\\hly.jpg', 0, '0', '0', '0', '0', 'admin', '2025-08-28 11:51:14', '', '2025-08-28 11:51:14', NULL);
+INSERT INTO `biz_post` VALUES (481, 'dada', '<p>dad</p>', 111, 13, 0, 0, 'images/user/post/post_1760165685298_albez2pt5.png', 2, '0', '0', '0', '0', 'lppp', '2025-10-11 14:54:45', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (482, '哇大大', '<p>分色法<img src=\"images/user/post/post_111_cbf1196f_0.png\" alt=\"post-image-0\" />大大<img src=\"images/user/post/post_111_f28376ab_1.png\" alt=\"post-image-1\" /></p>', 111, 13, 0, 0, 'images/user/post/post_111_cbf1196f_0.png', 17, '0', '0', '0', '0', 'lppp', '2025-10-11 21:03:14', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (483, 'dadad', '<p>dad </p>', 111, 8, 0, 0, NULL, 0, '0', '0', '0', '0', 'lppp', '2025-10-11 22:09:33', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (484, '法大师傅十分', '<p><span style=\"color: rgb(122, 126, 133);\">// src/api/apiUrls.js</span></p><p><span style=\"color: rgb(207, 142, 109);\">const </span><span style=\"color: rgb(169, 183, 198);\">BASE_URL </span>= <span style=\"color: rgb(207, 142, 109);\">import</span>.<span style=\"color: rgb(199, 125, 187);\">meta</span>.<span style=\"color: rgb(199, 125, 187);\">env</span>.VITE_BASE_URL<span style=\"color: rgb(122, 126, 133);\">//生产环境</span></p><p><span style=\"color: rgb(122, 126, 133);\">//const BASE_URL = \"http://110.41.1.63:8080\"//部署环境</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export const </span><em style=\"color: rgb(199, 125, 186);\">API_URLS </em>= <span style=\"color: rgb(232, 186, 54);\">{</span></p><p><span style=\"color: rgb(232, 186, 54);\">    </span><span style=\"color: rgb(86, 168, 245);\">getBASEURL</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllGameTypes</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/all`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllGames</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSections</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/all`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPost</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadPostImage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-post-image`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getUserProfile</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostComments</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">checkPostLikeStatus</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/check/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">togglePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createComment</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">toggleCommentLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deleteComment</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionById</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsBySection</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/hot`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getTopPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/top`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAnnouncementsList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/announcements/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getLoginRegisterPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/loginregister\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getNewPostPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/newpost\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getProfileContainerPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/profileContainer\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotSections</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSectionList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotGameList</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit = <span style=\"color: rgb(42, 172, 184);\">20</span><span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameListByType</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/type/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIdBySectionId</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/gameId/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getMyPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/my`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsByUser</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/user/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">incrementViewCount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deletePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGamesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPostsByTitle</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search?title=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchSectionsByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameTypesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/game?gameId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetailPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/postDetail/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/section?sectionId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameTypePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/gamepage?typeId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadAvatar</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-avatar`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updateProfile</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/update`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updatePassword</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/updatePassword`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deactivateAccount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/deactivate/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePhoto</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span></p><p><span style=\"color: rgb(232, 186, 54);\">}</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export default </span><em style=\"color: rgb(199, 125, 186);\">API_URLS</em></p>', 111, 15, 0, 0, NULL, 2, '0', '0', '0', '0', 'lppp', '2025-10-11 22:26:04', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (485, '大大大', '<p><span style=\"color: rgb(122, 126, 133);\">// src/api/apiUrls.js</span></p><p><span style=\"color: rgb(207, 142, 109);\">const </span><span style=\"color: rgb(169, 183, 198);\">BASE_URL </span>= <span style=\"color: rgb(207, 142, 109);\">import</span>.<span style=\"color: rgb(199, 125, 187);\">meta</span>.<span style=\"color: rgb(199, 125, 187);\">env</span>.VITE_BASE_URL<span style=\"color: rgb(122, 126, 133);\">//生产环境</span></p><p><span style=\"color: rgb(122, 126, 133);\">//const BASE_URL = \"http://110.41.1.63:8080\"//部署环境</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export const </span><em style=\"color: rgb(199, 125, 186);\">API_URLS </em>= <span style=\"color: rgb(232, 186, 54);\">{</span></p><p><span style=\"color: rgb(232, 186, 54);\">    </span><span style=\"color: rgb(86, 168, 245);\">getBASEURL</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllGameTypes</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/all`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllGames</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSections</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/all`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPost</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadPostImage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-post-image`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getUserProfile</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostComments</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">checkPostLikeStatus</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/check/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">togglePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createComment</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">toggleCommentLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deleteComment</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionById</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsBySection</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/hot`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getTopPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/top`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAnnouncementsList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/announcements/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getLoginRegisterPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/loginregister\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getNewPostPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/newpost\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getProfileContainerPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/profileContainer\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotSections</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSectionList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotGameList</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit = <span style=\"color: rgb(42, 172, 184);\">20</span><span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameListByType</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/type/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIdBySectionId</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/gameId/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getMyPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/my`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsByUser</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/user/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">incrementViewCount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deletePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGamesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPostsByTitle</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search?title=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchSectionsByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameTypesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/game?gameId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetailPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/postDetail/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/section?sectionId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameTypePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/gamepage?typeId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadAvatar</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-avatar`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updateProfile</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/update`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updatePassword</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/updatePassword`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deactivateAccount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/deactivate/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePhoto</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span></p><p><span style=\"color: rgb(232, 186, 54);\">}</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export default </span><em style=\"color: rgb(199, 125, 186);\">API_URLS</em><img src=\"images/user/post/post_111_1f80cea3_0.jpeg\" alt=\"post-image-0\" /></p>', 111, 13, 0, 0, 'images/user/post/post_111_1f80cea3_0.jpeg', 7, '0', '0', '0', '0', 'lppp', '2025-10-11 22:33:57', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (486, '鬼画符恢复', '<p><span style=\"color: rgb(122, 126, 133);\">// src/api/apiUrls.js</span></p><p><span style=\"color: rgb(207, 142, 109);\">const </span><span style=\"color: rgb(169, 183, 198);\">BASE_URL </span>= <span style=\"color: rgb(207, 142, 109);\">import</span>.<span style=\"color: rgb(199, 125, 187);\">meta</span>.<span style=\"color: rgb(199, 125, 187);\">env</span>.VITE_BASE_URL<span style=\"color: rgb(122, 126, 133);\">//生产环境</span></p><p><span style=\"color: rgb(122, 126, 133);\">//const BASE_URL = \"http://110.41.1.63:8080\"//部署环境</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export const </span><em style=\"color: rgb(199, 125, 186);\">API_URLS </em>= <span style=\"color: rgb(232, 186, 54);\">{</span></p><p><span style=\"color: rgb(232, 186, 54);\">    </span><span style=\"color: rgb(86, 168, 245);\">getBASEURL</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,<span style=\"color: rgb(86, 168, 245);\">getGameDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,<span style=\"color: rgb(86, 168, 245);\">getAllGameTypes</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/all`</span>,<img src=\"images/user/post/post_111_2746e17b_0.png\" alt=\"post-image-0\" /></p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllGames</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSections</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/all`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPost</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadPostImage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-post-image`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getUserProfile</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetail</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostComments</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">checkPostLikeStatus</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/check/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">togglePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createComment</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">toggleCommentLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deleteComment</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>commentId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/comment/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>commentId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionById</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsBySection</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/section/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/hot`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getTopPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/top`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAnnouncementsList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/announcements/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getLoginRegisterPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/loginregister\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getNewPostPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/newpost\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getProfileContainerPage</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">\'/profileContainer\'</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotSections</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getAllSectionList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getHotGameList</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>limit = <span style=\"color: rgb(42, 172, 184);\">20</span><span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/hot?limit=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>limit<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameListByType</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/type/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIdBySectionId</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/gameId/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostList</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/list`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getMyPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/my`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostsByUser</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/user/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPosts</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">incrementViewCount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deletePostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">createPostLike</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/like/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGamesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/game/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchPostsByTitle</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/post/search?title=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>title<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchSectionsByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/section/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">searchGameTypesByName</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/gameType/search?name=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(86, 168, 245);\">encodeURIComponent</span><span style=\"color: rgb(232, 186, 54);\">(</span>name<span style=\"color: rgb(232, 186, 54);\">)</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>gameId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/game?gameId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>gameId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostDetailPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>postId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/postDetail/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>postId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionPage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>sectionId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/section?sectionId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>sectionId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameTypePage</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>typeId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`/gamepage?typeId=</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>typeId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">uploadAvatar</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/upload/save-avatar`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updateProfile</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/update`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">updatePassword</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/updatePassword`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">deactivateAccount</span>: <span style=\"color: rgb(232, 186, 54);\">(</span>userId<span style=\"color: rgb(232, 186, 54);\">) </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/profile/deactivate/</span>$<span style=\"color: rgb(84, 168, 87);\">{</span>userId<span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getPostPhotos</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGameIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getSectionIcon</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span>,</p><p>    <span style=\"color: rgb(86, 168, 245);\">getGamePhoto</span>: <span style=\"color: rgb(232, 186, 54);\">() </span>=&gt; <span style=\"color: rgb(106, 171, 115);\">`</span>$<span style=\"color: rgb(84, 168, 87);\">{</span><span style=\"color: rgb(169, 183, 198);\">BASE_URL</span><span style=\"color: rgb(84, 168, 87);\">}</span><span style=\"color: rgb(106, 171, 115);\">/user/public/`</span></p><p><span style=\"color: rgb(232, 186, 54);\">}</span></p><p><br></p><p><span style=\"color: rgb(207, 142, 109);\">export default </span><em style=\"color: rgb(199, 125, 186);\">API_URLS</em></p>', 111, 12, 0, 0, 'images/user/post/post_111_2746e17b_0.png', 10, '0', '0', '0', '0', 'lppp', '2025-10-11 22:40:03', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (487, '45353', '<p>fgdg<img src=\"images/user/post/post_111_4a15410a_0.jpeg\" alt=\"post-image-0\" /></p>', 111, 7, 0, 2, 'images/user/post/post_111_4a15410a_0.jpeg', 12, '0', '0', '0', '0', 'lppp', '2025-10-11 23:36:46', '', '2025-10-12 12:32:04', NULL);
+INSERT INTO `biz_post` VALUES (488, 'rgdg', '<p>fsfsf</p><p><img src=\"images/user/post/post_111_ab9484f0_0.png\" alt=\"post-image-0\" /></p>', 111, 1, 0, 0, 'images/user/post/post_111_ab9484f0_0.png', 3, '0', '0', '0', '0', 'lppp', '2025-10-12 12:32:51', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (489, '334242', '<p>dada <img src=\"images/user/post/post_111_938617b8_0.png\" alt=\"post-image-0\" /></p>', 111, 6, 0, 0, 'images/user/post/post_111_938617b8_0.png', 3, '0', '0', '0', '0', 'lppp', '2025-10-12 12:34:05', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (490, 'ffwf', '<p>dadada<img src=\"images/user/post/post_111_5bff3a2f_0.jpeg\" alt=\"post-image-0\" /></p>', 111, 7, 0, 0, 'images/user/post/post_111_5bff3a2f_0.jpeg', 0, '0', '0', '0', '0', 'lppp', '2025-10-12 12:38:05', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (491, 'dfsds', '<h1>sdadadadad<span style=\"background-color: rgb(0, 0, 0);\">addsdadadadadaddsdadadadadaddsda</span>dadadadaddsdadadadadaddsdadadadadad</h1><h2>d</h2><h2><sup><strong><em><s><u>gdgdgdgdgr</u></s></em></strong></sup></h2><p><img src=\"images/user/post/post_111_d481fbcf_0.png\" alt=\"post-image-0\" /></p>', 111, 7, 0, 1, 'images/user/post/post_111_d481fbcf_0.png', 12, '0', '0', '0', '0', 'lppp', '2025-10-12 12:40:26', '', '2025-10-12 14:10:06', NULL);
+INSERT INTO `biz_post` VALUES (492, '广泛大概', '<p>郭德纲的<img src=\"images/user/post/post_111_040713e6_0.gif\" alt=\"post-image-0\" /></p>', 111, 1, 0, 0, 'images/user/post/post_111_040713e6_0.gif', 0, '0', '0', '0', '0', 'lppp', '2025-10-12 12:48:21', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (493, '分隔符', '<p>合法化<img src=\"images/user/post/post_111_f833ae76_0.gif\" alt=\"post-image-0\" /></p>', 111, 6, 0, 3, 'images/user/post/post_111_f833ae76_0.gif', 15, '0', '0', '0', '0', 'lppp', '2025-10-12 12:49:12', '', '2025-10-12 12:51:00', NULL);
+INSERT INTO `biz_post` VALUES (494, 'Frfddf', 'Fffdffghh&nbsp;<br><img src=\"images/user/post/post_1760250330332_wyy7r2bdm.webp\" style=\"max-width: 100%;\">nnbnv', 111, 12, 0, 0, 'images/user/post/post_1760250330332_wyy7r2bdm.webp', 1, '0', '0', '0', '0', 'lppp', '2025-10-12 14:25:40', '', NULL, NULL);
+INSERT INTO `biz_post` VALUES (495, 'fgdgdgd', '<b><i>gdgdg<br></i></b><img src=\"images/user/post/post_1760250365470_785gfkfmc.webp\" style=\"max-width: 100%;\">gghfhgf', 111, 15, 0, 0, 'images/user/post/post_1760250365470_785gfkfmc.webp', 1, '0', '0', '2', '0', 'lppp', '2025-10-12 14:26:18', '', '2025-10-12 15:48:44', NULL);
 
 -- ----------------------------
 -- Table structure for biz_post_favorite
@@ -488,6 +774,40 @@ CREATE TABLE `biz_post_like`  (
 -- Records of biz_post_like
 -- ----------------------------
 INSERT INTO `biz_post_like` VALUES (1, 2, '2025-05-17 17:39:27');
+INSERT INTO `biz_post_like` VALUES (101, 1, '2025-08-27 23:33:23');
+INSERT INTO `biz_post_like` VALUES (101, 2, '2025-07-15 18:33:03');
+INSERT INTO `biz_post_like` VALUES (101, 5, '2025-07-15 18:29:12');
+INSERT INTO `biz_post_like` VALUES (101, 7, '2025-08-28 11:47:14');
+INSERT INTO `biz_post_like` VALUES (101, 8, '2025-08-28 11:47:12');
+INSERT INTO `biz_post_like` VALUES (101, 9, '2025-08-28 11:47:10');
+INSERT INTO `biz_post_like` VALUES (101, 26, '2025-08-28 11:46:56');
+INSERT INTO `biz_post_like` VALUES (101, 29, '2025-07-16 17:46:36');
+INSERT INTO `biz_post_like` VALUES (101, 37, '2025-08-28 11:46:19');
+INSERT INTO `biz_post_like` VALUES (101, 47, '2025-08-28 11:52:04');
+INSERT INTO `biz_post_like` VALUES (101, 48, '2025-08-28 11:52:06');
+INSERT INTO `biz_post_like` VALUES (101, 64, '2025-08-28 11:56:31');
+INSERT INTO `biz_post_like` VALUES (101, 69, '2025-08-28 11:57:08');
+INSERT INTO `biz_post_like` VALUES (101, 70, '2025-08-28 11:52:22');
+INSERT INTO `biz_post_like` VALUES (101, 73, '2025-08-28 11:56:46');
+INSERT INTO `biz_post_like` VALUES (101, 88, '2025-08-28 11:52:54');
+INSERT INTO `biz_post_like` VALUES (101, 90, '2025-08-28 11:52:55');
+INSERT INTO `biz_post_like` VALUES (111, 1, '2025-07-18 00:11:15');
+INSERT INTO `biz_post_like` VALUES (111, 25, '2025-07-16 18:46:28');
+INSERT INTO `biz_post_like` VALUES (111, 48, '2025-08-28 11:58:16');
+INSERT INTO `biz_post_like` VALUES (111, 55, '2025-08-28 12:17:17');
+INSERT INTO `biz_post_like` VALUES (111, 56, '2025-08-28 12:17:40');
+INSERT INTO `biz_post_like` VALUES (111, 57, '2025-08-28 12:46:58');
+INSERT INTO `biz_post_like` VALUES (111, 58, '2025-08-28 12:46:58');
+INSERT INTO `biz_post_like` VALUES (111, 61, '2025-08-28 12:17:42');
+INSERT INTO `biz_post_like` VALUES (111, 62, '2025-08-28 12:43:30');
+INSERT INTO `biz_post_like` VALUES (111, 65, '2025-08-28 12:22:30');
+INSERT INTO `biz_post_like` VALUES (111, 66, '2025-08-28 12:43:31');
+INSERT INTO `biz_post_like` VALUES (111, 67, '2025-08-28 12:22:54');
+INSERT INTO `biz_post_like` VALUES (111, 68, '2025-08-28 12:22:53');
+INSERT INTO `biz_post_like` VALUES (111, 69, '2025-08-28 12:47:01');
+INSERT INTO `biz_post_like` VALUES (111, 76, '2025-08-28 11:58:51');
+INSERT INTO `biz_post_like` VALUES (111, 85, '2025-08-28 12:47:07');
+INSERT INTO `biz_post_like` VALUES (114, 1, '2025-07-16 23:38:25');
 
 -- ----------------------------
 -- Table structure for biz_post_ranking
@@ -508,49 +828,486 @@ CREATE TABLE `biz_post_ranking`  (
 -- ----------------------------
 -- Records of biz_post_ranking
 -- ----------------------------
-INSERT INTO `biz_post_ranking` VALUES (1, 2, 2, 2, 2, 1, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (2, 4, 4, 4, 4, 4, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (3, 1, 1, 1, 1, 2, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (4, 3, 3, 3, 3, 3, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (5, 5, 5, 5, 5, 5, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (6, 5, 5, 5, 5, 13, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (7, 6, 6, 6, 6, 11, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (8, 7, 7, 7, 7, 7, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (9, 8, 8, 8, 8, 5, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (10, 9, 9, 9, 9, 12, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (11, 7, 7, 7, 7, 9, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (12, 9, 9, 9, 9, 10, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (13, 12, 12, 12, 12, 6, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (14, 13, 13, 13, 13, 8, '2025-06-03 15:51:03');
-INSERT INTO `biz_post_ranking` VALUES (15, 6, 6, 6, 6, 7, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (16, 7, 7, 7, 7, 8, '2025-06-19 11:12:30');
-INSERT INTO `biz_post_ranking` VALUES (18, 6, 6, 6, 6, 6, '2025-06-19 11:12:30');
-
--- ----------------------------
--- Table structure for biz_product_category
--- ----------------------------
-DROP TABLE IF EXISTS `biz_product_category`;
-CREATE TABLE `biz_product_category`  (
-  `product_id` int NOT NULL COMMENT '商品ID',
-  `category_id` int NOT NULL COMMENT '分类ID',
-  PRIMARY KEY (`product_id`, `category_id`) USING BTREE,
-  INDEX `fk_pc_category`(`category_id` ASC) USING BTREE,
-  CONSTRAINT `fk_pc_category` FOREIGN KEY (`category_id`) REFERENCES `biz_cdk_category` (`category_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_pc_product` FOREIGN KEY (`product_id`) REFERENCES `biz_cdk_product` (`product_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '商品分类关联表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_product_category
--- ----------------------------
-INSERT INTO `biz_product_category` VALUES (1, 1);
-INSERT INTO `biz_product_category` VALUES (2, 1);
-INSERT INTO `biz_product_category` VALUES (3, 1);
-INSERT INTO `biz_product_category` VALUES (4, 1);
-INSERT INTO `biz_product_category` VALUES (5, 1);
-INSERT INTO `biz_product_category` VALUES (1, 2);
-INSERT INTO `biz_product_category` VALUES (4, 2);
-INSERT INTO `biz_product_category` VALUES (2, 3);
-INSERT INTO `biz_product_category` VALUES (6, 5);
+INSERT INTO `biz_post_ranking` VALUES (1, 2, 2, 2, 2, 1, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (2, 4, 4, 4, 4, 4, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (3, 1, 1, 1, 1, 2, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (4, 3, 3, 3, 3, 3, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (5, 5, 5, 5, 5, 5, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (6, 5, 5, 5, 5, 27, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (7, 6, 6, 6, 6, 18, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (8, 7, 7, 7, 7, 12, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (9, 8, 8, 8, 8, 6, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (10, 9, 9, 9, 9, 22, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (11, 7, 7, 7, 7, 19, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (12, 9, 9, 9, 9, 20, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (13, 12, 12, 12, 12, 9, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (14, 13, 13, 13, 13, 16, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (15, 6, 6, 6, 6, 13, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (16, 7, 7, 7, 7, 17, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (17, 26, 26, 26, 26, 28, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (18, 6, 6, 6, 6, 7, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (19, 10, 10, 10, 10, 56, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (20, 7, 7, 7, 7, 14, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (21, 31, 31, 31, 31, 29, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (22, 36, 36, 36, 36, 57, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (23, 9, 9, 9, 9, 58, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (24, 10, 10, 10, 10, 59, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (25, 9, 9, 9, 9, 10, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (26, 11, 11, 11, 11, 35, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (27, 12, 12, 12, 12, 23, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (28, 10, 10, 10, 10, 11, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (29, 7, 7, 7, 7, 8, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (30, 13, 13, 13, 13, 30, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (31, 15, 15, 15, 15, 60, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (32, 13, 13, 13, 13, 24, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (33, 16, 16, 16, 16, 31, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (34, 17, 17, 17, 17, 36, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (35, 10, 10, 10, 10, 15, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (36, 19, 19, 19, 19, 32, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (37, 8, 8, 8, 8, 37, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (38, 8, 8, 8, 8, 21, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (39, 10, 10, 10, 10, 38, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (40, 10, 10, 10, 10, 25, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (41, 61, 61, 61, 61, 61, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (42, 62, 62, 62, 62, 62, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (43, 63, 63, 63, 63, 63, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (44, 64, 64, 64, 64, 64, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (45, 65, 65, 65, 65, 65, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (46, 66, 66, 66, 66, 66, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (47, 39, 39, 39, 39, 39, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (48, 33, 33, 33, 33, 33, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (49, 67, 67, 67, 67, 67, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (50, 68, 68, 68, 68, 68, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (51, 69, 69, 69, 69, 69, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (52, 70, 70, 70, 70, 70, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (53, 71, 71, 71, 71, 71, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (54, 72, 72, 72, 72, 72, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (55, 40, 40, 40, 40, 40, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (56, 41, 41, 41, 41, 41, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (57, 42, 42, 42, 42, 42, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (58, 34, 34, 34, 34, 34, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (59, 73, 73, 73, 73, 73, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (60, 74, 74, 74, 74, 74, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (61, 43, 43, 43, 43, 43, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (62, 44, 44, 44, 44, 44, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (63, 75, 75, 75, 75, 75, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (64, 45, 45, 45, 45, 45, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (65, 46, 46, 46, 46, 46, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (66, 47, 47, 47, 47, 47, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (67, 48, 48, 48, 48, 48, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (68, 49, 49, 49, 49, 49, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (69, 26, 26, 26, 26, 26, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (70, 50, 50, 50, 50, 50, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (71, 76, 76, 76, 76, 76, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (72, 77, 77, 77, 77, 77, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (73, 51, 51, 51, 51, 51, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (74, 78, 78, 78, 78, 78, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (75, 79, 79, 79, 79, 79, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (76, 52, 52, 52, 52, 52, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (77, 80, 80, 80, 80, 80, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (78, 81, 81, 81, 81, 81, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (79, 82, 82, 82, 82, 82, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (80, 83, 83, 83, 83, 83, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (81, 84, 84, 84, 84, 84, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (82, 85, 85, 85, 85, 85, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (83, 86, 86, 86, 86, 86, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (84, 87, 87, 87, 87, 87, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (85, 53, 53, 53, 53, 53, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (86, 88, 88, 88, 88, 88, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (87, 89, 89, 89, 89, 89, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (88, 54, 54, 54, 54, 54, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (89, 90, 90, 90, 90, 90, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (90, 55, 55, 55, 55, 55, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (91, 91, 91, 91, 91, 91, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (92, 92, 92, 92, 92, 92, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (93, 93, 93, 93, 93, 93, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (94, 94, 94, 94, 94, 94, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (95, 95, 95, 95, 95, 95, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (96, 96, 96, 96, 96, 96, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (97, 97, 97, 97, 97, 97, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (98, 98, 98, 98, 98, 98, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (99, 99, 99, 99, 99, 99, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (100, 100, 100, 100, 100, 100, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (101, 101, 101, 101, 101, 101, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (102, 102, 102, 102, 102, 102, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (103, 103, 103, 103, 103, 103, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (104, 104, 104, 104, 104, 104, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (105, 105, 105, 105, 105, 105, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (106, 106, 106, 106, 106, 106, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (107, 107, 107, 107, 107, 107, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (108, 108, 108, 108, 108, 108, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (109, 109, 109, 109, 109, 109, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (110, 110, 110, 110, 110, 110, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (111, 111, 111, 111, 111, 111, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (112, 112, 112, 112, 112, 112, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (113, 113, 113, 113, 113, 113, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (114, 114, 114, 114, 114, 114, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (115, 115, 115, 115, 115, 115, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (116, 116, 116, 116, 116, 116, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (117, 117, 117, 117, 117, 117, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (118, 118, 118, 118, 118, 118, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (119, 119, 119, 119, 119, 119, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (120, 120, 120, 120, 120, 120, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (121, 121, 121, 121, 121, 121, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (122, 122, 122, 122, 122, 122, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (123, 123, 123, 123, 123, 123, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (124, 124, 124, 124, 124, 124, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (125, 125, 125, 125, 125, 125, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (126, 126, 126, 126, 126, 126, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (127, 127, 127, 127, 127, 127, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (128, 128, 128, 128, 128, 128, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (129, 129, 129, 129, 129, 129, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (130, 130, 130, 130, 130, 130, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (131, 131, 131, 131, 131, 131, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (132, 132, 132, 132, 132, 132, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (133, 133, 133, 133, 133, 133, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (134, 134, 134, 134, 134, 134, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (135, 135, 135, 135, 135, 135, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (136, 136, 136, 136, 136, 136, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (137, 137, 137, 137, 137, 137, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (138, 138, 138, 138, 138, 138, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (139, 139, 139, 139, 139, 139, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (140, 140, 140, 140, 140, 140, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (141, 141, 141, 141, 141, 141, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (142, 142, 142, 142, 142, 142, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (143, 143, 143, 143, 143, 143, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (144, 144, 144, 144, 144, 144, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (145, 145, 145, 145, 145, 145, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (146, 146, 146, 146, 146, 146, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (147, 147, 147, 147, 147, 147, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (148, 148, 148, 148, 148, 148, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (149, 149, 149, 149, 149, 149, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (150, 150, 150, 150, 150, 150, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (151, 151, 151, 151, 151, 151, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (152, 152, 152, 152, 152, 152, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (153, 153, 153, 153, 153, 153, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (154, 154, 154, 154, 154, 154, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (155, 155, 155, 155, 155, 155, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (156, 156, 156, 156, 156, 156, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (157, 157, 157, 157, 157, 157, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (158, 158, 158, 158, 158, 158, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (159, 159, 159, 159, 159, 159, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (160, 160, 160, 160, 160, 160, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (161, 161, 161, 161, 161, 161, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (162, 162, 162, 162, 162, 162, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (163, 163, 163, 163, 163, 163, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (164, 164, 164, 164, 164, 164, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (165, 165, 165, 165, 165, 165, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (166, 166, 166, 166, 166, 166, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (167, 167, 167, 167, 167, 167, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (168, 168, 168, 168, 168, 168, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (169, 169, 169, 169, 169, 169, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (170, 170, 170, 170, 170, 170, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (171, 171, 171, 171, 171, 171, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (172, 172, 172, 172, 172, 172, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (173, 173, 173, 173, 173, 173, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (174, 174, 174, 174, 174, 174, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (175, 175, 175, 175, 175, 175, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (176, 176, 176, 176, 176, 176, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (177, 177, 177, 177, 177, 177, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (178, 178, 178, 178, 178, 178, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (179, 179, 179, 179, 179, 179, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (180, 180, 180, 180, 180, 180, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (181, 181, 181, 181, 181, 181, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (182, 182, 182, 182, 182, 182, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (183, 183, 183, 183, 183, 183, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (184, 184, 184, 184, 184, 184, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (185, 185, 185, 185, 185, 185, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (186, 186, 186, 186, 186, 186, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (187, 187, 187, 187, 187, 187, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (188, 188, 188, 188, 188, 188, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (189, 189, 189, 189, 189, 189, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (190, 190, 190, 190, 190, 190, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (191, 191, 191, 191, 191, 191, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (192, 192, 192, 192, 192, 192, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (193, 193, 193, 193, 193, 193, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (194, 194, 194, 194, 194, 194, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (195, 195, 195, 195, 195, 195, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (196, 196, 196, 196, 196, 196, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (197, 197, 197, 197, 197, 197, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (198, 198, 198, 198, 198, 198, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (199, 199, 199, 199, 199, 199, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (200, 200, 200, 200, 200, 200, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (201, 201, 201, 201, 201, 201, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (202, 202, 202, 202, 202, 202, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (203, 203, 203, 203, 203, 203, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (204, 204, 204, 204, 204, 204, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (205, 205, 205, 205, 205, 205, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (206, 206, 206, 206, 206, 206, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (207, 207, 207, 207, 207, 207, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (208, 208, 208, 208, 208, 208, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (209, 209, 209, 209, 209, 209, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (210, 210, 210, 210, 210, 210, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (211, 211, 211, 211, 211, 211, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (212, 212, 212, 212, 212, 212, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (213, 213, 213, 213, 213, 213, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (214, 214, 214, 214, 214, 214, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (215, 215, 215, 215, 215, 215, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (216, 216, 216, 216, 216, 216, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (217, 217, 217, 217, 217, 217, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (218, 218, 218, 218, 218, 218, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (219, 219, 219, 219, 219, 219, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (220, 220, 220, 220, 220, 220, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (221, 221, 221, 221, 221, 221, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (222, 222, 222, 222, 222, 222, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (223, 223, 223, 223, 223, 223, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (224, 224, 224, 224, 224, 224, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (225, 225, 225, 225, 225, 225, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (226, 226, 226, 226, 226, 226, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (227, 227, 227, 227, 227, 227, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (228, 228, 228, 228, 228, 228, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (229, 229, 229, 229, 229, 229, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (230, 230, 230, 230, 230, 230, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (231, 231, 231, 231, 231, 231, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (232, 232, 232, 232, 232, 232, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (233, 233, 233, 233, 233, 233, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (234, 234, 234, 234, 234, 234, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (235, 235, 235, 235, 235, 235, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (236, 236, 236, 236, 236, 236, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (237, 237, 237, 237, 237, 237, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (238, 238, 238, 238, 238, 238, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (239, 239, 239, 239, 239, 239, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (240, 240, 240, 240, 240, 240, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (241, 241, 241, 241, 241, 241, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (242, 242, 242, 242, 242, 242, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (243, 243, 243, 243, 243, 243, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (244, 244, 244, 244, 244, 244, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (245, 245, 245, 245, 245, 245, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (246, 246, 246, 246, 246, 246, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (247, 247, 247, 247, 247, 247, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (248, 248, 248, 248, 248, 248, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (249, 249, 249, 249, 249, 249, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (250, 250, 250, 250, 250, 250, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (251, 251, 251, 251, 251, 251, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (252, 252, 252, 252, 252, 252, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (253, 253, 253, 253, 253, 253, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (254, 254, 254, 254, 254, 254, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (255, 255, 255, 255, 255, 255, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (256, 256, 256, 256, 256, 256, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (257, 257, 257, 257, 257, 257, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (258, 258, 258, 258, 258, 258, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (259, 259, 259, 259, 259, 259, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (260, 260, 260, 260, 260, 260, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (261, 261, 261, 261, 261, 261, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (262, 262, 262, 262, 262, 262, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (263, 263, 263, 263, 263, 263, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (264, 264, 264, 264, 264, 264, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (265, 265, 265, 265, 265, 265, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (266, 266, 266, 266, 266, 266, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (267, 267, 267, 267, 267, 267, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (268, 268, 268, 268, 268, 268, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (269, 269, 269, 269, 269, 269, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (270, 270, 270, 270, 270, 270, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (271, 271, 271, 271, 271, 271, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (272, 272, 272, 272, 272, 272, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (273, 273, 273, 273, 273, 273, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (274, 274, 274, 274, 274, 274, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (275, 275, 275, 275, 275, 275, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (276, 276, 276, 276, 276, 276, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (277, 277, 277, 277, 277, 277, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (278, 278, 278, 278, 278, 278, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (279, 279, 279, 279, 279, 279, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (280, 280, 280, 280, 280, 280, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (281, 281, 281, 281, 281, 281, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (282, 282, 282, 282, 282, 282, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (283, 283, 283, 283, 283, 283, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (284, 284, 284, 284, 284, 284, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (285, 285, 285, 285, 285, 285, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (286, 286, 286, 286, 286, 286, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (287, 287, 287, 287, 287, 287, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (288, 288, 288, 288, 288, 288, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (289, 289, 289, 289, 289, 289, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (290, 290, 290, 290, 290, 290, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (291, 291, 291, 291, 291, 291, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (292, 292, 292, 292, 292, 292, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (293, 293, 293, 293, 293, 293, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (294, 294, 294, 294, 294, 294, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (295, 295, 295, 295, 295, 295, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (296, 296, 296, 296, 296, 296, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (297, 297, 297, 297, 297, 297, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (298, 298, 298, 298, 298, 298, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (299, 299, 299, 299, 299, 299, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (300, 300, 300, 300, 300, 300, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (301, 301, 301, 301, 301, 301, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (302, 302, 302, 302, 302, 302, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (303, 303, 303, 303, 303, 303, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (304, 304, 304, 304, 304, 304, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (305, 305, 305, 305, 305, 305, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (306, 306, 306, 306, 306, 306, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (307, 307, 307, 307, 307, 307, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (308, 308, 308, 308, 308, 308, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (309, 309, 309, 309, 309, 309, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (310, 310, 310, 310, 310, 310, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (311, 311, 311, 311, 311, 311, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (312, 312, 312, 312, 312, 312, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (313, 313, 313, 313, 313, 313, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (314, 314, 314, 314, 314, 314, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (315, 315, 315, 315, 315, 315, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (316, 316, 316, 316, 316, 316, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (317, 317, 317, 317, 317, 317, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (318, 318, 318, 318, 318, 318, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (319, 319, 319, 319, 319, 319, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (320, 320, 320, 320, 320, 320, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (321, 321, 321, 321, 321, 321, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (322, 322, 322, 322, 322, 322, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (323, 323, 323, 323, 323, 323, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (324, 324, 324, 324, 324, 324, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (325, 325, 325, 325, 325, 325, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (326, 326, 326, 326, 326, 326, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (327, 327, 327, 327, 327, 327, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (328, 328, 328, 328, 328, 328, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (329, 329, 329, 329, 329, 329, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (330, 330, 330, 330, 330, 330, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (331, 331, 331, 331, 331, 331, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (332, 332, 332, 332, 332, 332, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (333, 333, 333, 333, 333, 333, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (334, 334, 334, 334, 334, 334, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (335, 335, 335, 335, 335, 335, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (336, 336, 336, 336, 336, 336, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (337, 337, 337, 337, 337, 337, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (338, 338, 338, 338, 338, 338, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (339, 339, 339, 339, 339, 339, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (340, 340, 340, 340, 340, 340, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (341, 341, 341, 341, 341, 341, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (342, 342, 342, 342, 342, 342, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (343, 343, 343, 343, 343, 343, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (344, 344, 344, 344, 344, 344, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (345, 345, 345, 345, 345, 345, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (346, 346, 346, 346, 346, 346, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (347, 347, 347, 347, 347, 347, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (348, 348, 348, 348, 348, 348, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (349, 349, 349, 349, 349, 349, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (350, 350, 350, 350, 350, 350, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (351, 351, 351, 351, 351, 351, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (352, 352, 352, 352, 352, 352, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (353, 353, 353, 353, 353, 353, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (354, 354, 354, 354, 354, 354, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (355, 355, 355, 355, 355, 355, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (356, 356, 356, 356, 356, 356, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (357, 357, 357, 357, 357, 357, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (358, 358, 358, 358, 358, 358, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (359, 359, 359, 359, 359, 359, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (360, 360, 360, 360, 360, 360, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (361, 361, 361, 361, 361, 361, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (362, 362, 362, 362, 362, 362, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (363, 363, 363, 363, 363, 363, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (364, 364, 364, 364, 364, 364, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (365, 365, 365, 365, 365, 365, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (366, 366, 366, 366, 366, 366, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (367, 367, 367, 367, 367, 367, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (368, 368, 368, 368, 368, 368, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (369, 369, 369, 369, 369, 369, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (370, 370, 370, 370, 370, 370, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (371, 371, 371, 371, 371, 371, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (372, 372, 372, 372, 372, 372, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (373, 373, 373, 373, 373, 373, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (374, 374, 374, 374, 374, 374, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (375, 375, 375, 375, 375, 375, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (376, 376, 376, 376, 376, 376, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (377, 377, 377, 377, 377, 377, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (378, 378, 378, 378, 378, 378, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (379, 379, 379, 379, 379, 379, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (380, 380, 380, 380, 380, 380, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (381, 381, 381, 381, 381, 381, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (382, 382, 382, 382, 382, 382, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (383, 383, 383, 383, 383, 383, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (384, 384, 384, 384, 384, 384, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (385, 385, 385, 385, 385, 385, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (386, 386, 386, 386, 386, 386, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (387, 387, 387, 387, 387, 387, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (388, 388, 388, 388, 388, 388, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (389, 389, 389, 389, 389, 389, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (390, 390, 390, 390, 390, 390, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (391, 391, 391, 391, 391, 391, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (392, 392, 392, 392, 392, 392, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (393, 393, 393, 393, 393, 393, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (394, 394, 394, 394, 394, 394, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (395, 395, 395, 395, 395, 395, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (396, 396, 396, 396, 396, 396, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (397, 397, 397, 397, 397, 397, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (398, 398, 398, 398, 398, 398, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (399, 399, 399, 399, 399, 399, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (400, 400, 400, 400, 400, 400, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (401, 401, 401, 401, 401, 401, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (402, 402, 402, 402, 402, 402, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (403, 403, 403, 403, 403, 403, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (404, 404, 404, 404, 404, 404, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (405, 405, 405, 405, 405, 405, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (406, 406, 406, 406, 406, 406, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (407, 407, 407, 407, 407, 407, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (408, 408, 408, 408, 408, 408, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (409, 409, 409, 409, 409, 409, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (410, 410, 410, 410, 410, 410, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (411, 411, 411, 411, 411, 411, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (412, 412, 412, 412, 412, 412, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (413, 413, 413, 413, 413, 413, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (414, 414, 414, 414, 414, 414, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (415, 415, 415, 415, 415, 415, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (416, 416, 416, 416, 416, 416, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (417, 417, 417, 417, 417, 417, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (418, 418, 418, 418, 418, 418, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (419, 419, 419, 419, 419, 419, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (420, 420, 420, 420, 420, 420, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (421, 421, 421, 421, 421, 421, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (422, 422, 422, 422, 422, 422, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (423, 423, 423, 423, 423, 423, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (424, 424, 424, 424, 424, 424, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (425, 425, 425, 425, 425, 425, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (426, 426, 426, 426, 426, 426, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (427, 427, 427, 427, 427, 427, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (428, 428, 428, 428, 428, 428, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (429, 429, 429, 429, 429, 429, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (430, 430, 430, 430, 430, 430, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (431, 431, 431, 431, 431, 431, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (432, 432, 432, 432, 432, 432, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (433, 433, 433, 433, 433, 433, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (434, 434, 434, 434, 434, 434, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (435, 435, 435, 435, 435, 435, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (436, 436, 436, 436, 436, 436, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (437, 437, 437, 437, 437, 437, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (438, 438, 438, 438, 438, 438, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (439, 439, 439, 439, 439, 439, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (440, 440, 440, 440, 440, 440, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (441, 441, 441, 441, 441, 441, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (442, 442, 442, 442, 442, 442, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (443, 443, 443, 443, 443, 443, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (444, 444, 444, 444, 444, 444, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (445, 445, 445, 445, 445, 445, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (446, 446, 446, 446, 446, 446, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (447, 447, 447, 447, 447, 447, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (448, 448, 448, 448, 448, 448, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (449, 449, 449, 449, 449, 449, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (450, 450, 450, 450, 450, 450, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (451, 451, 451, 451, 451, 451, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (452, 452, 452, 452, 452, 452, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (453, 453, 453, 453, 453, 453, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (454, 454, 454, 454, 454, 454, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (455, 455, 455, 455, 455, 455, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (456, 456, 456, 456, 456, 456, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (457, 457, 457, 457, 457, 457, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (458, 458, 458, 458, 458, 458, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (459, 459, 459, 459, 459, 459, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (460, 460, 460, 460, 460, 460, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (461, 461, 461, 461, 461, 461, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (462, 462, 462, 462, 462, 462, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (463, 463, 463, 463, 463, 463, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (464, 464, 464, 464, 464, 464, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (465, 465, 465, 465, 465, 465, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (466, 466, 466, 466, 466, 466, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (467, 467, 467, 467, 467, 467, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (468, 468, 468, 468, 468, 468, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (469, 469, 469, 469, 469, 469, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (470, 470, 470, 470, 470, 470, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (471, 471, 471, 471, 471, 471, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (472, 472, 472, 472, 472, 472, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (473, 473, 473, 473, 473, 473, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (474, 474, 474, 474, 474, 474, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (475, 475, 475, 475, 475, 475, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (476, 476, 476, 476, 476, 476, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (477, 477, 477, 477, 477, 477, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (478, 478, 478, 478, 478, 478, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (479, 479, 479, 479, 479, 479, '2025-10-11 11:40:51');
+INSERT INTO `biz_post_ranking` VALUES (480, 480, 480, 480, 480, 480, '2025-10-11 11:40:51');
 
 -- ----------------------------
 -- Table structure for biz_section
@@ -572,39 +1329,33 @@ CREATE TABLE `biz_section`  (
   PRIMARY KEY (`section_id`) USING BTREE,
   INDEX `fk_section_game`(`game_id` ASC) USING BTREE,
   CONSTRAINT `fk_section_game` FOREIGN KEY (`game_id`) REFERENCES `biz_game` (`game_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '论坛版块表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '论坛版块表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of biz_section
 -- ----------------------------
 INSERT INTO `biz_section` VALUES (1, '赛博朋克2077讨论区', '讨论《赛博朋克2077》游戏内容、攻略、MOD等', 1, 1, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-05-23 13:03:17', '游戏讨论版块');
-INSERT INTO `biz_section` VALUES (2, 'CS2战术交流', '《反恐精英2》战术讨论、地图攻略、职业比赛', 2, 2, '0', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '射击游戏版块');
-INSERT INTO `biz_section` VALUES (3, '文明建造师', '《文明6》策略分享、文明介绍、MOD推荐', 3, 3, '0', '0', 'admin', '2025-05-23 12:00:00', '', NULL, '策略游戏版块');
-INSERT INTO `biz_section` VALUES (4, '狼学校', '《巫师3》世界观讨论、任务攻略、角色扮演', 4, 4, '1', '0', 'admin', '2025-05-23 12:00:00', '', '2025-06-03 16:02:45', 'RPG游戏版块');
+INSERT INTO `biz_section` VALUES (2, 'CS2战术交流', '《反恐精英2》战术讨论、地图攻略、职业比赛', 2, 2, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-07-16 13:29:07', '射击游戏版块');
+INSERT INTO `biz_section` VALUES (3, '文明建造师', '《文明6》策略分享、文明介绍、MOD推荐', 3, 3, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-07-16 13:29:07', '策略游戏版块');
+INSERT INTO `biz_section` VALUES (4, '狼学校', '《巫师3》世界观讨论、任务攻略、角色扮演', 4, 4, '1', '0', 'admin', '2025-05-23 12:00:00', '', '2025-07-16 13:29:07', 'RPG游戏版块');
 INSERT INTO `biz_section` VALUES (5, '罪恶都市', '《GTA5》线上模式、任务攻略、创意分享', 5, 5, '0', '0', 'admin', '2025-05-23 12:00:00', '', '2025-06-03 16:11:48', '开放世界版块');
-
--- ----------------------------
--- Table structure for biz_user_balance
--- ----------------------------
-DROP TABLE IF EXISTS `biz_user_balance`;
-CREATE TABLE `biz_user_balance`  (
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `balance` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '余额',
-  `frozen_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '冻结金额',
-  `total_recharge` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '累计充值',
-  `total_consume` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '累计消费',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`user_id`) USING BTREE,
-  CONSTRAINT `fk_balance_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `chk_balance_positive` CHECK ((`balance` >= 0) and (`frozen_amount` >= 0) and (`total_recharge` >= 0) and (`total_consume` >= 0))
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = '用户余额表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of biz_user_balance
--- ----------------------------
-INSERT INTO `biz_user_balance` VALUES (1, 1250.50, 0.00, 2000.00, 749.50, '2025-05-23 12:00:00', '2025-05-23 16:45:00');
-INSERT INTO `biz_user_balance` VALUES (2, 89.20, 0.00, 500.00, 410.80, '2025-05-23 12:00:00', '2025-05-23 15:20:00');
+INSERT INTO `biz_section` VALUES (6, '模拟城市5建设交流', '分享城市建设心得、交通规划技巧', 6, 6, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '模拟城市版块');
+INSERT INTO `biz_section` VALUES (7, 'FIFA 24战术讨论', '讨论FIFA 24战术、球员推荐、赛季更新', 7, 7, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', 'FIFA版块');
+INSERT INTO `biz_section` VALUES (8, '节奏光剑高分挑战', '分享高难度谱面、挑战记录', 8, 8, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '节奏光剑版块');
+INSERT INTO `biz_section` VALUES (9, '生化危机4剧情解析', '讨论剧情、隐藏要素、速通技巧', 9, 9, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '生化危机版块');
+INSERT INTO `biz_section` VALUES (10, '炉石传说卡组分享', '分享卡组构筑、对战心得', 10, 10, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '炉石版块');
+INSERT INTO `biz_section` VALUES (11, '城市天际线MOD推荐', '推荐实用MOD、建筑分享', 11, 11, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '天际线版块');
+INSERT INTO `biz_section` VALUES (12, 'NBA 2K24生涯模式', '分享MC模式成长历程、徽章搭配', 12, 12, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', 'NBA 2K版块');
+INSERT INTO `biz_section` VALUES (13, '喵斯快跑谱面推荐', '推荐好听曲目、难度分析', 13, 13, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '喵斯版块');
+INSERT INTO `biz_section` VALUES (14, '黎明杀机角色攻略', '杀手与幸存者角色技巧分享', 14, 14, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '黎明杀机版块');
+INSERT INTO `biz_section` VALUES (15, '影之诗卡组交流', '分享主流卡组、对战环境分析', 15, 15, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '影之诗版块');
+INSERT INTO `biz_section` VALUES (16, '模拟经营游戏综合', '讨论所有模拟经营类游戏的综合版块', 6, 16, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '综合模拟版块');
+INSERT INTO `biz_section` VALUES (17, '体育游戏大联盟', '涵盖FIFA、NBA等所有体育游戏讨论', 7, 17, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '体育游戏版块');
+INSERT INTO `biz_section` VALUES (18, '音乐游戏爱好者', '所有音乐节奏游戏爱好者的聚集地', 8, 18, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '音乐游戏版块');
+INSERT INTO `biz_section` VALUES (19, '恐怖游戏讨论区', '讨论各类恐怖生存游戏的专区', 9, 19, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '恐怖游戏版块');
+INSERT INTO `biz_section` VALUES (20, '卡牌游戏策略馆', '涵盖炉石、影之诗等卡牌游戏策略讨论', 10, 20, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '卡牌游戏版块');
+INSERT INTO `biz_section` VALUES (21, '城市建设大师', '专注城市建造类游戏深度交流', 11, 21, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '城市建设版块');
+INSERT INTO `biz_section` VALUES (22, '多人竞技专区', '讨论所有多人竞技类游戏的专区', 14, 22, '0', '0', 'admin', '2025-08-22 20:59:36', '', '2025-07-16 13:29:07', '多人竞技版块');
 
 -- ----------------------------
 -- Table structure for gen_table
@@ -633,7 +1384,7 @@ CREATE TABLE `gen_table`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`table_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 58 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成业务表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 58 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成业务表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table
@@ -668,7 +1419,7 @@ CREATE TABLE `gen_table_column`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`column_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 379 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 379 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table_column
@@ -690,7 +1441,7 @@ CREATE TABLE `qrtz_blob_triggers`  (
   `blob_data` blob NULL COMMENT '存放持久化Trigger对象',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_blob_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Blob类型的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Blob类型的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_blob_triggers
@@ -705,7 +1456,7 @@ CREATE TABLE `qrtz_calendars`  (
   `calendar_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '日历名称',
   `calendar` blob NOT NULL COMMENT '存放持久化calendar对象',
   PRIMARY KEY (`sched_name`, `calendar_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '日历信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '日历信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_calendars
@@ -723,7 +1474,7 @@ CREATE TABLE `qrtz_cron_triggers`  (
   `time_zone_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '时区',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_cron_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Cron类型的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Cron类型的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_cron_triggers
@@ -748,7 +1499,7 @@ CREATE TABLE `qrtz_fired_triggers`  (
   `is_nonconcurrent` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '是否并发',
   `requests_recovery` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '是否接受恢复执行',
   PRIMARY KEY (`sched_name`, `entry_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '已触发的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '已触发的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_fired_triggers
@@ -770,7 +1521,7 @@ CREATE TABLE `qrtz_job_details`  (
   `requests_recovery` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '是否接受恢复执行',
   `job_data` blob NULL COMMENT '存放持久化job对象',
   PRIMARY KEY (`sched_name`, `job_name`, `job_group`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '任务详细信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '任务详细信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_job_details
@@ -784,7 +1535,7 @@ CREATE TABLE `qrtz_locks`  (
   `sched_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '调度名称',
   `lock_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '悲观锁名称',
   PRIMARY KEY (`sched_name`, `lock_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '存储的悲观锁信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '存储的悲观锁信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_locks
@@ -798,7 +1549,7 @@ CREATE TABLE `qrtz_paused_trigger_grps`  (
   `sched_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '调度名称',
   `trigger_group` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'qrtz_triggers表trigger_group的外键',
   PRIMARY KEY (`sched_name`, `trigger_group`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '暂停的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '暂停的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_paused_trigger_grps
@@ -814,7 +1565,7 @@ CREATE TABLE `qrtz_scheduler_state`  (
   `last_checkin_time` bigint NOT NULL COMMENT '上次检查时间',
   `checkin_interval` bigint NOT NULL COMMENT '检查间隔时间',
   PRIMARY KEY (`sched_name`, `instance_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '调度器状态表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '调度器状态表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_scheduler_state
@@ -833,7 +1584,7 @@ CREATE TABLE `qrtz_simple_triggers`  (
   `times_triggered` bigint NOT NULL COMMENT '已经触发的次数',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_simple_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '简单触发器的信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '简单触发器的信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_simple_triggers
@@ -860,7 +1611,7 @@ CREATE TABLE `qrtz_simprop_triggers`  (
   `bool_prop_2` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Boolean类型的trigger的第二个参数',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_simprop_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '同步机制的行锁表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '同步机制的行锁表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_simprop_triggers
@@ -890,7 +1641,7 @@ CREATE TABLE `qrtz_triggers`  (
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   INDEX `sched_name`(`sched_name` ASC, `job_name` ASC, `job_group` ASC) USING BTREE,
   CONSTRAINT `qrtz_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `job_name`, `job_group`) REFERENCES `qrtz_job_details` (`sched_name`, `job_name`, `job_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '触发器详细信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '触发器详细信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_triggers
@@ -912,7 +1663,7 @@ CREATE TABLE `sys_config`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`config_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '参数配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '参数配置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_config
@@ -920,7 +1671,7 @@ CREATE TABLE `sys_config`  (
 INSERT INTO `sys_config` VALUES (1, '主框架页-默认皮肤样式名称', 'sys.index.skinName', 'skin-blue', 'Y', 'admin', '2025-05-15 22:16:17', '', NULL, '蓝色 skin-blue、绿色 skin-green、紫色 skin-purple、红色 skin-red、黄色 skin-yellow');
 INSERT INTO `sys_config` VALUES (2, '用户管理-账号初始密码', 'sys.user.initPassword', '123456', 'Y', 'admin', '2025-05-15 22:16:17', '', NULL, '初始化密码 123456');
 INSERT INTO `sys_config` VALUES (3, '主框架页-侧边栏主题', 'sys.index.sideTheme', 'theme-dark', 'Y', 'admin', '2025-05-15 22:16:17', '', NULL, '深色主题theme-dark，浅色主题theme-light');
-INSERT INTO `sys_config` VALUES (4, '账号自助-验证码开关', 'sys.account.captchaEnabled', 'false', 'Y', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-17 22:02:37', '是否开启验证码功能（true开启，false关闭）');
+INSERT INTO `sys_config` VALUES (4, '账号自助-验证码开关', 'sys.account.captchaEnabled', 'true', 'Y', 'admin', '2025-05-15 22:16:17', 'admin', '2025-07-18 12:22:02', '是否开启验证码功能（true开启，false关闭）');
 INSERT INTO `sys_config` VALUES (5, '账号自助-是否开启用户注册功能', 'sys.account.registerUser', 'true', 'Y', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-17 19:04:35', '是否开启注册用户功能（true开启，false关闭）');
 INSERT INTO `sys_config` VALUES (6, '用户登录-黑名单列表', 'sys.login.blackIPList', '', 'Y', 'admin', '2025-05-15 22:16:17', '', NULL, '设置登录IP黑名单限制，多个匹配项以;分隔，支持匹配（*通配、网段）');
 
@@ -944,7 +1695,7 @@ CREATE TABLE `sys_dept`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`dept_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 200 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '部门表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 200 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '部门表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dept
@@ -980,7 +1731,7 @@ CREATE TABLE `sys_dict_data`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`dict_code`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典数据表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典数据表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_data
@@ -1031,7 +1782,7 @@ CREATE TABLE `sys_dict_type`  (
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`dict_id`) USING BTREE,
   UNIQUE INDEX `dict_type`(`dict_type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典类型表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典类型表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_type
@@ -1066,7 +1817,7 @@ CREATE TABLE `sys_job`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '备注信息',
   PRIMARY KEY (`job_id`, `job_name`, `job_group`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '定时任务调度表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '定时任务调度表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_job
@@ -1089,7 +1840,7 @@ CREATE TABLE `sys_job_log`  (
   `exception_info` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '异常信息',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`job_log_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_job_log
@@ -1112,7 +1863,7 @@ CREATE TABLE `sys_logininfor`  (
   PRIMARY KEY (`info_id`) USING BTREE,
   INDEX `idx_sys_logininfor_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_logininfor_lt`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 201 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统访问记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 223 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统访问记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_logininfor
@@ -1218,6 +1969,28 @@ INSERT INTO `sys_logininfor` VALUES (197, 'admin', '127.0.0.1', '内网IP', 'Chr
 INSERT INTO `sys_logininfor` VALUES (198, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-06-11 18:04:50');
 INSERT INTO `sys_logininfor` VALUES (199, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-06-16 19:52:15');
 INSERT INTO `sys_logininfor` VALUES (200, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-06-16 19:52:20');
+INSERT INTO `sys_logininfor` VALUES (201, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-06-19 16:30:04');
+INSERT INTO `sys_logininfor` VALUES (202, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-16 12:33:53');
+INSERT INTO `sys_logininfor` VALUES (203, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-16 13:28:13');
+INSERT INTO `sys_logininfor` VALUES (204, 'admin', '192.168.124.7', '内网IP', 'Chrome Mobile', 'Android 1.x', '1', '用户不存在/密码错误', '2025-07-16 14:40:06');
+INSERT INTO `sys_logininfor` VALUES (205, 'admin', '192.168.124.7', '内网IP', 'Chrome Mobile', 'Android 1.x', '0', '登录成功', '2025-07-16 14:40:12');
+INSERT INTO `sys_logininfor` VALUES (206, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-16 22:40:00');
+INSERT INTO `sys_logininfor` VALUES (207, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-18 00:25:16');
+INSERT INTO `sys_logininfor` VALUES (208, 'admin', '192.168.124.13', '内网IP', 'Chrome Mobile', 'Android 1.x', '1', '用户不存在/密码错误', '2025-07-18 00:25:19');
+INSERT INTO `sys_logininfor` VALUES (209, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-18 12:21:09');
+INSERT INTO `sys_logininfor` VALUES (210, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '退出成功', '2025-07-18 12:22:06');
+INSERT INTO `sys_logininfor` VALUES (211, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '验证码错误', '2025-07-18 12:22:16');
+INSERT INTO `sys_logininfor` VALUES (212, 'admin', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-18 12:22:22');
+INSERT INTO `sys_logininfor` VALUES (213, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '退出成功', '2025-09-23 22:11:09');
+INSERT INTO `sys_logininfor` VALUES (214, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '1', '验证码错误', '2025-09-23 22:11:18');
+INSERT INTO `sys_logininfor` VALUES (215, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-09-23 22:11:22');
+INSERT INTO `sys_logininfor` VALUES (216, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '退出成功', '2025-09-23 22:12:32');
+INSERT INTO `sys_logininfor` VALUES (217, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-09-23 22:22:25');
+INSERT INTO `sys_logininfor` VALUES (218, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '退出成功', '2025-09-23 22:23:02');
+INSERT INTO `sys_logininfor` VALUES (219, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-09-23 22:23:59');
+INSERT INTO `sys_logininfor` VALUES (220, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-10-02 21:11:22');
+INSERT INTO `sys_logininfor` VALUES (221, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-10-12 13:35:52');
+INSERT INTO `sys_logininfor` VALUES (222, 'admin', '127.0.0.1', '内网IP', 'Chrome 14', 'Windows 10', '0', '登录成功', '2025-10-12 15:42:55');
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -1245,30 +2018,30 @@ CREATE TABLE `sys_menu`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2623 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '菜单权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2623 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
 -- ----------------------------
 INSERT INTO `sys_menu` VALUES (1, '系统管理', 0, 1, 'system', NULL, '', '', 1, 0, 'M', '0', '0', '', 'system', 'admin', '2025-05-15 22:16:17', '', NULL, '系统管理目录');
-INSERT INTO `sys_menu` VALUES (2, '系统监控', 0, 2, 'monitor', NULL, '', '', 1, 0, 'M', '0', '0', '', 'monitor', 'admin', '2025-05-15 22:16:17', '', NULL, '系统监控目录');
-INSERT INTO `sys_menu` VALUES (3, '系统工具', 0, 3, 'tool', NULL, '', '', 1, 0, 'M', '0', '0', '', 'tool', 'admin', '2025-05-15 22:16:17', '', NULL, '系统工具目录');
+INSERT INTO `sys_menu` VALUES (2, '系统监控', 0, 2, 'monitor', NULL, '', '', 1, 0, 'M', '1', '0', '', 'monitor', 'admin', '2025-05-15 22:16:17', 'admin', '2025-10-12 13:37:41', '系统监控目录');
+INSERT INTO `sys_menu` VALUES (3, '系统工具', 0, 3, 'tool', NULL, '', '', 1, 0, 'M', '1', '0', '', 'tool', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:57:49', '系统工具目录');
 INSERT INTO `sys_menu` VALUES (4, '若依官网', 0, 4, 'http://ruoyi.vip', NULL, '', '', 0, 0, 'M', '1', '1', '', 'guide', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-16 14:32:41', '若依官网地址');
 INSERT INTO `sys_menu` VALUES (100, '用户管理', 1, 1, 'user', 'system/user/index', '', '', 1, 0, 'C', '0', '0', 'system:user:list', 'user', 'admin', '2025-05-15 22:16:17', '', NULL, '用户管理菜单');
-INSERT INTO `sys_menu` VALUES (101, '角色管理', 1, 2, 'role', 'system/role/index', '', '', 1, 0, 'C', '0', '0', 'system:role:list', 'peoples', 'admin', '2025-05-15 22:16:17', '', NULL, '角色管理菜单');
+INSERT INTO `sys_menu` VALUES (101, '角色管理', 1, 2, 'role', 'system/role/index', '', '', 1, 0, 'C', '1', '0', 'system:role:list', 'peoples', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:57:17', '角色管理菜单');
 INSERT INTO `sys_menu` VALUES (102, '菜单管理', 1, 3, 'menu', 'system/menu/index', '', '', 1, 0, 'C', '0', '0', 'system:menu:list', 'tree-table', 'admin', '2025-05-15 22:16:17', '', NULL, '菜单管理菜单');
 INSERT INTO `sys_menu` VALUES (103, '部门管理', 1, 4, 'dept', 'system/dept/index', '', '', 1, 0, 'C', '1', '0', 'system:dept:list', 'tree', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-16 14:31:53', '部门管理菜单');
 INSERT INTO `sys_menu` VALUES (104, '岗位管理', 1, 5, 'post', 'system/post/index', '', '', 1, 0, 'C', '1', '0', 'system:post:list', 'post', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-16 14:32:04', '岗位管理菜单');
-INSERT INTO `sys_menu` VALUES (105, '字典管理', 1, 6, 'dict', 'system/dict/index', '', '', 1, 0, 'C', '0', '0', 'system:dict:list', 'dict', 'admin', '2025-05-15 22:16:17', '', NULL, '字典管理菜单');
-INSERT INTO `sys_menu` VALUES (106, '参数设置', 1, 7, 'config', 'system/config/index', '', '', 1, 0, 'C', '0', '0', 'system:config:list', 'edit', 'admin', '2025-05-15 22:16:17', '', NULL, '参数设置菜单');
+INSERT INTO `sys_menu` VALUES (105, '字典管理', 1, 6, 'dict', 'system/dict/index', '', '', 1, 0, 'C', '1', '0', 'system:dict:list', 'dict', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:57:25', '字典管理菜单');
+INSERT INTO `sys_menu` VALUES (106, '参数设置', 1, 7, 'config', 'system/config/index', '', '', 1, 0, 'C', '1', '0', 'system:config:list', 'edit', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:57:29', '参数设置菜单');
 INSERT INTO `sys_menu` VALUES (107, '通知公告', 1, 8, 'notice', 'system/notice/index', '', '', 1, 0, 'C', '1', '0', 'system:notice:list', 'message', 'admin', '2025-05-15 22:16:17', 'admin', '2025-05-16 14:32:21', '通知公告菜单');
-INSERT INTO `sys_menu` VALUES (108, '日志管理', 1, 9, 'log', '', '', '', 1, 0, 'M', '0', '0', '', 'log', 'admin', '2025-05-15 22:16:17', '', NULL, '日志管理菜单');
+INSERT INTO `sys_menu` VALUES (108, '日志管理', 1, 9, 'log', '', '', '', 1, 0, 'M', '1', '0', '', 'log', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:57:36', '日志管理菜单');
 INSERT INTO `sys_menu` VALUES (109, '在线用户', 2, 1, 'online', 'monitor/online/index', '', '', 1, 0, 'C', '0', '0', 'monitor:online:list', 'online', 'admin', '2025-05-15 22:16:17', '', NULL, '在线用户菜单');
-INSERT INTO `sys_menu` VALUES (110, '定时任务', 2, 2, 'job', 'monitor/job/index', '', '', 1, 0, 'C', '0', '0', 'monitor:job:list', 'job', 'admin', '2025-05-15 22:16:17', '', NULL, '定时任务菜单');
-INSERT INTO `sys_menu` VALUES (111, '数据监控', 2, 3, 'druid', 'monitor/druid/index', '', '', 1, 0, 'C', '0', '0', 'monitor:druid:list', 'druid', 'admin', '2025-05-15 22:16:17', '', NULL, '数据监控菜单');
-INSERT INTO `sys_menu` VALUES (112, '服务监控', 2, 4, 'server', 'monitor/server/index', '', '', 1, 0, 'C', '0', '0', 'monitor:server:list', 'server', 'admin', '2025-05-15 22:16:17', '', NULL, '服务监控菜单');
-INSERT INTO `sys_menu` VALUES (113, '缓存监控', 2, 5, 'cache', 'monitor/cache/index', '', '', 1, 0, 'C', '0', '0', 'monitor:cache:list', 'redis', 'admin', '2025-05-15 22:16:17', '', NULL, '缓存监控菜单');
-INSERT INTO `sys_menu` VALUES (114, '缓存列表', 2, 6, 'cacheList', 'monitor/cache/list', '', '', 1, 0, 'C', '0', '0', 'monitor:cache:list', 'redis-list', 'admin', '2025-05-15 22:16:17', '', NULL, '缓存列表菜单');
+INSERT INTO `sys_menu` VALUES (110, '定时任务', 2, 2, 'job', 'monitor/job/index', '', '', 1, 0, 'C', '1', '0', 'monitor:job:list', 'job', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:58:06', '定时任务菜单');
+INSERT INTO `sys_menu` VALUES (111, '数据监控', 2, 3, 'druid', 'monitor/druid/index', '', '', 1, 0, 'C', '1', '0', 'monitor:druid:list', 'druid', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:58:11', '数据监控菜单');
+INSERT INTO `sys_menu` VALUES (112, '服务监控', 2, 4, 'server', 'monitor/server/index', '', '', 1, 0, 'C', '1', '0', 'monitor:server:list', 'server', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:58:17', '服务监控菜单');
+INSERT INTO `sys_menu` VALUES (113, '缓存监控', 2, 5, 'cache', 'monitor/cache/index', '', '', 1, 0, 'C', '1', '0', 'monitor:cache:list', 'redis', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 22:33:16', '缓存监控菜单');
+INSERT INTO `sys_menu` VALUES (114, '缓存列表', 2, 6, 'cacheList', 'monitor/cache/list', '', '', 1, 0, 'C', '1', '0', 'monitor:cache:list', 'redis-list', 'admin', '2025-05-15 22:16:17', 'admin', '2025-09-23 21:58:38', '缓存列表菜单');
 INSERT INTO `sys_menu` VALUES (115, '表单构建', 3, 1, 'build', 'tool/build/index', '', '', 1, 0, 'C', '0', '0', 'tool:build:list', 'build', 'admin', '2025-05-15 22:16:17', '', NULL, '表单构建菜单');
 INSERT INTO `sys_menu` VALUES (116, '代码生成', 3, 2, 'gen', 'tool/gen/index', '', '', 1, 0, 'C', '0', '0', 'tool:gen:list', 'code', 'admin', '2025-05-15 22:16:17', '', NULL, '代码生成菜单');
 INSERT INTO `sys_menu` VALUES (117, '系统接口', 3, 3, 'swagger', 'tool/swagger/index', '', '', 1, 0, 'C', '0', '0', 'tool:swagger:list', 'swagger', 'admin', '2025-05-15 22:16:17', '', NULL, '系统接口菜单');
@@ -1347,7 +2120,7 @@ INSERT INTO `sys_menu` VALUES (2503, '评论新增', 2501, 2, '#', '', NULL, '',
 INSERT INTO `sys_menu` VALUES (2504, '评论修改', 2501, 3, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:comment:edit', '#', 'admin', '2025-05-17 17:31:52', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2505, '评论删除', 2501, 4, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:comment:remove', '#', 'admin', '2025-05-17 17:31:52', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2506, '评论导出', 2501, 5, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:comment:export', '#', 'admin', '2025-05-17 17:31:52', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2507, '帖子收藏', 2451, 1, 'favorite', 'forum/favorite/index', NULL, '', 1, 0, 'C', '0', '0', 'forum:favorite:list', '#', 'admin', '2025-05-17 17:31:56', '', NULL, '帖子收藏菜单');
+INSERT INTO `sys_menu` VALUES (2507, '帖子收藏', 2451, 1, 'favorite', 'forum/favorite/index', NULL, '', 1, 0, 'C', '1', '0', 'forum:favorite:list', '#', 'admin', '2025-05-17 17:31:56', 'admin', '2025-09-23 22:02:50', '帖子收藏菜单');
 INSERT INTO `sys_menu` VALUES (2508, '帖子收藏查询', 2507, 1, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:favorite:query', '#', 'admin', '2025-05-17 17:31:56', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2509, '帖子收藏新增', 2507, 2, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:favorite:add', '#', 'admin', '2025-05-17 17:31:56', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2510, '帖子收藏修改', 2507, 3, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:favorite:edit', '#', 'admin', '2025-05-17 17:31:56', '', NULL, '');
@@ -1397,7 +2170,7 @@ INSERT INTO `sys_menu` VALUES (2559, '游戏删除', 2555, 4, '#', '', NULL, '',
 INSERT INTO `sys_menu` VALUES (2560, '游戏导出', 2555, 5, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'forum:game:export', '#', 'admin', '2025-05-17 22:44:23', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2561, '商品管理', 2450, 1, 'goods', NULL, NULL, '', 1, 0, 'M', '1', '0', '', 'server', 'admin', '2025-05-23 13:08:14', 'admin', '2025-06-16 19:55:18', '');
 INSERT INTO `sys_menu` VALUES (2562, '订单管理', 2450, 1, 'order', NULL, NULL, '', 1, 0, 'M', '1', '0', '', 'edit', 'admin', '2025-05-23 13:09:42', 'admin', '2025-06-16 19:55:29', '');
-INSERT INTO `sys_menu` VALUES (2563, '用户余额', 2448, 1, 'balance', 'purchase/balance/index', NULL, '', 1, 0, 'C', '0', '0', 'purchase:balance:list', '#', 'admin', '2025-05-23 13:31:25', '', NULL, '用户余额菜单');
+INSERT INTO `sys_menu` VALUES (2563, '用户余额', 2448, 1, 'balance', 'purchase/balance/index', NULL, '', 1, 0, 'C', '1', '0', 'purchase:balance:list', '#', 'admin', '2025-05-23 13:31:25', 'admin', '2025-09-23 21:59:16', '用户余额菜单');
 INSERT INTO `sys_menu` VALUES (2564, '用户余额查询', 2563, 1, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:balance:query', '#', 'admin', '2025-05-23 13:31:25', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2565, '用户余额新增', 2563, 2, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:balance:add', '#', 'admin', '2025-05-23 13:31:25', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2566, '用户余额修改', 2563, 3, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:balance:edit', '#', 'admin', '2025-05-23 13:31:25', '', NULL, '');
@@ -1409,7 +2182,7 @@ INSERT INTO `sys_menu` VALUES (2577, 'CDK订单项新增', 2575, 2, '#', '', NUL
 INSERT INTO `sys_menu` VALUES (2578, 'CDK订单项修改', 2575, 3, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:item:edit', '#', 'admin', '2025-05-23 13:31:37', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2579, 'CDK订单项删除', 2575, 4, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:item:remove', '#', 'admin', '2025-05-23 13:31:37', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2580, 'CDK订单项导出', 2575, 5, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:item:export', '#', 'admin', '2025-05-23 13:31:37', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2581, '余额变动日志', 2448, 1, 'log', 'purchase/log/index', NULL, '', 1, 0, 'C', '0', '0', 'purchase:log:list', '#', 'admin', '2025-05-23 13:31:43', '', NULL, '余额变动日志菜单');
+INSERT INTO `sys_menu` VALUES (2581, '余额变动日志', 2448, 1, 'log', 'purchase/log/index', NULL, '', 1, 0, 'C', '1', '0', 'purchase:log:list', '#', 'admin', '2025-05-23 13:31:43', 'admin', '2025-09-23 21:59:12', '余额变动日志菜单');
 INSERT INTO `sys_menu` VALUES (2582, '余额变动日志查询', 2581, 1, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:log:query', '#', 'admin', '2025-05-23 13:31:43', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2583, '余额变动日志新增', 2581, 2, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:log:add', '#', 'admin', '2025-05-23 13:31:43', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2584, '余额变动日志修改', 2581, 3, '#', '', NULL, '', 1, 0, 'F', '0', '0', 'purchase:log:edit', '#', 'admin', '2025-05-23 13:31:43', '', NULL, '');
@@ -1468,7 +2241,7 @@ CREATE TABLE `sys_notice`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`notice_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知公告表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知公告表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_notice
@@ -1502,7 +2275,7 @@ CREATE TABLE `sys_oper_log`  (
   INDEX `idx_sys_oper_log_bt`(`business_type` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_ot`(`oper_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1034 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '操作日志记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1076 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '操作日志记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_oper_log
@@ -2441,6 +3214,48 @@ INSERT INTO `sys_oper_log` VALUES (1030, '论坛帖子', 2, 'com.ruoyi.forum.con
 INSERT INTO `sys_oper_log` VALUES (1031, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":0,\"createBy\":\"addd\",\"createTime\":\"2025-06-09 11:31:01\",\"delFlag\":\"0\",\"hotFlag\":\"0\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p><strong><em><s><u> 据uvv</u></s></em></strong></p>\",\"postId\":17,\"postTitle\":\"与已故一个一个i\",\"sectionId\":1,\"status\":\"2\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-06-09 11:35:13\",\"userId\":101,\"viewCount\":2}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-06-09 11:35:13', 25);
 INSERT INTO `sys_oper_log` VALUES (1032, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"createTime\":\"2025-05-23 13:08:14\",\"icon\":\"server\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2561,\"menuName\":\"商品管理\",\"menuType\":\"M\",\"orderNum\":1,\"params\":{},\"parentId\":2450,\"path\":\"goods\",\"perms\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-06-16 19:55:18', 17);
 INSERT INTO `sys_oper_log` VALUES (1033, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"createTime\":\"2025-05-23 13:09:42\",\"icon\":\"edit\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2562,\"menuName\":\"订单管理\",\"menuType\":\"M\",\"orderNum\":1,\"params\":{},\"parentId\":2450,\"path\":\"order\",\"perms\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-06-16 19:55:29', 6);
+INSERT INTO `sys_oper_log` VALUES (1034, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:34:10\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:34:10', 40);
+INSERT INTO `sys_oper_log` VALUES (1035, '游戏', 2, 'com.ruoyi.forum.controller.BizGameController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/game', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameDescription\":\"《巫师3：狂猎》是一款故事丰富的开放世界RPG游戏，设定在一个视觉效果令人惊叹的奇幻世界中，玩家的每个选择都意义重大。\",\"gameId\":4,\"gameName\":\"巫师3：狂猎\",\"gameTypeId\":1,\"params\":{},\"remark\":\"RPG神作\",\"status\":\"1\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:35:21\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:35:21', 7);
+INSERT INTO `sys_oper_log` VALUES (1036, '游戏', 2, 'com.ruoyi.forum.controller.BizGameController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/game', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameDescription\":\"《巫师3：狂猎》是一款故事丰富的开放世界RPG游戏，设定在一个视觉效果令人惊叹的奇幻世界中，玩家的每个选择都意义重大。\",\"gameId\":4,\"gameName\":\"巫师3：狂猎\",\"gameTypeId\":1,\"params\":{},\"remark\":\"RPG神作\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:35:25\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:35:25', 4);
+INSERT INTO `sys_oper_log` VALUES (1037, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:35:35\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:35:35', 9);
+INSERT INTO `sys_oper_log` VALUES (1038, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:35:43\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:35:43', 7);
+INSERT INTO `sys_oper_log` VALUES (1039, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:37:33\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:37:33', 5);
+INSERT INTO `sys_oper_log` VALUES (1040, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:42:46\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:42:46', 5);
+INSERT INTO `sys_oper_log` VALUES (1041, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"1\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:44:17\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:44:17', 3);
+INSERT INTO `sys_oper_log` VALUES (1042, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":0,\"createBy\":\"ry\",\"createTime\":\"2025-05-23 16:20:00\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":21,\"params\":{},\"postContent\":\"<p>《巫师3》的支线任务质量非常高，这里推荐几个最值得做的支线任务...</p>\",\"postId\":4,\"postTitle\":\"巫师3支线任务推荐\",\"remark\":\"游戏推荐帖\",\"sectionId\":4,\"status\":\"1\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:53:10\",\"userId\":2,\"viewCount\":142}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:53:10', 5);
+INSERT INTO `sys_oper_log` VALUES (1043, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":0,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"0\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"1\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:53:37\",\"userId\":111,\"viewCount\":2}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:53:37', 6);
+INSERT INTO `sys_oper_log` VALUES (1044, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:53:53\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:53:53', 5);
+INSERT INTO `sys_oper_log` VALUES (1045, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:55:43\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:55:43', 8);
+INSERT INTO `sys_oper_log` VALUES (1046, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"1\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:57:02\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 12:57:02', 4);
+INSERT INTO `sys_oper_log` VALUES (1047, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 12:57:06\"}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizSectionMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizSectionMapper.updateBizSection-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_section          SET section_name = ?,             section_description = ?,             game_id = ?,             order_num = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?,             remark = ?          where section_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 12:57:06', 4);
+INSERT INTO `sys_oper_log` VALUES (1048, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:28:33\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:28:33', 13);
+INSERT INTO `sys_oper_log` VALUES (1049, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":0,\"createBy\":\"ry\",\"createTime\":\"2025-05-23 16:20:00\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":21,\"params\":{},\"postContent\":\"<p>《巫师3》的支线任务质量非常高，这里推荐几个最值得做的支线任务...</p>\",\"postId\":4,\"postTitle\":\"巫师3支线任务推荐\",\"remark\":\"游戏推荐帖\",\"sectionId\":4,\"status\":\"0\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:28:42\",\"userId\":2,\"viewCount\":142}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:28:42', 7);
+INSERT INTO `sys_oper_log` VALUES (1050, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":0,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"0\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"0\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:28:59\",\"userId\":111,\"viewCount\":2}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:28:59', 5);
+INSERT INTO `sys_oper_log` VALUES (1051, '论坛版块', 2, 'com.ruoyi.forum.controller.BizSectionController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/section', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"createTime\":\"2025-05-23 12:00:00\",\"delFlag\":\"0\",\"gameId\":4,\"orderNum\":4,\"params\":{},\"remark\":\"RPG游戏版块\",\"sectionDescription\":\"《巫师3》世界观讨论、任务攻略、角色扮演\",\"sectionId\":4,\"sectionName\":\"狼学校\",\"status\":\"1\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:29:06\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:29:06', 5);
+INSERT INTO `sys_oper_log` VALUES (1052, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":2,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"0\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:34:04\",\"userId\":111,\"viewCount\":4}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:34:04', 9);
+INSERT INTO `sys_oper_log` VALUES (1053, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":2,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"1\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:34:18\",\"userId\":111,\"viewCount\":5}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:34:18', 7);
+INSERT INTO `sys_oper_log` VALUES (1054, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":2,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"0\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:36:05\",\"userId\":111,\"viewCount\":5}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:36:05', 6);
+INSERT INTO `sys_oper_log` VALUES (1055, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":2,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"1\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:36:25\",\"userId\":111,\"viewCount\":5}', NULL, 1, '\r\n### Error updating database.  Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\r\n### The error may exist in file [D:\\IdeaStash\\RuoYi-Vue\\ruoyi-admin\\target\\classes\\mapper\\forum\\BizPostMapper.xml]\r\n### The error may involve com.ruoyi.forum.mapper.BizPostMapper.updateBizPost-Inline\r\n### The error occurred while setting parameters\r\n### SQL: update biz_post          SET post_title = ?,             post_content = ?,             user_id = ?,             section_id = ?,             like_count = ?,             comment_count = ?,             view_count = ?,             top_flag = ?,             hot_flag = ?,             status = ?,             del_flag = ?,             create_by = ?,             create_time = ?,             update_by = ?,             update_time = ?          where post_id = ?\r\n### Cause: java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.\n; uncategorized SQLException; SQL state [HY000]; error code [1442]; Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.; nested exception is java.sql.SQLException: Can\'t update table \'biz_post\' in stored function/trigger because it is already used by statement which invoked this stored function/trigger.', '2025-07-16 13:36:25', 36);
+INSERT INTO `sys_oper_log` VALUES (1056, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"commentCount\":2,\"createBy\":\"lppp\",\"createTime\":\"2025-07-16 12:43:57\",\"delFlag\":\"0\",\"hotFlag\":\"1\",\"likeCount\":0,\"params\":{},\"postContent\":\"<p>狼</p>\",\"postId\":28,\"postTitle\":\"狼\",\"sectionId\":4,\"status\":\"1\",\"topFlag\":\"0\",\"updateBy\":\"\",\"updateTime\":\"2025-07-16 13:36:56\",\"userId\":111,\"viewCount\":5}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 13:36:56', 7);
+INSERT INTO `sys_oper_log` VALUES (1057, '用户管理', 1, 'com.ruoyi.web.controller.system.SysUserController.add()', 'POST', 1, 'admin', '研发部门', '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"createBy\":\"admin\",\"nickName\":\"asssdd\",\"params\":{},\"postIds\":[],\"roleIds\":[],\"status\":\"0\",\"userId\":112,\"userName\":\"asssdd\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-16 22:40:30', 81);
+INSERT INTO `sys_oper_log` VALUES (1058, '参数管理', 2, 'com.ruoyi.web.controller.system.SysConfigController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/config', '127.0.0.1', '内网IP', '{\"configId\":4,\"configKey\":\"sys.account.captchaEnabled\",\"configName\":\"账号自助-验证码开关\",\"configType\":\"Y\",\"configValue\":\"true\",\"createBy\":\"admin\",\"createTime\":\"2025-05-15 22:16:17\",\"params\":{},\"remark\":\"是否开启验证码功能（true开启，false关闭）\",\"updateBy\":\"admin\",\"updateTime\":\"2025-05-17 22:02:37\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-18 12:22:02', 14);
+INSERT INTO `sys_oper_log` VALUES (1059, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"system/role/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"peoples\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":101,\"menuName\":\"角色管理\",\"menuType\":\"C\",\"orderNum\":2,\"params\":{},\"parentId\":1,\"path\":\"role\",\"perms\":\"system:role:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:57:17', 15);
+INSERT INTO `sys_oper_log` VALUES (1060, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"system/dict/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"dict\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":105,\"menuName\":\"字典管理\",\"menuType\":\"C\",\"orderNum\":6,\"params\":{},\"parentId\":1,\"path\":\"dict\",\"perms\":\"system:dict:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:57:25', 9);
+INSERT INTO `sys_oper_log` VALUES (1061, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"system/config/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"edit\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":106,\"menuName\":\"参数设置\",\"menuType\":\"C\",\"orderNum\":7,\"params\":{},\"parentId\":1,\"path\":\"config\",\"perms\":\"system:config:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:57:29', 6);
+INSERT INTO `sys_oper_log` VALUES (1062, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"log\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":108,\"menuName\":\"日志管理\",\"menuType\":\"M\",\"orderNum\":9,\"params\":{},\"parentId\":1,\"path\":\"log\",\"perms\":\"\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:57:36', 8);
+INSERT INTO `sys_oper_log` VALUES (1063, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"tool\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":3,\"menuName\":\"系统工具\",\"menuType\":\"M\",\"orderNum\":3,\"params\":{},\"parentId\":0,\"path\":\"tool\",\"perms\":\"\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:57:49', 5);
+INSERT INTO `sys_oper_log` VALUES (1064, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"monitor/job/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"job\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":110,\"menuName\":\"定时任务\",\"menuType\":\"C\",\"orderNum\":2,\"params\":{},\"parentId\":2,\"path\":\"job\",\"perms\":\"monitor:job:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:58:06', 10);
+INSERT INTO `sys_oper_log` VALUES (1065, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"monitor/druid/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"druid\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":111,\"menuName\":\"数据监控\",\"menuType\":\"C\",\"orderNum\":3,\"params\":{},\"parentId\":2,\"path\":\"druid\",\"perms\":\"monitor:druid:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:58:11', 7);
+INSERT INTO `sys_oper_log` VALUES (1066, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"monitor/server/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"server\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":112,\"menuName\":\"服务监控\",\"menuType\":\"C\",\"orderNum\":4,\"params\":{},\"parentId\":2,\"path\":\"server\",\"perms\":\"monitor:server:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:58:17', 5);
+INSERT INTO `sys_oper_log` VALUES (1067, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"monitor/cache/list\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"redis-list\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":114,\"menuName\":\"缓存列表\",\"menuType\":\"C\",\"orderNum\":6,\"params\":{},\"parentId\":2,\"path\":\"cacheList\",\"perms\":\"monitor:cache:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:58:38', 7);
+INSERT INTO `sys_oper_log` VALUES (1068, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"purchase/log/index\",\"createTime\":\"2025-05-23 13:31:43\",\"icon\":\"#\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2581,\"menuName\":\"余额变动日志\",\"menuType\":\"C\",\"orderNum\":1,\"params\":{},\"parentId\":2448,\"path\":\"log\",\"perms\":\"purchase:log:list\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:59:12', 7);
+INSERT INTO `sys_oper_log` VALUES (1069, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"purchase/balance/index\",\"createTime\":\"2025-05-23 13:31:25\",\"icon\":\"#\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2563,\"menuName\":\"用户余额\",\"menuType\":\"C\",\"orderNum\":1,\"params\":{},\"parentId\":2448,\"path\":\"balance\",\"perms\":\"purchase:balance:list\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 21:59:16', 6);
+INSERT INTO `sys_oper_log` VALUES (1070, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'admin', '研发部门', '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"gameform@163.com\",\"nickName\":\"管理员\",\"params\":{},\"phonenumber\":\"15888888888\",\"sex\":\"0\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 22:00:22', 8);
+INSERT INTO `sys_oper_log` VALUES (1071, '用户头像', 2, 'com.ruoyi.web.controller.system.SysProfileController.avatar()', 'POST', 1, 'admin', '研发部门', '/system/user/profile/avatar', '127.0.0.1', '内网IP', '', '{\"msg\":\"操作成功\",\"imgUrl\":\"/profile/avatar/2025/09/23/Logo_20250923220041A001.png\",\"code\":200}', 0, NULL, '2025-09-23 22:00:41', 59);
+INSERT INTO `sys_oper_log` VALUES (1072, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"forum/favorite/index\",\"createTime\":\"2025-05-17 17:31:56\",\"icon\":\"#\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2507,\"menuName\":\"帖子收藏\",\"menuType\":\"C\",\"orderNum\":1,\"params\":{},\"parentId\":2451,\"path\":\"favorite\",\"perms\":\"forum:favorite:list\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 22:02:50', 6);
+INSERT INTO `sys_oper_log` VALUES (1073, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"monitor/cache/index\",\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"redis\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":113,\"menuName\":\"缓存监控\",\"menuType\":\"C\",\"orderNum\":5,\"params\":{},\"parentId\":2,\"path\":\"cache\",\"perms\":\"monitor:cache:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-09-23 22:33:16', 5);
+INSERT INTO `sys_oper_log` VALUES (1074, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"createTime\":\"2025-05-15 22:16:17\",\"icon\":\"monitor\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2,\"menuName\":\"系统监控\",\"menuType\":\"M\",\"orderNum\":2,\"params\":{},\"parentId\":0,\"path\":\"monitor\",\"perms\":\"\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"1\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-10-12 13:37:41', 10);
+INSERT INTO `sys_oper_log` VALUES (1075, '论坛帖子', 2, 'com.ruoyi.forum.controller.BizPostController.edit()', 'PUT', 1, 'admin', '研发部门', '/forum/post', '127.0.0.1', '内网IP', '{\"params\":{},\"postId\":495,\"status\":\"2\",\"updateTime\":\"2025-10-12 15:48:44\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-10-12 15:48:44', 12);
 
 -- ----------------------------
 -- Table structure for sys_post
@@ -2458,7 +3273,7 @@ CREATE TABLE `sys_post`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`post_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '岗位信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '岗位信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_post
@@ -2488,7 +3303,7 @@ CREATE TABLE `sys_role`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role
@@ -2504,7 +3319,7 @@ CREATE TABLE `sys_role_dept`  (
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `dept_id` bigint NOT NULL COMMENT '部门ID',
   PRIMARY KEY (`role_id`, `dept_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色和部门关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色和部门关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_dept
@@ -2521,7 +3336,7 @@ CREATE TABLE `sys_role_menu`  (
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `menu_id` bigint NOT NULL COMMENT '菜单ID',
   PRIMARY KEY (`role_id`, `menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色和菜单关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色和菜单关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_menu
@@ -2626,8 +3441,8 @@ CREATE TABLE `sys_user`  (
   `phonenumber` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '手机号码',
   `sex` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '用户性别（0男 1女 2未知）',
   `avatar` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '头像地址',
-  `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '密码',
-  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '账号状态（0正常 1停用）',
+  `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '密码',
+  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '0' COMMENT '账号状态（0正常 1停用）',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
   `login_ip` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '最后登录IP',
   `login_date` datetime NULL DEFAULT NULL COMMENT '最后登录时间',
@@ -2638,17 +3453,23 @@ CREATE TABLE `sys_user`  (
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `uk_user_name`(`user_name` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 110 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 116 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 103, 'admin', 'admin', '00', 'ry@163.com', '15888888888', '1', 'images/headPortrait/1.jpg', '$2a$10$mAoPOuM.IJzna9hwuAC1MeZNwdjYsrXRRNQvoCgJWJq5tR76WlGvW', '0', '0', '127.0.0.1', '2025-06-16 19:52:21', 'admin', '2025-05-15 22:16:17', '', '2025-06-16 19:52:20', '管理员');
+INSERT INTO `sys_user` VALUES (1, 103, 'admin', '管理员', '00', 'gameform@163.com', '15888888888', '0', '/profile/avatar/2025/09/23/Logo_20250923220041A001.png', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2025-10-12 15:42:56', 'admin', '2025-05-15 22:16:17', '', '2025-10-12 15:42:55', '管理员');
 INSERT INTO `sys_user` VALUES (2, 105, 'ry', '若依', '00', 'ry@qq.com', '15666666666', '1', 'images/headPortrait/2.jpg', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2025-05-17 12:30:35', 'admin', '2025-05-15 22:16:17', '', '2025-05-17 12:30:34', '测试员');
 INSERT INTO `sys_user` VALUES (100, 107, 'adio', 'adio', '10', '', '', '0', 'images/headPortrait/3.jpg', '$2a$10$AVbXLPHlPsxF/kV1dOClye7Q6Qfjzb4tMmll4fbiXA4M76Hu1CKZC', '1', '0', '', NULL, '', '2025-05-17 19:04:52', '', NULL, NULL);
-INSERT INTO `sys_user` VALUES (101, 106, 'addd', '张三', '10', '222222tetdfs2@qq.com', '19999999998', '0', 'images/headPortrait/101.gif', '$2a$10$WLXF0WTIrXHrrVfE5dvY0u8olukInjFWS7omp8FDbdZZ1RB5XgDiC', '0', '0', '127.0.0.1', '2025-06-19 08:41:18', '', '2025-05-17 19:08:42', '', '2025-05-28 13:21:57', '');
+INSERT INTO `sys_user` VALUES (101, 106, 'addd', '张三', '10', '222t3etdfs2@qq.com', '19999999888', '0', 'images/headPortrait/101.gif', '$2a$10$ng1q0JUH9cNS5E9ZF.7IyOhsPqNxyXwJZxCH5c8tONXi8FkGyJ4lK', '0', '0', '127.0.0.1', '2025-08-28 12:58:16', '', '2025-05-17 19:08:42', '', '2025-07-15 23:43:53', '');
 INSERT INTO `sys_user` VALUES (102, NULL, 'aeeded', 'addddddd', '10', '2222222@qq.com', '', '0', 'images/headPortrait/5.jpg', '$2a$10$TZG4E.IxlI.2hLsyRjDXfODsHzjKqdai/6d1seEubd6nPsD9AWppa', '0', '0', '', NULL, '', '2025-05-25 13:07:13', '', NULL, NULL);
 INSERT INTO `sys_user` VALUES (109, NULL, 'addds', 'addds', '10', '', '', '0', 'images/headPortrait/6.jpg', '$2a$10$JnkFrbRu9ah..3j5kroH7uYfz/0Oe95hMxnDVmwzT4WNBcVLTmy0K', '0', '0', '127.0.0.1', '2025-05-25 13:43:15', '', '2025-05-25 13:40:03', '', NULL, NULL);
+INSERT INTO `sys_user` VALUES (110, NULL, 'asss', 'aass', '10', '2222222@qq.com', '', '0', '', '$2a$10$pkEWzgGx09Un3LM8M6Q8bO/E04sLlU4G7lwlqPAFnvg5FlwZoKqdO', '0', '0', '127.0.0.1', '2025-07-04 12:34:52', '', '2025-07-04 12:34:31', '', NULL, NULL);
+INSERT INTO `sys_user` VALUES (111, NULL, 'lppp', '这样', '10', '2826a74879@qq.com', '15555555555', '2', 'images/headPortrait/avatar_1752766443028_hpgglzwr1.jpg', '$2a$10$GnTUKX3w8u96.INk0uxMvegirwD8jp9mXzlW4bXz56yNpBCA4W4Q2', '0', '0', '127.0.0.1', '2025-10-12 13:57:31', '', '2025-07-15 23:22:11', '', '2025-07-17 23:34:02', '我');
+INSERT INTO `sys_user` VALUES (112, NULL, 'asssdd', 'asssdd', '10', '', '', '0', '', '$2a$10$fiGKS5e3l2z19H9SITIL4O0kHHPQpdMKxK/BYej.p3GEdvf03w0li', '0', '0', '192.168.124.7', '2025-07-16 22:42:21', 'admin', '2025-07-16 22:40:30', '', NULL, NULL);
+INSERT INTO `sys_user` VALUES (113, NULL, 'sdadad', '2233', '10', '', '', '0', '', '$2a$10$5Tn2kbS1GjuOxAZDBRQofO.jD/JTUq3GP5tuV//WEg8.WsiafwW7W', '0', '0', '', NULL, '', '2025-07-16 22:45:27', '', NULL, NULL);
+INSERT INTO `sys_user` VALUES (114, NULL, 'asssssss', 'asssssss', '10', '', '', '0', '', '$2a$10$P5fkBQ7k7BnP/CxSbIdz/.6d1xdNE2l2Et9JcmkyMVRV9WIQNQ0ZK', '0', '0', '192.168.124.12', '2025-07-16 23:38:06', '', '2025-07-16 23:37:27', '', NULL, NULL);
+INSERT INTO `sys_user` VALUES (115, NULL, 'apks', 'apks', '10', 'jdjdbdbbd@qq.com', '16666666666', '0', '', '$2a$10$SaD6p2JEZZfRMorJuf2xK.Oq4u.vDsnJjqca.wyw8YzVbnfZgjBne', '1', '0', '192.168.124.12', '2025-07-17 13:27:43', '', '2025-07-16 23:47:14', '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -2658,7 +3479,7 @@ CREATE TABLE `sys_user_post`  (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `post_id` bigint NOT NULL COMMENT '岗位ID',
   PRIMARY KEY (`user_id`, `post_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户与岗位关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户与岗位关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_post
@@ -2674,173 +3495,13 @@ CREATE TABLE `sys_user_role`  (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `role_id` bigint NOT NULL COMMENT '角色ID',
   PRIMARY KEY (`user_id`, `role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户和角色关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户和角色关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_role
 -- ----------------------------
 INSERT INTO `sys_user_role` VALUES (1, 1);
 INSERT INTO `sys_user_role` VALUES (2, 2);
-
--- ----------------------------
--- Function structure for CheckUserBalance
--- ----------------------------
-DROP FUNCTION IF EXISTS `CheckUserBalance`;
-delimiter ;;
-CREATE FUNCTION `CheckUserBalance`(p_user_id BIGINT, p_amount DECIMAL(10,2))
- RETURNS tinyint(1)
-  READS SQL DATA 
-  DETERMINISTIC
-BEGIN
-    DECLARE v_balance DECIMAL(10,2);
-    
-    SELECT balance INTO v_balance
-    FROM biz_user_balance 
-    WHERE user_id = p_user_id;
-    
-    RETURN COALESCE(v_balance, 0) >= p_amount;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Procedure structure for CleanExpiredOrders
--- ----------------------------
-DROP PROCEDURE IF EXISTS `CleanExpiredOrders`;
-delimiter ;;
-CREATE PROCEDURE `CleanExpiredOrders`()
-BEGIN
-    -- 取消过期未支付订单
-    UPDATE biz_cdk_order 
-    SET order_status = '4',
-        update_time = NOW()
-    WHERE order_status = '0' 
-      AND expire_time < NOW();
-    
-    -- 释放过期CDK库存
-    UPDATE biz_cdk_stock 
-    SET status = '3',
-        update_time = NOW()
-    WHERE expire_time < NOW() 
-      AND status = '0';
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Function structure for GetProductActualPrice
--- ----------------------------
-DROP FUNCTION IF EXISTS `GetProductActualPrice`;
-delimiter ;;
-CREATE FUNCTION `GetProductActualPrice`(p_product_id INT)
- RETURNS decimal(10,2)
-  READS SQL DATA 
-  DETERMINISTIC
-BEGIN
-    DECLARE v_actual_price DECIMAL(10,2);
-    
-    SELECT sale_price * discount_rate INTO v_actual_price
-    FROM biz_cdk_product 
-    WHERE product_id = p_product_id;
-    
-    RETURN COALESCE(v_actual_price, 0);
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Procedure structure for ProcessCDKOrder
--- ----------------------------
-DROP PROCEDURE IF EXISTS `ProcessCDKOrder`;
-delimiter ;;
-CREATE PROCEDURE `ProcessCDKOrder`(IN p_order_id BIGINT,
-    OUT p_result VARCHAR(100))
-BEGIN
-    DECLARE v_user_id BIGINT;
-    DECLARE v_product_id INT;
-    DECLARE v_quantity INT;
-    DECLARE v_actual_amount DECIMAL(10,2);
-    DECLARE v_available_stock INT;
-    DECLARE v_order_status CHAR(1);
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SET p_result = 'ERROR: Transaction failed';
-    END;
-    
-    START TRANSACTION;
-    
-    -- 获取订单信息
-    SELECT user_id, product_id, quantity, actual_amount, order_status
-    INTO v_user_id, v_product_id, v_quantity, v_actual_amount, v_order_status
-    FROM biz_cdk_order 
-    WHERE order_id = p_order_id;
-    
-    -- 检查订单状态
-    IF v_order_status != '1' THEN
-        SET p_result = 'ERROR: Order not paid';
-        ROLLBACK;
-    ELSE
-        -- 检查库存
-        SELECT COUNT(*) INTO v_available_stock
-        FROM biz_cdk_stock 
-        WHERE product_id = v_product_id AND status = '0';
-        
-        IF v_available_stock < v_quantity THEN
-            SET p_result = 'ERROR: Insufficient stock';
-            ROLLBACK;
-        ELSE
-            -- 分配CDK码
-            UPDATE biz_cdk_stock 
-            SET status = '1', 
-                sold_time = NOW(), 
-                sold_order_id = p_order_id,
-                update_time = NOW()
-            WHERE product_id = v_product_id 
-              AND status = '0' 
-            LIMIT v_quantity;
-            
-            -- 插入订单项
-            INSERT INTO biz_cdk_order_item (order_id, stock_id, cdk_code, delivery_status, delivery_time, create_time)
-            SELECT p_order_id, stock_id, cdk_code, '1', NOW(), NOW()
-            FROM biz_cdk_stock 
-            WHERE sold_order_id = p_order_id;
-            
-            -- 更新订单状态
-            UPDATE biz_cdk_order 
-            SET order_status = '2', 
-                delivery_status = '1',
-                delivery_time = NOW(),
-                update_time = NOW()
-            WHERE order_id = p_order_id;
-            
-            -- 更新用户余额（如果使用余额支付）
-            UPDATE biz_user_balance 
-            SET total_consume = total_consume + v_actual_amount,
-                update_time = NOW()
-            WHERE user_id = v_user_id;
-            
-            -- 记录余额变动日志
-            INSERT INTO biz_balance_log (
-                user_id, change_type, change_amount, 
-                before_balance, after_balance, related_order_id, 
-                description, create_time
-            )
-            SELECT 
-                v_user_id, 'CONSUME', -v_actual_amount,
-                balance + v_actual_amount, balance, p_order_id,
-                CONCAT('购买CDK商品，订单号：', (SELECT order_no FROM biz_cdk_order WHERE order_id = p_order_id)),
-                NOW()
-            FROM biz_user_balance 
-            WHERE user_id = v_user_id;
-            
-            SET p_result = 'SUCCESS: Order processed successfully';
-            COMMIT;
-        END IF;
-    END IF;
-END
-;;
-delimiter ;
 
 -- ----------------------------
 -- Procedure structure for UpdatePostRanking
@@ -2864,127 +3525,6 @@ BEGIN
     ON DUPLICATE KEY UPDATE
         total_rank = VALUES(total_rank),
         update_time = VALUES(update_time);
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Procedure structure for UpdateProductStockCount
--- ----------------------------
-DROP PROCEDURE IF EXISTS `UpdateProductStockCount`;
-delimiter ;;
-CREATE PROCEDURE `UpdateProductStockCount`(IN p_product_id INT)
-BEGIN
-    DECLARE available_count INT DEFAULT 0;
-    DECLARE sold_count INT DEFAULT 0;
-    
-    -- 统计可用库存数量 (status = 0 表示未售出)
-    SELECT COUNT(*) INTO available_count 
-    FROM biz_cdk_stock 
-    WHERE product_id = p_product_id AND status = '0';
-    
-    -- 统计已售出数量 (status = 1 表示已售出)
-    SELECT COUNT(*) INTO sold_count 
-    FROM biz_cdk_stock 
-    WHERE product_id = p_product_id AND status = '1';
-    
-    -- 更新商品表的库存统计
-    UPDATE biz_cdk_product 
-    SET stock_count = available_count,
-        sold_count = sold_count,
-        update_time = NOW()
-    WHERE product_id = p_product_id;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Event structure for ev_daily_cleanup
--- ----------------------------
-DROP EVENT IF EXISTS `ev_daily_cleanup`;
-delimiter ;;
-CREATE EVENT `ev_daily_cleanup`
-ON SCHEDULE
-EVERY '1' DAY STARTS '2025-05-24 02:00:00'
-DO BEGIN
-    CALL CleanExpiredOrders();
-    CALL UpdateAllProductStockCount();
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Event structure for ev_hourly_ranking
--- ----------------------------
-DROP EVENT IF EXISTS `ev_hourly_ranking`;
-delimiter ;;
-CREATE EVENT `ev_hourly_ranking`
-ON SCHEDULE
-EVERY '1' HOUR STARTS '2025-05-23 19:51:03'
-DO CALL UpdatePostRanking()
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_cdk_stock
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_cdk_stock_after_insert`;
-delimiter ;;
-CREATE TRIGGER `tr_cdk_stock_after_insert` AFTER INSERT ON `biz_cdk_stock` FOR EACH ROW BEGIN
-    CALL UpdateProductStockCount(NEW.product_id);
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_cdk_stock
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_cdk_stock_after_update`;
-delimiter ;;
-CREATE TRIGGER `tr_cdk_stock_after_update` AFTER UPDATE ON `biz_cdk_stock` FOR EACH ROW BEGIN
-    -- 如果product_id或status发生变化，更新相关商品的库存统计
-    IF OLD.product_id != NEW.product_id OR OLD.status != NEW.status THEN
-        CALL UpdateProductStockCount(OLD.product_id);
-        CALL UpdateProductStockCount(NEW.product_id);
-    END IF;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_cdk_stock
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_cdk_stock_after_delete`;
-delimiter ;;
-CREATE TRIGGER `tr_cdk_stock_after_delete` AFTER DELETE ON `biz_cdk_stock` FOR EACH ROW BEGIN
-    CALL UpdateProductStockCount(OLD.product_id);
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_comment
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_comment_insert_status_check`;
-delimiter ;;
-CREATE TRIGGER `tr_comment_insert_status_check` BEFORE INSERT ON `biz_comment` FOR EACH ROW BEGIN
-    -- 确保新增评论的del_flag默认为'0'
-    IF NEW.del_flag IS NULL THEN
-        SET NEW.del_flag = '0';
-    END IF;
-    
-    -- 如果帖子状态不为正常(0)或版块状态为停用(1)，则新增的评论状态为停用(1)
-    IF EXISTS (
-        SELECT 1 
-        FROM biz_post p 
-        INNER JOIN biz_section s ON p.section_id = s.section_id
-        WHERE p.post_id = NEW.post_id 
-        AND (p.status != '0' OR s.status = '1')
-        AND p.del_flag = '0'
-        AND s.del_flag = '0'
-    ) THEN
-        SET NEW.status = '1';
-    END IF;
 END
 ;;
 delimiter ;
@@ -3213,134 +3753,6 @@ CREATE TRIGGER `tr_comment_count_delete` AFTER DELETE ON `biz_comment` FOR EACH 
         SET comment_count = GREATEST(comment_count - 1, 0),
             update_time = NOW()
         WHERE post_id = OLD.post_id;
-    END IF;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_post
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_post_insert_status_check`;
-delimiter ;;
-CREATE TRIGGER `tr_post_insert_status_check` BEFORE INSERT ON `biz_post` FOR EACH ROW BEGIN
-    -- 确保新增帖子的del_flag默认为'0'
-    IF NEW.del_flag IS NULL THEN
-        SET NEW.del_flag = '0';
-    END IF;
-    
-    -- 如果版块状态为停用(1)，则新增的帖子状态也应该为停用(1)
-    IF EXISTS (
-        SELECT 1 
-        FROM biz_section 
-        WHERE section_id = NEW.section_id 
-        AND status = '1'
-        AND del_flag = '0'
-    ) THEN
-        SET NEW.status = '1';
-    END IF;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_post
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_post_status_update`;
-delimiter ;;
-CREATE TRIGGER `tr_post_status_update` AFTER UPDATE ON `biz_post` FOR EACH ROW BEGIN
-    -- 当帖子状态变为非正常(不为0)时，将该帖子下所有正常状态的评论设为停用(1)
-    IF NEW.status != '0' AND OLD.status = '0' THEN
-        UPDATE biz_comment 
-        SET status = '1',
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE post_id = NEW.post_id 
-        AND status = '0'  -- 只更新原本状态正常的评论
-        AND del_flag = '0';  -- 确保不是已删除的评论
-    END IF;
-    
-    -- 当帖子状态恢复为正常(0)时，只恢复那些因帖子停用而被停用的评论
-    -- 但需要确保所属版块状态也是正常的，且评论本身未被删除
-    IF NEW.status = '0' AND OLD.status != '0' THEN
-        UPDATE biz_comment 
-        SET status = '0',
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE post_id = NEW.post_id 
-        AND status = '1'  -- 当前状态为停用
-        AND del_flag = '0'  -- 关键：只恢复未删除的评论
-        AND EXISTS (
-            SELECT 1 
-            FROM biz_section s 
-            WHERE s.section_id = NEW.section_id 
-            AND s.status = '0'
-            AND s.del_flag = '0'
-        );
-    END IF;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table biz_section
--- ----------------------------
-DROP TRIGGER IF EXISTS `tr_section_status_update`;
-delimiter ;;
-CREATE TRIGGER `tr_section_status_update` AFTER UPDATE ON `biz_section` FOR EACH ROW BEGIN
-    -- 当版块状态变为停用(1)时，将该版块下的所有正常状态的帖子和评论设为停用(1)
-    IF NEW.status = '1' AND OLD.status != '1' THEN
-        -- 更新该版块下所有正常状态的帖子为停用
-        UPDATE biz_post 
-        SET status = '1', 
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE section_id = NEW.section_id 
-        AND status = '0'  -- 只更新原本状态正常的帖子
-        AND del_flag = '0';  -- 确保不是已删除的帖子
-        
-        -- 更新该版块下所有正常状态的评论为停用
-        UPDATE biz_comment 
-        SET status = '1',
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE post_id IN (
-            SELECT post_id 
-            FROM biz_post 
-            WHERE section_id = NEW.section_id 
-            AND del_flag = '0'
-        ) 
-        AND status = '0'  -- 只更新原本状态正常的评论
-        AND del_flag = '0';  -- 确保不是已删除的评论
-    END IF;
-    
-    -- 当版块状态恢复为正常(0)时，只恢复那些因版块停用而被设为停用的帖子和评论
-    -- 关键修复：只恢复那些del_flag='0'（未删除）且status='1'（停用）的记录
-    IF NEW.status = '0' AND OLD.status != '0' THEN
-        -- 更新该版块下因版块停用而被停用的帖子状态为正常
-        -- 只恢复那些del_flag='0'（未删除）的帖子
-        UPDATE biz_post 
-        SET status = '0',
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE section_id = NEW.section_id 
-        AND status = '1'  -- 当前状态为停用
-        AND del_flag = '0';  -- 关键：只恢复未删除的帖子
-        
-        -- 恢复该版块下因版块停用而被停用的评论状态为正常
-        -- 只恢复那些del_flag='0'（未删除）的评论
-        UPDATE biz_comment 
-        SET status = '0',
-            update_time = NOW(),
-            update_by = NEW.update_by
-        WHERE post_id IN (
-            SELECT post_id 
-            FROM biz_post 
-            WHERE section_id = NEW.section_id 
-            AND del_flag = '0'  -- 帖子未删除
-        ) 
-        AND status = '1'  -- 当前状态为停用
-        AND del_flag = '0';  -- 关键：只恢复未删除的评论
     END IF;
 END
 ;;
