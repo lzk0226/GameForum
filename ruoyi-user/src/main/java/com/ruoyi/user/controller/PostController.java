@@ -20,12 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * 论坛帖子控制器
- *
- * @author SockLightDust
- * @date 2025-05-24
- */
 @RestController
 @RequestMapping("/user/post")
 @Validated
@@ -43,39 +37,27 @@ public class PostController {
     @Autowired
     private FileUploadController fileUploadController;
 
-    // 图片文件扩展名正则表达式
-    private static final Pattern IMAGE_PATTERN = Pattern.compile(".*\\.(jpg|jpeg|png|gif|bmp|webp|svg)$", Pattern.CASE_INSENSITIVE);
+    @Autowired
+    private IPostRecommendationService recommendationService;
 
-    /**
-     * 验证token并获取用户ID
-     */
+    private static final Pattern IMAGE_PATTERN = Pattern.compile(
+            ".*\\.(jpg|jpeg|png|gif|bmp|webp|svg)$",
+            Pattern.CASE_INSENSITIVE
+    );
+
     private Long validateTokenAndGetUserId(String authHeader) {
         if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
             return null;
         }
-
         String token = authHeader.substring(7);
         if (!jwtUtils.validateToken(token)) {
             return null;
         }
-
         return jwtUtils.getUserIdFromToken(token);
     }
 
     /**
-     * 验证图片路径格式
-     */
-    private boolean isValidImagePath(String photo) {
-        if (StringUtils.isEmpty(photo)) {
-            return true; // 允许为空
-        }
-
-        // 验证路径格式和文件扩展名
-        return IMAGE_PATTERN.matcher(photo).matches();
-    }
-
-    /**
-     * 帖子详情
+     * 帖子详情 - 【转换为base64供前端显示】
      */
     @GetMapping(value = "/{postId}")
     public R<Post> getInfo(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId) {
@@ -84,7 +66,7 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
 
-        // 将帖子内容中的图片路径转换为base64
+        // 只在详情页面才将图片转为base64
         if (StringUtils.isNotEmpty(post.getPostContent())) {
             String processedContent = fileUploadController.convertImagePathsToBase64(post.getPostContent());
             post.setPostContent(processedContent);
@@ -93,53 +75,40 @@ public class PostController {
         return R.ok(post);
     }
 
-    /**
-     * 计算纯文本内容的长度（不包含base64图片和HTML标签）
-     */
     private Long calculatePureTextLength(String htmlContent) {
         if (StringUtils.isEmpty(htmlContent)) {
             return 0L;
         }
-
-        // 移除base64图片
         String withoutBase64 = htmlContent.replaceAll(
                 "<img[^>]+src=\"data:image/\\w+;base64,[^\"]+\"[^>]*>",
                 ""
         );
-
-        // 移除所有HTML标签
         String plainText = withoutBase64.replaceAll("<[^>]+>", "");
-
-        // 解码HTML实体
         plainText = plainText.replace("&nbsp;", " ")
                 .replace("&lt;", "<")
                 .replace("&gt;", ">")
                 .replace("&amp;", "&")
                 .replace("&quot;", "\"")
                 .replace("&#39;", "'");
-
         return (long) plainText.length();
     }
 
-    /**
-     * 验证纯文本内容长度
-     */
     private boolean validateContentLength(String htmlContent, long maxLength) {
         Long pureTextLength = calculatePureTextLength(htmlContent);
         return pureTextLength <= maxLength;
     }
 
-    // ============ 在新增帖子中使用 ============
+    /**
+     * 发布帖子 - 【处理base64图片，生成缩略图作为预览】
+     */
     @PostMapping
     public R<?> add(@Valid @RequestBody Post post,
                     @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        // 验证必要字段
         if (StringUtils.isEmpty(post.getPostTitle())) {
             return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
         }
@@ -150,7 +119,6 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_SECTION_EMPTY);
         }
 
-        // 验证标题长度
         if (post.getPostTitle().length() > 100) {
             return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
         }
@@ -162,22 +130,22 @@ public class PostController {
 
         String processedContent = (String) processResult.get("content");
         String firstImagePath = (String) processResult.get("firstImagePath");
+        String firstThumbnailPath = (String) processResult.get("firstThumbnailPath");
 
-        // 验证纯文本内容长度（不计入base64和HTML标签）
-        // 这里设置为100000字符的纯文本内容限制
         if (!validateContentLength(processedContent, 100000L)) {
             return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
         }
 
-        // 设置处理后的内容
         post.setPostContent(processedContent);
 
-        // 设置第一张图片作为photo字段
-        if (firstImagePath != null) {
+        // ✅ photo字段填充缩略图路径（用于列表展示）
+        if (firstThumbnailPath != null) {
+            post.setPhoto(firstThumbnailPath);
+        } else if (firstImagePath != null) {
+            // 如果缩略图生成失败，降级使用原图
             post.setPhoto(firstImagePath);
         }
 
-        // 设置用户信息
         post.setUserId(userId);
         String userName = jwtUtils.getUserNameFromToken(authHeader.substring(7));
         post.setCreateBy(userName);
@@ -186,11 +154,12 @@ public class PostController {
         return result > 0 ? R.ok("发布成功") : R.fail("发布失败");
     }
 
-    // ============ 在修改帖子中使用 ============
+    /**
+     * 编辑帖子 - 【处理base64图片，生成缩略图作为预览】
+     */
     @PutMapping
     public R<?> edit(@Valid @RequestBody Post post,
                      @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
@@ -200,13 +169,11 @@ public class PostController {
             return R.fail(ResultCodeEnum.VALIDATION_ERROR, "帖子ID不能为空");
         }
 
-        // 验证帖子是否存在
         Post existPost = postService.selectPostById(post.getPostId());
         if (existPost == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
 
-        // 检查帖子状态
         if ("2".equals(existPost.getDelFlag())) {
             return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
         }
@@ -214,12 +181,10 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_STATUS_DISABLED);
         }
 
-        // 验证用户权限（只能修改自己的帖子）
         if (!userId.equals(existPost.getUserId())) {
             return R.fail(ResultCodeEnum.POST_PERMISSION_DENIED);
         }
 
-        // 验证必要字段
         if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().trim().isEmpty()) {
             return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
         }
@@ -227,7 +192,6 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_CONTENT_EMPTY);
         }
 
-        // 验证标题长度
         if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().length() > 100) {
             return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
         }
@@ -240,16 +204,19 @@ public class PostController {
 
             String processedContent = (String) processResult.get("content");
             String firstImagePath = (String) processResult.get("firstImagePath");
+            String firstThumbnailPath = (String) processResult.get("firstThumbnailPath");
 
-            // 验证纯文本内容长度（不计入base64和HTML标签）
             if (!validateContentLength(processedContent, 100000L)) {
                 return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
             }
 
             post.setPostContent(processedContent);
 
-            // 更新第一张图片
-            if (firstImagePath != null) {
+            // ✅ photo字段填充缩略图路径（用于列表展示）
+            if (firstThumbnailPath != null) {
+                post.setPhoto(firstThumbnailPath);
+            } else if (firstImagePath != null) {
+                // 如果缩略图生成失败，降级使用原图
                 post.setPhoto(firstImagePath);
             }
         }
@@ -261,9 +228,8 @@ public class PostController {
         return result > 0 ? R.ok("修改成功") : R.fail("修改失败");
     }
 
-
     /**
-     * 获取帖子基本信息（不增加浏览数）
+     * 获取帖子基本信息 - 【返回相对路径，不转换base64】
      */
     @GetMapping(value = "/info/{postId}")
     public R<Post> getBasicInfo(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId) {
@@ -275,7 +241,7 @@ public class PostController {
     }
 
     /**
-     * 查询帖子列表
+     * 查询帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/list")
     public R<List<Post>> list(Post post) {
@@ -284,7 +250,7 @@ public class PostController {
     }
 
     /**
-     * 根据版块ID查询帖子列表
+     * 根据版块ID查询帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/section/{sectionId}")
     public R<List<Post>> listBySectionId(@PathVariable("sectionId") @NotNull(message = "版块ID不能为空") Integer sectionId) {
@@ -293,7 +259,7 @@ public class PostController {
     }
 
     /**
-     * 根据用户ID查询帖子列表
+     * 根据用户ID查询帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/user/{userId}")
     public R<List<Post>> listByUserId(@PathVariable("userId") @NotNull(message = "用户ID不能为空") Long userId) {
@@ -302,7 +268,7 @@ public class PostController {
     }
 
     /**
-     * 查询当前用户的帖子列表
+     * 查询当前用户的帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/my")
     public R<List<Post>> myPostList(@RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -310,13 +276,12 @@ public class PostController {
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
-
         List<Post> list = postService.selectPostListByUserId(userId);
         return R.ok(list);
     }
 
     /**
-     * 根据帖子标题搜索帖子
+     * 根据帖子标题搜索帖子 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/search")
     public R<List<Post>> searchByTitle(@RequestParam("title") @NotBlank(message = "搜索关键词不能为空") String postTitle) {
@@ -325,7 +290,7 @@ public class PostController {
     }
 
     /**
-     * 查询热门帖子列表
+     * 查询热门帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/hot")
     public R<List<Post>> hotList(@RequestParam(value = "limit", defaultValue = "10") Integer limit) {
@@ -334,7 +299,7 @@ public class PostController {
     }
 
     /**
-     * 查询置顶帖子列表
+     * 查询置顶帖子列表 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/top")
     public R<List<Post>> topList(@RequestParam(value = "sectionId", required = false) Integer sectionId) {
@@ -343,141 +308,25 @@ public class PostController {
     }
 
     /**
-     * 新增帖子
-     */
-    /*
-    @PostMapping
-    public R<?> add(@Valid @RequestBody Post post,
-                    @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
-        Long userId = validateTokenAndGetUserId(authHeader);
-        if (userId == null) {
-            return R.fail(ResultCodeEnum.TOKEN_INVALID);
-        }
-
-        // 验证必要字段
-        if (StringUtils.isEmpty(post.getPostTitle())) {
-            return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
-        }
-        if (StringUtils.isEmpty(post.getPostContent())) {
-            return R.fail(ResultCodeEnum.POST_CONTENT_EMPTY);
-        }
-        if (post.getSectionId() == null) {
-            return R.fail(ResultCodeEnum.POST_SECTION_EMPTY);
-        }
-
-        // 验证标题长度（假设最大100字符）
-        if (post.getPostTitle().length() > 100) {
-            return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
-        }
-        // 验证内容长度（假设最大10000字符）
-        if (post.getPostContent().length() > 10000) {
-            return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
-        }
-
-        // 验证图片路径格式
-        if (!isValidImagePath(post.getPhoto())) {
-            return R.fail(ResultCodeEnum.VALIDATION_ERROR, "图片路径格式不正确，请上传有效的图片文件");
-        }
-
-        // 设置用户信息
-        post.setUserId(userId);
-        String userName = jwtUtils.getUserNameFromToken(authHeader.substring(7));
-        post.setCreateBy(userName);
-
-        int result = postService.insertPost(post);
-        return result > 0 ? R.ok("发布成功") : R.fail("发布失败");
-    }
-
-    */
-    /**
-     * 修改帖子
-     */
-    /*
-    @PutMapping
-    public R<?> edit(@Valid @RequestBody Post post,
-                     @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
-        Long userId = validateTokenAndGetUserId(authHeader);
-        if (userId == null) {
-            return R.fail(ResultCodeEnum.TOKEN_INVALID);
-        }
-
-        if (post.getPostId() == null) {
-            return R.fail(ResultCodeEnum.VALIDATION_ERROR, "帖子ID不能为空");
-        }
-
-        // 验证帖子是否存在
-        Post existPost = postService.selectPostById(post.getPostId());
-        if (existPost == null) {
-            return R.fail(ResultCodeEnum.POST_NOT_FOUND);
-        }
-
-        // 检查帖子状态
-        if ("2".equals(existPost.getDelFlag())) {
-            return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
-        }
-        if (!"0".equals(existPost.getStatus())) {
-            return R.fail(ResultCodeEnum.POST_STATUS_DISABLED);
-        }
-
-        // 验证用户权限（只能修改自己的帖子）
-        if (!userId.equals(existPost.getUserId())) {
-            return R.fail(ResultCodeEnum.POST_PERMISSION_DENIED);
-        }
-
-        // 验证必要字段
-        if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().trim().isEmpty()) {
-            return R.fail(ResultCodeEnum.POST_TITLE_EMPTY);
-        }
-        if (StringUtils.isNotEmpty(post.getPostContent()) && post.getPostContent().trim().isEmpty()) {
-            return R.fail(ResultCodeEnum.POST_CONTENT_EMPTY);
-        }
-
-        // 验证长度
-        if (StringUtils.isNotEmpty(post.getPostTitle()) && post.getPostTitle().length() > 100) {
-            return R.fail(ResultCodeEnum.POST_TITLE_TOO_LONG);
-        }
-        if (StringUtils.isNotEmpty(post.getPostContent()) && post.getPostContent().length() > 10000) {
-            return R.fail(ResultCodeEnum.POST_CONTENT_TOO_LONG);
-        }
-
-        // 验证图片路径格式（如果提供了新的图片路径）
-        if (!isValidImagePath(post.getPhoto())) {
-            return R.fail(ResultCodeEnum.VALIDATION_ERROR, "图片路径格式不正确，请上传有效的图片文件");
-        }
-
-        String userName = jwtUtils.getUserNameFromToken(authHeader.substring(7));
-        post.setUpdateBy(userName);
-
-        int result = postService.updatePost(post);
-        return result > 0 ? R.ok("修改成功") : R.fail("修改失败");
-    }
-*/
-    /**
-     * 隐藏帖子（用户端的"删除"操作，实际是逻辑删除）
+     * 隐藏帖子
      */
     @DeleteMapping("/{postId}")
     public R<?> hide(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
                      @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        // 验证帖子是否存在
         Post existPost = postService.selectPostById(postId);
         if (existPost == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
 
-        // 检查帖子状态
         if ("2".equals(existPost.getDelFlag())) {
             return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
         }
 
-        // 验证用户权限（只能删除自己的帖子）
         if (!userId.equals(existPost.getUserId())) {
             return R.fail(ResultCodeEnum.POST_PERMISSION_DENIED);
         }
@@ -493,7 +342,6 @@ public class PostController {
     @DeleteMapping("/batch")
     public R<?> hideBatch(@RequestBody Integer[] postIds,
                           @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
@@ -503,7 +351,6 @@ public class PostController {
             return R.fail(ResultCodeEnum.VALIDATION_ERROR, "请选择要删除的帖子");
         }
 
-        // 验证所有帖子的权限
         for (Integer postId : postIds) {
             Post existPost = postService.selectPostById(postId);
             if (existPost == null) {
@@ -523,24 +370,21 @@ public class PostController {
     }
 
     /**
-     * 点赞帖子 - 集成实时行为记录
+     * 点赞帖子
      */
     @PostMapping("/like/{postId}")
     public R<?> like(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
                      @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        // 验证帖子是否存在
         Post existPost = postService.selectPostById(postId);
         if (existPost == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
 
-        // 检查帖子状态
         if ("2".equals(existPost.getDelFlag())) {
             return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
         }
@@ -548,22 +392,17 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_STATUS_DISABLED);
         }
 
-        // 检查用户是否已经点赞过
         boolean hasLiked = postService.hasUserLikedPost(userId, postId);
         if (hasLiked) {
             return R.fail(ResultCodeEnum.POST_ALREADY_LIKED, "您已经点赞过该帖子");
         }
 
-        // 不能给自己的帖子点赞
         if (userId.equals(existPost.getUserId())) {
             return R.fail(ResultCodeEnum.VALIDATION_ERROR, "不能给自己的帖子点赞");
         }
 
-        // 执行点赞操作
         int result = postService.likePost(userId, postId);
-
         if (result > 0) {
-            // 记录实时行为
             recommendationService.recordUserBehavior(userId, postId, "like", existPost.getSectionId());
             return R.ok("点赞成功");
         } else {
@@ -572,24 +411,21 @@ public class PostController {
     }
 
     /**
-     * 取消点赞帖子 - 集成实时行为记录
+     * 取消点赞帖子
      */
     @DeleteMapping("/like/{postId}")
     public R<?> unlike(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        // 验证帖子是否存在
         Post existPost = postService.selectPostById(postId);
         if (existPost == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
         }
 
-        // 检查帖子状态
         if ("2".equals(existPost.getDelFlag())) {
             return R.fail(ResultCodeEnum.POST_ALREADY_DELETED);
         }
@@ -597,17 +433,13 @@ public class PostController {
             return R.fail(ResultCodeEnum.POST_STATUS_DISABLED);
         }
 
-        // 检查用户是否已经点赞过
         boolean hasLiked = postService.hasUserLikedPost(userId, postId);
         if (!hasLiked) {
             return R.fail(ResultCodeEnum.POST_NOT_LIKED, "您还没有点赞该帖子");
         }
 
-        // 执行取消点赞操作
         int result = postService.unlikePost(userId, postId);
-
         if (result > 0) {
-            // 记录取消点赞行为（负分）
             recommendationService.recordUserBehavior(userId, postId, "unlike", existPost.getSectionId());
             return R.ok("取消点赞成功");
         } else {
@@ -621,13 +453,11 @@ public class PostController {
     @GetMapping("/like/check/{postId}")
     public R<Boolean> checkLikeStatus(@PathVariable("postId") @NotNull(message = "帖子ID不能为空") Integer postId,
                                       @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        // 验证帖子是否存在
         Post existPost = postService.selectPostById(postId);
         if (existPost == null) {
             return R.fail(ResultCodeEnum.POST_NOT_FOUND);
@@ -655,28 +485,20 @@ public class PostController {
         if (userId == null) {
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
-
         Post stats = postService.selectUserPostStats(userId);
         return R.ok(stats);
     }
 
-    // ========== 个性化推荐接口 ==========
-
     /**
-     * 获取个性化推荐帖子 - 基于协同过滤算法
+     * 个性化推荐接口 - 【返回相对路径，不转换base64】
      */
-    @Autowired
-    private IPostRecommendationService recommendationService;
-
     @GetMapping("/recommendations")
     public R<List<Post>> getPersonalizedRecommendations(
             @RequestParam(value = "limit", defaultValue = "10") Integer limit,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
-        // 验证token
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
-            // 未登录用户返回热门帖子
             List<Post> hotPosts = postService.selectHotPostList(limit);
             return R.ok(hotPosts);
         }
@@ -685,14 +507,13 @@ public class PostController {
             List<Post> recommendations = recommendationService.getRecommendedPosts(userId, limit);
             return R.ok(recommendations);
         } catch (Exception e) {
-            // 如果推荐算法出错，降级到热门帖子
             List<Post> hotPosts = postService.selectHotPostList(limit);
             return R.ok(hotPosts);
         }
     }
 
     /**
-     * 获取基于内容的推荐帖子
+     * 获取基于内容的推荐帖子 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/recommendations/content")
     public R<List<Post>> getContentBasedRecommendations(
@@ -714,7 +535,7 @@ public class PostController {
     }
 
     /**
-     * 获取混合推荐帖子 - 支持分页
+     * 获取混合推荐帖子 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/recommendations/hybrid")
     public R<List<Post>> getHybridRecommendations(
@@ -732,14 +553,13 @@ public class PostController {
                     userId, limit, page);
             return R.ok(recommendations);
         } catch (Exception e) {
-            // 如果推荐算法出错，降级到热门帖子
             List<Post> hotPosts = postService.selectHotPostList(limit);
             return R.ok(hotPosts);
         }
     }
 
     /**
-     * 获取推荐帖子的详细信息（包含推荐类型和原因）
+     * 获取推荐帖子的详细信息 - 【返回相对路径，不转换base64】
      */
     @GetMapping("/recommendations/detailed")
     public R<Map<String, Object>> getDetailedRecommendations(
@@ -757,8 +577,6 @@ public class PostController {
 
         try {
             Map<String, Object> result = new HashMap<>();
-
-            // 获取不同类型的推荐
             List<Post> collaborativeRecommendations = recommendationService.getRecommendedPosts(userId, limit / 2);
             List<Post> contentRecommendations = recommendationService.getContentBasedRecommendations(userId, limit / 2);
             List<Post> hybridRecommendations = recommendationService.getHybridRecommendations(userId, limit);
@@ -768,7 +586,6 @@ public class PostController {
             result.put("hybrid", hybridRecommendations);
             result.put("type", "personalized");
             result.put("reason", "基于您的兴趣偏好推荐");
-
             return R.ok(result);
         } catch (Exception e) {
             Map<String, Object> result = new HashMap<>();
@@ -778,5 +595,4 @@ public class PostController {
             return R.ok(result);
         }
     }
-
 }

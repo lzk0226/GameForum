@@ -309,19 +309,49 @@ export default {
       return `/${cleanPath}`
     },*/
 
+    /**
+     * 根据photo字段路径生成完整的图片访问URL
+     * photo字段包含的路径示例：
+     *   - images/user/thumbnail/post_111_901fb6c3_0.jpg  (缩略图)
+     *   - images/user/post/post_111_901fb6c3_0.jpg       (原图)
+     *   - images/headPortrait/avatar_123_abc123.jpg      (头像)
+     */
     getImageUrl(path) {
       if (!path) return ''
+
+      // 清理路径（统一使用正斜杠）
       const cleanPath = path.replace(/\\/g, '/')
-      // 如果已经是完整的 http 链接，直接返回
+
+      // 如果已经是完整的http链接，直接返回
       if (cleanPath.startsWith('http')) return cleanPath
-      // 拼接成固定的图片读取地址
-      return API_URLS.getPostPhotos()+cleanPath
+
+      // 根据路径中的目录名称决定调用哪个后端接口
+      if (cleanPath.includes('images/user/thumbnail/')) {
+        // 缩略图路径 -> 调用缩略图接口
+        const fileName = cleanPath.split('/').pop() // 提取文件名
+        return `${API_URLS.getPostPhotos()}images/user/thumbnail/${fileName}`
+      } else if (cleanPath.includes('images/user/post/')) {
+        // 原图路径 -> 调用原图接口
+        const fileName = cleanPath.split('/').pop() // 提取文件名
+        return `${API_URLS.getPostPhotos()}images/user/post/${fileName}`
+      } else if (cleanPath.includes('images/headPortrait/')) {
+        // 头像路径 -> 调用头像接口
+        const fileName = cleanPath.split('/').pop() // 提取文件名
+        return `${API_URLS.getPostPhotos()}images/headPortrait/${fileName}`
+      } else {
+        // 其他路径 -> 直接使用
+        return `${API_URLS.getPostPhotos()}${cleanPath}`
+      }
     },
 
-
+    /**
+     * 获取图片摘要（用于列表展示）
+     */
     getExcerpt(content) {
       if (!content) return ''
+      // 移除HTML标签
       const textContent = content.replace(/<[^>]*>/g, '')
+      // 如果内容超过100个字符，截断并添加省略号
       return textContent.length > 100 ? `${textContent.substring(0, 100)}...` : textContent
     },
 
@@ -574,7 +604,7 @@ export default {
   background: white;
   color: #666;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 4px;

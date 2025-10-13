@@ -17,7 +17,6 @@ import java.io.OutputStream;
 @RequestMapping("/user/public")
 public class ImageAccessController {
 
-    //private static final String BASE_PATH = "D:/IdeaStash/RuoYi-Vue/ruoyi-user-ui/public/";
     private static final String BASE_PATH = "C:/gameform/public/";
 
     /**
@@ -45,11 +44,19 @@ public class ImageAccessController {
     }
 
     /**
-     * 访问帖子图片
+     * 访问帖子原图
      */
     @GetMapping("/images/user/post/{fileName}")
     public void getPostImage(@PathVariable String fileName, HttpServletResponse response) throws IOException {
         serveImage("images/user/post/" + fileName, response);
+    }
+
+    /**
+     * 访问帖子缩略图
+     */
+    @GetMapping("/images/user/thumbnail/{fileName}")
+    public void getPostThumbnail(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+        serveImage("images/user/thumbnail/" + fileName, response);
     }
 
     /**
@@ -64,7 +71,7 @@ public class ImageAccessController {
      * 通用图片服务方法
      */
     private void serveImage(String relativePath, HttpServletResponse response) throws IOException {
-        // 安全检查
+        // 安全检查：防止路径遍历攻击
         if (relativePath.contains("..") || !relativePath.startsWith("images/")) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;

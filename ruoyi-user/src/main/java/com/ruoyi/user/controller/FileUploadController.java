@@ -7,6 +7,8 @@ import com.ruoyi.user.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -31,14 +33,16 @@ public class FileUploadController {
     private JwtUtils jwtUtils;
 
     private static final String BASE_PATH = "C:/gameform/public/";
+    private static final String THUMBNAIL_PATH = "images/user/thumbnail/";
+    private static final int THUMBNAIL_WIDTH = 300;
+    private static final int THUMBNAIL_HEIGHT = 300;
+    private static final int THUMBNAIL_QUALITY = 80;
+
     private static final Pattern BASE64_IMAGE_PATTERN = Pattern.compile(
             "<img[^>]+src=\"data:image/(\\w+);base64,([^\"]+)\"[^>]*>",
             Pattern.CASE_INSENSITIVE
     );
 
-    /**
-     * 验证token
-     */
     private boolean validateToken(String authHeader) {
         if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
             return false;
@@ -47,9 +51,6 @@ public class FileUploadController {
         return jwtUtils.validateToken(token);
     }
 
-    /**
-     * 从token获取用户ID
-     */
     private Long getUserIdFromToken(String authHeader) {
         if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
             return null;
@@ -59,8 +60,65 @@ public class FileUploadController {
     }
 
     /**
+     * 生成图片缩略图
+     * @param base64Data base64图片数据
+     * @param fileName 原图文件名，如：post_111_901fb6c3_0.jpg
+     * @return 缩略图相对路径，如：images/user/thumbnail/post_111_901fb6c3_0.jpg
+     */
+    private String generateThumbnail(String base64Data, String fileName) {
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+            BufferedImage originalImage = ImageIO.read(new java.io.ByteArrayInputStream(imageBytes));
+
+            if (originalImage == null) {
+                return null;
+            }
+
+            // 生成缩略图
+            BufferedImage thumbnail = resizeImage(originalImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+            // 保存缩略图（使用相同的文件名，保存到thumbnail目录）
+            String thumbnailDir = BASE_PATH + THUMBNAIL_PATH;
+            File dir = new File(thumbnailDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+            String thumbnailPath = thumbnailDir + fileName; // 使用相同文件名
+
+            ImageIO.write(thumbnail, extension, new File(thumbnailPath));
+            return THUMBNAIL_PATH + fileName; // 返回缩略图路径
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 图片缩放（保持宽高比）
+     */
+    private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
+        int width = originalImage.getWidth();
+        int height = originalImage.getHeight();
+
+        // 计算缩放比例，保持宽高比
+        double ratio = Math.min((double) targetWidth / width, (double) targetHeight / height);
+        int newWidth = (int) (width * ratio);
+        int newHeight = (int) (height * ratio);
+
+        BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics2D g2d = resized.createGraphics();
+        g2d.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+
+        return resized;
+    }
+
+    /**
      * 处理富文本内容，提取并保存base64图片
-     * 返回处理后的HTML内容和第一张图片路径
+     * 返回处理后的HTML内容、第一张图片路径和缩略图路径
      */
     public Map<String, Object> processRichTextContent(String htmlContent, String authHeader) {
         Map<String, Object> result = new HashMap<>();
@@ -68,6 +126,7 @@ public class FileUploadController {
         if (StringUtils.isEmpty(htmlContent)) {
             result.put("content", htmlContent);
             result.put("firstImagePath", null);
+            result.put("firstThumbnailPath", null);
             return result;
         }
 
@@ -75,12 +134,14 @@ public class FileUploadController {
         if (userId == null) {
             result.put("content", htmlContent);
             result.put("firstImagePath", null);
+            result.put("firstThumbnailPath", null);
             return result;
         }
 
         Matcher matcher = BASE64_IMAGE_PATTERN.matcher(htmlContent);
         StringBuffer processedContent = new StringBuffer();
         String firstImagePath = null;
+        String firstThumbnailPath = null;
         int imageIndex = 0;
 
         while (matcher.find()) {
@@ -88,19 +149,19 @@ public class FileUploadController {
             String base64Data = matcher.group(2);
 
             try {
-                // 生成唯一文件名
-                String timestamp = String.valueOf(System.currentTimeMillis());
                 String randomStr = UUID.randomUUID().toString().substring(0, 8);
                 String fileName = String.format("post_%d_%s_%d.%s",
                         userId, randomStr, imageIndex, imageType);
 
-                // 保存图片
+                // 保存原图
                 String relativePath = saveBase64Image(base64Data, fileName, "post");
 
                 if (relativePath != null) {
                     // 记录第一张图片路径
                     if (imageIndex == 0) {
                         firstImagePath = relativePath;
+                        // 只为第一张图片生成缩略图
+                        firstThumbnailPath = generateThumbnail(base64Data, fileName);
                     }
 
                     // 替换为相对路径
@@ -123,6 +184,7 @@ public class FileUploadController {
 
         result.put("content", processedContent.toString());
         result.put("firstImagePath", firstImagePath);
+        result.put("firstThumbnailPath", firstThumbnailPath);
         return result;
     }
 
@@ -181,7 +243,6 @@ public class FileUploadController {
                     byte[] imageBytes = Files.readAllBytes(Paths.get(fullPath));
                     String base64Data = Base64.getEncoder().encodeToString(imageBytes);
 
-                    // 获取文件扩展名
                     String extension = relativePath.substring(relativePath.lastIndexOf(".") + 1);
                     String mimeType = getMimeType(extension);
 
@@ -191,12 +252,10 @@ public class FileUploadController {
                     );
                     matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
                 } else {
-                    // 文件不存在，保留原路径
                     matcher.appendReplacement(result, Matcher.quoteReplacement(matcher.group(0)));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                // 出错时保留原路径
                 matcher.appendReplacement(result, Matcher.quoteReplacement(matcher.group(0)));
             }
         }
