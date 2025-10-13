@@ -34,8 +34,8 @@ public class FileUploadController {
 
     private static final String BASE_PATH = "C:/gameform/public/";
     private static final String THUMBNAIL_PATH = "images/user/thumbnail/";
-    private static final int THUMBNAIL_WIDTH = 300;
-    private static final int THUMBNAIL_HEIGHT = 300;
+    private static final int THUMBNAIL_WIDTH = 650;
+    private static final int THUMBNAIL_HEIGHT = 650;
     private static final int THUMBNAIL_QUALITY = 80;
 
     private static final Pattern BASE64_IMAGE_PATTERN = Pattern.compile(
