@@ -16,8 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @version 1.0
- * 文件类型/说明: 用户控制器
- * 文件创建时间:2025/5/24下午 7:57
+ * 用户控制器
  * @Author : SockLightDust
  */
 @RestController
@@ -94,8 +93,10 @@ public class UserController {
         String accessToken = jwtUtils.generateToken(user.getUserId(), user.getUserName());
         String refreshToken = jwtUtils.generateRefreshToken(user.getUserId(), user.getUserName());
 
-        System.out.println(accessToken);
-        System.out.println(refreshToken);
+        System.out.println("=== 登录成功 ===");
+        System.out.println("AccessToken: " + accessToken);
+        System.out.println("RefreshToken: " + refreshToken);
+
         // 构建返回数据
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setAccessToken(accessToken);
@@ -108,32 +109,50 @@ public class UserController {
     }
 
     /**
-     * 刷新token
+     * ⭐ 刷新token - 修复版本
      */
     @PostMapping("/refreshToken")
     public R<TokenResponse> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        System.out.println("=== 收到刷新Token请求 ===");
+
+        // 验证Authorization头
         if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
+            System.err.println("Authorization头格式错误");
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
 
-        String oldToken = authHeader.substring(7);
+        String refreshToken = authHeader.substring(7);
+        System.out.println("RefreshToken: " + refreshToken.substring(0, Math.min(50, refreshToken.length())) + "...");
 
         try {
-            // 验证旧token
-            if (!jwtUtils.validateToken(oldToken)) {
+            // ⭐ 使用专门的RefreshToken验证方法
+            if (!jwtUtils.validateRefreshToken(refreshToken)) {
+                System.err.println("RefreshToken验证失败");
                 return R.fail(ResultCodeEnum.TOKEN_INVALID);
             }
 
-            // 从旧token中获取用户信息
-            Long userId = jwtUtils.getUserIdFromToken(oldToken);
-            String userName = jwtUtils.getUserNameFromToken(oldToken);
+            // 从RefreshToken中获取用户信息
+            Long userId = jwtUtils.getUserIdFromToken(refreshToken);
+            String userName = jwtUtils.getUserNameFromToken(refreshToken);
+
+            System.out.println("用户ID: " + userId);
+            System.out.println("用户名: " + userName);
+
+            if (userId == null || StringUtils.isEmpty(userName)) {
+                System.err.println("无法从RefreshToken中获取用户信息");
+                return R.fail(ResultCodeEnum.TOKEN_INVALID);
+            }
 
             // 生成新token
             String newAccessToken = jwtUtils.generateToken(userId, userName);
             String newRefreshToken = jwtUtils.generateRefreshToken(userId, userName);
 
-            // 将旧token加入黑名单
-            jwtUtils.invalidateToken(oldToken);
+            System.out.println("=== Token刷新成功 ===");
+            System.out.println("新AccessToken: " + newAccessToken.substring(0, Math.min(50, newAccessToken.length())) + "...");
+            System.out.println("新RefreshToken: " + newRefreshToken.substring(0, Math.min(50, newRefreshToken.length())) + "...");
+
+            // 将旧RefreshToken加入黑名单
+            jwtUtils.invalidateToken(refreshToken);
 
             TokenResponse tokenResponse = new TokenResponse();
             tokenResponse.setAccessToken(newAccessToken);
@@ -143,6 +162,8 @@ public class UserController {
 
             return R.ok(tokenResponse);
         } catch (Exception e) {
+            System.err.println("刷新Token异常: " + e.getMessage());
+            e.printStackTrace();
             return R.fail(ResultCodeEnum.TOKEN_INVALID);
         }
     }
