@@ -61,6 +61,15 @@
             <span class="stat-item">
               <i class="icon-view"></i>{{ post.viewCount }} 浏览
             </span>
+            <span class="stat-item">
+              <i class="icon-favorite"></i>
+              <template v-if="post.favoriteCountLoading">
+                <span class="loading-text">...</span>
+              </template>
+              <template v-else>
+                {{ post.favoriteCount || 0 }} 收藏
+              </template>
+            </span>
           </div>
 
           <div class="post-actions">
@@ -125,7 +134,6 @@ export default {
 
       try {
         const {url, params} = this.getApiConfig()
-        //console.log('正在请求:', url, params)
 
         const response = await axios.get(url, {
           params,
@@ -147,6 +155,9 @@ export default {
           }
 
           this.hasMore = newPosts.length >= this.pageSize && this.posts.length < newPosts.length
+
+          // 在帖子加载完成后，异步加载收藏数量
+          this.loadFavoriteCountsForPosts(postsWithLikeStatus)
         } else {
           console.error('API返回错误:', response.data)
           this.$message?.error(response.data.message || '获取数据失败')
@@ -183,20 +194,81 @@ export default {
     async initializePostsLikeStatus(posts) {
       const token = this.getToken()
       if (!token) {
-        return posts.map(post => ({...post, hasLiked: false, likeLoading: false}))
+        return posts.map(post => ({
+          ...post,
+          hasLiked: false,
+          likeLoading: false,
+          favoriteCount: 0,
+          favoriteCountLoading: true
+        }))
       }
 
       return Promise.all(
           posts.map(async (post) => {
             try {
               const hasLiked = await this.checkLikeStatus(post.postId)
-              return {...post, hasLiked, likeLoading: false}
+              return {
+                ...post,
+                hasLiked,
+                likeLoading: false,
+                favoriteCount: 0,
+                favoriteCountLoading: true
+              }
             } catch (error) {
               console.error(`检查帖子 ${post.postId} 点赞状态失败:`, error)
-              return {...post, hasLiked: false, likeLoading: false}
+              return {
+                ...post,
+                hasLiked: false,
+                likeLoading: false,
+                favoriteCount: 0,
+                favoriteCountLoading: true
+              }
             }
           })
       )
+    },
+
+    /**
+     * 异步加载帖子的收藏数量
+     */
+    async loadFavoriteCountsForPosts(posts) {
+      for (const post of posts) {
+        try {
+          const favoriteCount = await this.getFavoriteCount(post.postId)
+          // 找到对应的帖子并更新收藏数量
+          const targetPost = this.posts.find(p => p.postId === post.postId)
+          if (targetPost) {
+            targetPost.favoriteCount = favoriteCount
+            targetPost.favoriteCountLoading = false
+          }
+        } catch (error) {
+          console.error(`获取帖子 ${post.postId} 收藏数量失败:`, error)
+          const targetPost = this.posts.find(p => p.postId === post.postId)
+          if (targetPost) {
+            targetPost.favoriteCount = 0
+            targetPost.favoriteCountLoading = false
+          }
+        }
+      }
+    },
+
+    /**
+     * 获取帖子的收藏数量
+     */
+    async getFavoriteCount(postId) {
+      try {
+        const response = await axios.get(
+            API_URLS.getPostFavoriteCount(postId),
+            {headers: this.getAuthHeaders()}
+        )
+        if (response.data.success || response.data.code === 200) {
+          return response.data.data || 0
+        }
+        return 0
+      } catch (error) {
+        console.error('获取收藏数量失败:', error)
+        return 0
+      }
     },
 
     async checkLikeStatus(postId) {
@@ -299,15 +371,6 @@ export default {
         console.error('更新浏览量失败:', error)
       }
     },
-
-    /*getImageUrl(path) {
-      if (!path) return ''
-      const cleanPath = path.replace(/\\/g, '/')
-
-      if (cleanPath.startsWith('http')) return cleanPath
-      if (cleanPath.startsWith('/')) return API_URLS.getPostPhotos()+cleanPath
-      return `/${cleanPath}`
-    },*/
 
     /**
      * 根据photo字段路径生成完整的图片访问URL
@@ -592,6 +655,11 @@ export default {
   font-size: 14px;
 }
 
+.loading-text {
+  color: #999;
+  font-size: 12px;
+}
+
 .post-actions {
   display: flex;
   gap: 10px;
@@ -689,6 +757,10 @@ export default {
 
 .icon-view::before {
   content: '👁';
+}
+
+.icon-favorite::before {
+  content: '⭐';
 }
 
 /* 响应式设计 */

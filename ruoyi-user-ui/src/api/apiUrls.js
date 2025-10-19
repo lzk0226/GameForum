@@ -1,6 +1,6 @@
 // src/api/apiUrls.js
-//const BASE_URL = import.meta.env.VITE_BASE_URL//生产环境
-const BASE_URL = "http://110.41.1.63:8080"//部署环境
+const BASE_URL = import.meta.env.VITE_BASE_URL//生产环境
+//const BASE_URL = "http://110.41.1.63:8080"//部署环境
 
 export const API_URLS = {
     getBASEURL: () => `${BASE_URL}`,
@@ -56,6 +56,8 @@ export const API_URLS = {
     getGameIcon: () => `${BASE_URL}/user/public/`,
     getSectionIcon: () => `${BASE_URL}/user/public/`,
     getGamePhoto: () => `${BASE_URL}/user/public/`,
+    // 获取帖子收藏数量
+    getPostFavoriteCount: (postId) => `${BASE_URL}/user/post/favorite/count/post/${postId}`,
     // APK下载相关
     getApkDownloadUrl() {
         return `${BASE_URL}/user/download/apk`;

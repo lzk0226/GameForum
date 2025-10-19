@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.PostFavoriteMapper">
+
+    <resultMap type="com.ruoyi.user.domain.PostFavorite" id="PostFavoriteResult">
+        <result property="userId"           column="user_id"           />
+        <result property="postId"           column="post_id"           />
+        <result property="createTime"       column="create_time"       />
+        <result property="nickName"         column="nick_name"         />
+        <result property="avatar"           column="avatar"            />
+        <result property="postTitle"        column="post_title"        />
+        <result property="postContent"      column="post_content"      />
+        <result property="postAuthorName"   column="post_author_name"  />
+        <result property="sectionName"      column="section_name"      />
+        <result property="photo"            column="photo"             />
+    </resultMap>
+
+    <sql id="selectPostFavoriteVo">
+        select pf.user_id, pf.post_id, pf.create_time,
+               u.nick_name, u.avatar,
+               p.post_title, p.post_content, p.photo,
+               u2.nick_name as post_author_name,
+               s.section_name
+        from biz_post_favorite pf
+                 left join sys_user u on pf.user_id = u.user_id
+                 left join biz_post p on pf.post_id = p.post_id
+                 left join sys_user u2 on p.user_id = u2.user_id
+                 left join biz_section s on p.section_id = s.section_id
+    </sql>
+
+    <!-- 查询用户收藏列表 -->
+    <select id="selectFavoriteListByUserId" parameterType="Long" resultMap="PostFavoriteResult">
+        <include refid="selectPostFavoriteVo"/>
+        where pf.user_id = #{userId}
+        and p.status = '0' and p.del_flag = '0'
+        order by pf.create_time desc
+    </select>
+
+    <!-- 查询帖子被收藏列表 -->
+    <select id="selectFavoriteListByPostId" parameterType="Integer" resultMap="PostFavoriteResult">
+        <include refid="selectPostFavoriteVo"/>
+        where pf.post_id = #{postId}
+        order by pf.create_time desc
+    </select>
+
+    <!-- 检查用户是否已收藏帖子 -->
+    <select id="checkUserFavorited" resultType="int">
+        select count(*)
+        from biz_post_favorite
+        where user_id = #{userId} and post_id = #{postId}
+    </select>
+
+    <!-- 添加收藏 -->
+    <insert id="insertFavorite">
+        insert into biz_post_favorite (user_id, post_id, create_time)
+        values (#{userId}, #{postId}, now())
+    </insert>
+
+    <!-- 取消收藏 -->
+    <delete id="deleteFavorite">
+        delete from biz_post_favorite
+        where user_id = #{userId} and post_id = #{postId}
+    </delete>
+
+    <!-- 批量取消收藏 -->
+    <delete id="deleteFavoriteByIds">
+        delete from biz_post_favorite
+        where user_id = #{userId} and post_id in
+        <foreach item="postId" collection="postIds" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </delete>
+
+    <!-- 获取用户收藏数 -->
+    <select id="countFavoriteByUserId" parameterType="Long" resultType="int">
+        select count(*)
+        from biz_post_favorite pf
+                 left join biz_post p on pf.post_id = p.post_id
+        where pf.user_id = #{userId}
+          and p.status = '0' and p.del_flag = '0'
+    </select>
+
+    <!-- 获取帖子被收藏数 -->
+    <select id="countFavoriteByPostId" parameterType="Integer" resultType="int">
+        select count(*)
+        from biz_post_favorite
+        where post_id = #{postId}
+    </select>
+
+    <!-- 批量查询用户是否收藏了指定帖子 -->
+    <select id="checkUserFavoritedBatch" resultType="java.util.HashMap">
+        select post_id, 1 as favorited
+        from biz_post_favorite
+        where user_id = #{userId} and post_id in
+        <foreach item="postId" collection="postIds" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </select>
+
+</mapper>

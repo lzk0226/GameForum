@@ -1,4 +1,3 @@
-/*
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
@@ -17,8 +16,8 @@ function getLocalIP() {
     for (const iface of interfaces[name]) {
       if (
           iface.family === 'IPv4' &&
-          !iface.internal /!*&&
-          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段*!/
+          !iface.internal /*&&
+          iface.address.startsWith('192.168.') // 更保险地限制局域网 IP 段*/
       ) {
         return iface.address
       }
@@ -63,10 +62,10 @@ export default defineConfig({
     assetsDir: 'assets',
   },
 })
-*/
 
 
 //部署环境
+/*
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
@@ -101,3 +100,4 @@ export default defineConfig({
     assetsDir: 'assets',
   },
 })
+*/

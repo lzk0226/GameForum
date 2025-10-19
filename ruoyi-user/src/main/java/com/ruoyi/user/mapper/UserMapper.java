@@ -1,7 +1,9 @@
 package com.ruoyi.user.mapper;
 
 import com.ruoyi.user.domain.User;
+import org.apache.ibatis.annotations.Mapper;
 
+@Mapper
 public interface UserMapper {
 
     /**

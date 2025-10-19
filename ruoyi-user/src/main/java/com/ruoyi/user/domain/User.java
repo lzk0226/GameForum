@@ -64,6 +64,40 @@ public class User extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date loginDate;
 
+    /** 粉丝数 */
+    private Integer followerCount;
+
+    /** 关注数 */
+    private Integer followingCount;
+
+    /** 收藏数 */
+    private Integer favoriteCount;
+
+    // 对应的 getter 和 setter 方法
+    public Integer getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(Integer followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    public Integer getFollowingCount() {
+        return followingCount;
+    }
+
+    public void setFollowingCount(Integer followingCount) {
+        this.followingCount = followingCount;
+    }
+
+    public Integer getFavoriteCount() {
+        return favoriteCount;
+    }
+
+    public void setFavoriteCount(Integer favoriteCount) {
+        this.favoriteCount = favoriteCount;
+    }
+
     public void setUserId(Long userId) {
         this.userId = userId;
     }
@@ -184,6 +218,9 @@ public class User extends BaseEntity {
                 .append("delFlag", getDelFlag())
                 .append("loginIp", getLoginIp())
                 .append("loginDate", getLoginDate())
+                .append("followerCount", getFollowerCount())
+                .append("followingCount", getFollowingCount())
+                .append("favoriteCount", getFavoriteCount())
                 .append("createBy", getCreateBy())
                 .append("createTime", getCreateTime())
                 .append("updateBy", getUpdateBy())
@@ -191,4 +228,5 @@ public class User extends BaseEntity {
                 .append("remark", getRemark())
                 .toString();
     }
+
 }

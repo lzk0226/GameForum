@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.UserFollowMapper">
+
+    <resultMap type="com.ruoyi.user.domain.UserFollow" id="UserFollowResult">
+        <result property="followerId"           column="follower_id"           />
+        <result property="followingId"          column="following_id"          />
+        <result property="createTime"           column="create_time"           />
+        <result property="followerNickName"     column="follower_nick_name"    />
+        <result property="followerAvatar"       column="follower_avatar"       />
+        <result property="followingNickName"    column="following_nick_name"   />
+        <result property="followingAvatar"      column="following_avatar"      />
+        <result property="isMutual"             column="is_mutual"             />
+        <result property="followerCount"        column="follower_count"        />
+        <result property="followingCount"       column="following_count"       />
+    </resultMap>
+
+    <sql id="selectUserFollowVo">
+        select uf.follower_id, uf.following_id, uf.create_time,
+               u1.nick_name as follower_nick_name, u1.avatar as follower_avatar,
+               u2.nick_name as following_nick_name, u2.avatar as following_avatar
+        from biz_user_follow uf
+                 left join sys_user u1 on uf.follower_id = u1.user_id
+                 left join sys_user u2 on uf.following_id = u2.user_id
+    </sql>
+
+    <!-- 查询用户关注列表 -->
+    <select id="selectFollowingListByUserId" parameterType="Long" resultMap="UserFollowResult">
+        <include refid="selectUserFollowVo"/>
+        where uf.follower_id = #{userId}
+        and u2.status = '0' and u2.del_flag = '0'
+        order by uf.create_time desc
+    </select>
+
+    <!-- 查询用户粉丝列表 -->
+    <select id="selectFollowerListByUserId" parameterType="Long" resultMap="UserFollowResult">
+        <include refid="selectUserFollowVo"/>
+        where uf.following_id = #{userId}
+        and u1.status = '0' and u1.del_flag = '0'
+        order by uf.create_time desc
+    </select>
+
+    <!-- 检查是否已关注 -->
+    <select id="checkUserFollowed" resultType="int">
+        select count(*)
+        from biz_user_follow
+        where follower_id = #{followerId} and following_id = #{followingId}
+    </select>
+
+    <!-- 检查是否互相关注 -->
+    <select id="checkMutualFollow" resultType="boolean">
+        select case when count(*) = 2 then true else false end
+        from biz_user_follow
+        where (follower_id = #{userId1} and following_id = #{userId2})
+           or (follower_id = #{userId2} and following_id = #{userId1})
+    </select>
+
+    <!-- 添加关注 -->
+    <insert id="insertFollow">
+        insert into biz_user_follow (follower_id, following_id, create_time)
+        values (#{followerId}, #{followingId}, now())
+    </insert>
+
+    <!-- 取消关注 -->
+    <delete id="deleteFollow">
+        delete from biz_user_follow
+        where follower_id = #{followerId} and following_id = #{followingId}
+    </delete>
+
+    <!-- 获取用户关注数 -->
+    <select id="countFollowingByUserId" parameterType="Long" resultType="int">
+        select count(*)
+        from biz_user_follow uf
+                 left join sys_user u on uf.following_id = u.user_id
+        where uf.follower_id = #{userId}
+          and u.status = '0' and u.del_flag = '0'
+    </select>
+
+    <!-- 获取用户粉丝数 -->
+    <select id="countFollowerByUserId" parameterType="Long" resultType="int">
+        select count(*)
+        from biz_user_follow uf
+                 left join sys_user u on uf.follower_id = u.user_id
+        where uf.following_id = #{userId}
+          and u.status = '0' and u.del_flag = '0'
+    </select>
+
+    <!-- 批量查询是否已关注 -->
+    <select id="checkUserFollowedBatch" resultType="java.util.HashMap">
+        select following_id as user_id, 1 as followed
+        from biz_user_follow
+        where follower_id = #{followerId} and following_id in
+        <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+
+    <!-- 获取互相关注列表（好友列表） -->
+    <select id="selectMutualFollowList" parameterType="Long" resultMap="UserFollowResult">
+        select uf1.follower_id, uf1.following_id, uf1.create_time,
+               u1.nick_name as follower_nick_name, u1.avatar as follower_avatar,
+               u2.nick_name as following_nick_name, u2.avatar as following_avatar,
+               true as is_mutual
+        from biz_user_follow uf1
+                 inner join biz_user_follow uf2
+                            on uf1.follower_id = uf2.following_id
+                                and uf1.following_id = uf2.follower_id
+                 left join sys_user u1 on uf1.follower_id = u1.user_id
+                 left join sys_user u2 on uf1.following_id = u2.user_id
+        where uf1.follower_id = #{userId}
+          and u2.status = '0' and u2.del_flag = '0'
+        order by uf1.create_time desc
+    </select>
+
+</mapper>

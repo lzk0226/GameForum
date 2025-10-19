@@ -28,10 +28,10 @@
               </div>
               <div class="time-stats">
                 <span class="post-time">{{ formatTime(post.createTime) }}</span>
-                <div class="stats-info">
+<!--                <div class="stats-info">
                   <span>👁️ <span>{{ post.viewCount || 0 }}</span></span>
                   <span>⭐ <span>{{ post.likeCount || 0 }}</span></span>
-                </div>
+                </div>-->
               </div>
             </div>
           </div>
@@ -48,6 +48,10 @@
             <div class="stat-item" @click="scrollToComments">
               <span>💬</span>
               <span>{{ post.commentCount || 0 }}</span>
+            </div>
+            <div class="stats-info">
+              <span>👁️ <span>{{ post.viewCount || 0 }}</span></span>
+              <span>⭐ <span>{{ post.likeCount || 0 }}</span></span>
             </div>
           </div>
         </div>

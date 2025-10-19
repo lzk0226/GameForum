@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.UserMessageMapper">
+
+    <resultMap type="com.ruoyi.user.domain.UserMessage" id="UserMessageResult">
+        <result property="messageId"         column="message_id"         />
+        <result property="receiverId"        column="receiver_id"        />
+        <result property="senderId"          column="sender_id"          />
+        <result property="messageType"       column="message_type"       />
+        <result property="messageContent"    column="message_content"    />
+        <result property="relatedType"       column="related_type"       />
+        <result property="relatedId"         column="related_id"         />
+        <result property="isRead"            column="is_read"            />
+        <result property="delFlag"           column="del_flag"           />
+        <result property="createTime"        column="create_time"        />
+        <result property="readTime"          column="read_time"          />
+        <result property="receiverNickName"  column="receiver_nick_name" />
+        <result property="receiverAvatar"    column="receiver_avatar"    />
+        <result property="senderNickName"    column="sender_nick_name"   />
+        <result property="senderAvatar"      column="sender_avatar"      />
+        <result property="postTitle"         column="post_title"         />
+        <result property="commentContent"    column="comment_content"    />
+    </resultMap>
+
+    <sql id="selectUserMessageVo">
+        select um.message_id, um.receiver_id, um.sender_id, um.message_type,
+               um.message_content, um.related_type, um.related_id, um.is_read,
+               um.del_flag, um.create_time, um.read_time,
+               u1.nick_name as receiver_nick_name, u1.avatar as receiver_avatar,
+               u2.nick_name as sender_nick_name, u2.avatar as sender_avatar,
+               p.post_title,
+               c.comment_content
+        from biz_user_message um
+                 left join sys_user u1 on um.receiver_id = u1.user_id
+                 left join sys_user u2 on um.sender_id = u2.user_id
+                 left join biz_post p on um.related_type = '0' and um.related_id = p.post_id
+                 left join biz_comment c on um.related_type = '1' and um.related_id = c.comment_id
+    </sql>
+
+    <!-- 查询用户消息列表 -->
+    <select id="selectMessageList" parameterType="com.ruoyi.user.domain.UserMessage" resultMap="UserMessageResult">
+        <include refid="selectUserMessageVo"/>
+        <where>
+            um.del_flag = '0'
+            <if test="receiverId != null">
+                and um.receiver_id = #{receiverId}
+            </if>
+            <if test="senderId != null">
+                and um.sender_id = #{senderId}
+            </if>
+            <if test="messageType != null and messageType != ''">
+                and um.message_type = #{messageType}
+            </if>
+            <if test="isRead != null and isRead != ''">
+                and um.is_read = #{isRead}
+            </if>
+        </where>
+        order by um.create_time desc
+    </select>
+
+    <!-- 查询用户未读消息列表 -->
+    <select id="selectUnreadMessageList" parameterType="Long" resultMap="UserMessageResult">
+        <include refid="selectUserMessageVo"/>
+        where um.receiver_id = #{userId}
+        and um.is_read = '0'
+        and um.del_flag = '0'
+        order by um.create_time desc
+    </select>
+
+    <!-- 查询消息详情 -->
+    <select id="selectMessageById" parameterType="Long" resultMap="UserMessageResult">
+        <include refid="selectUserMessageVo"/>
+        where um.message_id = #{messageId} and um.del_flag = '0'
+    </select>
+
+    <!-- 查询用户未读消息数 -->
+    <select id="countUnreadByUserId" parameterType="Long" resultType="int">
+        select count(*)
+        from biz_user_message
+        where receiver_id = #{userId}
+          and is_read = '0'
+          and del_flag = '0'
+    </select>
+
+    <!-- 按类型统计未读消息数 -->
+    <select id="countUnreadByType" resultType="java.util.HashMap">
+        select message_type, count(*) as count
+        from biz_user_message
+        where receiver_id = #{userId}
+          and is_read = '0'
+          and del_flag = '0'
+        group by message_type
+    </select>
+
+    <!-- 新增消息 -->
+    <insert id="insertMessage" parameterType="com.ruoyi.user.domain.UserMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into biz_user_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="senderId != null">sender_id,</if>
+            <if test="messageType != null and messageType != ''">message_type,</if>
+            <if test="messageContent != null and messageContent != ''">message_content,</if>
+            <if test="relatedType != null">related_type,</if>
+            <if test="relatedId != null">related_id,</if>
+            <if test="isRead != null">is_read,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="senderId != null">#{senderId},</if>
+            <if test="messageType != null and messageType != ''">#{messageType},</if>
+            <if test="messageContent != null and messageContent != ''">#{messageContent},</if>
+            <if test="relatedType != null">#{relatedType},</if>
+            <if test="relatedId != null">#{relatedId},</if>
+            <if test="isRead != null">#{isRead},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 标记消息为已读 -->
+    <update id="markAsRead">
+        update biz_user_message
+        set is_read = '1', read_time = now()
+        where message_id = #{messageId} and receiver_id = #{userId}
+    </update>
+
+    <!-- 批量标记为已读 -->
+    <update id="markAsReadBatch">
+        update biz_user_message
+        set is_read = '1', read_time = now()
+        where receiver_id = #{userId}
+        <if test="messageIds != null and messageIds.size() > 0">
+            and message_id in
+            <foreach item="messageId" collection="messageIds" open="(" separator="," close=")">
+                #{messageId}
+            </foreach>
+        </if>
+    </update>
+
+    <!-- 标记所有消息为已读 -->
+    <update id="markAllAsRead" parameterType="Long">
+        update biz_user_message
+        set is_read = '1', read_time = now()
+        where receiver_id = #{userId} and is_read = '0' and del_flag = '0'
+    </update>
+
+    <!-- 按类型标记为已读 -->
+    <update id="markAsReadByType">
+        update biz_user_message
+        set is_read = '1', read_time = now()
+        where receiver_id = #{userId}
+          and message_type = #{messageType}
+          and is_read = '0'
+          and del_flag = '0'
+    </update>
+
+    <!-- 删除消息（逻辑删除） -->
+    <update id="deleteMessage">
+        update biz_user_message
+        set del_flag = '2'
+        where message_id = #{messageId} and receiver_id = #{userId}
+    </update>
+
+    <!-- 批量删除消息 -->
+    <update id="deleteMessageBatch">
+        update biz_user_message
+        set del_flag = '2'
+        where receiver_id = #{userId} and message_id in
+        <foreach item="messageId" collection="messageIds" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </update>
+
+    <!-- 清空已读消息 -->
+    <update id="clearReadMessages" parameterType="Long">
+        update biz_user_message
+        set del_flag = '2'
+        where receiver_id = #{userId} and is_read = '1' and del_flag = '0'
+    </update>
+
+</mapper>
