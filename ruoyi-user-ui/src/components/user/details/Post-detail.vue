@@ -25,13 +25,16 @@
                     <span class="section-tag">{{ post.sectionName }}</span>
                   </div>
                 </div>
+                <button
+                    v-if="isLoggedIn && !isOwnPost"
+                    @click="toggleFollow"
+                    :class="['follow-btn', { following: hasFollowed }]"
+                    :disabled="followLoading">
+                  {{ followLoading ? '处理中...' : (hasFollowed ? '已关注' : '+ 关注') }}
+                </button>
               </div>
               <div class="time-stats">
                 <span class="post-time">{{ formatTime(post.createTime) }}</span>
-<!--                <div class="stats-info">
-                  <span>👁️ <span>{{ post.viewCount || 0 }}</span></span>
-                  <span>⭐ <span>{{ post.likeCount || 0 }}</span></span>
-                </div>-->
               </div>
             </div>
           </div>
@@ -49,9 +52,12 @@
               <span>💬</span>
               <span>{{ post.commentCount || 0 }}</span>
             </div>
+            <div class="stat-item" @click="toggleFavorite" :class="{ active: hasFavorited, favorited: hasFavorited }" :disabled="favoriteLoading">
+              <span>⭐</span>
+              <span>{{ hasFavorited ? '已收藏' : '收藏' }}</span>
+            </div>
             <div class="stats-info">
               <span>👁️ <span>{{ post.viewCount || 0 }}</span></span>
-              <span>⭐ <span>{{ post.likeCount || 0 }}</span></span>
             </div>
           </div>
         </div>
@@ -192,6 +198,10 @@ export default {
       loadingComments: false,
       hasLiked: false,
       likeLoading: false,
+      hasFavorited: false,
+      favoriteLoading: false,
+      hasFollowed: false,
+      followLoading: false,
       newComment: '',
       submittingComment: false,
       replyingTo: null,
@@ -210,12 +220,19 @@ export default {
     },
     isLoggedIn() {
       return !!this.getToken()
+    },
+    isOwnPost() {
+      return this.currentUserId && this.post && this.post.userId === this.currentUserId
     }
   },
   async mounted() {
     await this.getCurrentUser()
     await this.loadPostDetail()
     await this.loadComments()
+    if (this.isLoggedIn) {
+      await this.checkFavoriteStatus()
+      await this.checkFollowStatus()
+    }
     this.cleanupScrollListener = createScrollListener((atTop) => {
       this.isAtTop = atTop;
     });
@@ -370,6 +387,32 @@ export default {
         console.error('检查点赞状态失败:', error)
       }
     },
+    async checkFavoriteStatus() {
+      if (!this.postId || !this.isLoggedIn) return
+      try {
+        const {data} = await axios.get(API_URLS.checkPostFavoriteStatus(this.postId), {
+          headers: this.getAuthHeaders()
+        })
+        if (data.success || data.code === 200) {
+          this.hasFavorited = data.data || false
+        }
+      } catch (error) {
+        console.error('检查收藏状态失败:', error)
+      }
+    },
+    async checkFollowStatus() {
+      if (!this.post?.userId || !this.isLoggedIn || this.isOwnPost) return
+      try {
+        const {data} = await axios.get(API_URLS.checkFollowStatus(this.post.userId), {
+          headers: this.getAuthHeaders()
+        })
+        if (data.success || data.code === 200) {
+          this.hasFollowed = data.data || false
+        }
+      } catch (error) {
+        console.error('检查关注状态失败:', error)
+      }
+    },
     async toggleLike() {
       if (!this.isLoggedIn) return this.$message?.error('请先登录')
       if (this.likeLoading) return
@@ -394,6 +437,64 @@ export default {
         this.$message?.error('操作失败，请重试')
       } finally {
         this.likeLoading = false
+      }
+    },
+    async toggleFavorite() {
+      if (!this.isLoggedIn) return this.$message?.error('请先登录')
+      if (this.favoriteLoading) return
+      this.favoriteLoading = true
+      try {
+        let response
+        if (this.hasFavorited) {
+          response = await axios.delete(API_URLS.removePostFavorite(this.postId), {
+            headers: this.getAuthHeaders()
+          })
+        } else {
+          response = await axios.post(API_URLS.addPostFavorite(this.postId), {}, {
+            headers: this.getAuthHeaders()
+          })
+        }
+        const {data} = response
+        if (data.success || data.code === 200) {
+          this.hasFavorited = !this.hasFavorited
+          this.$message?.success(this.hasFavorited ? '收藏成功' : '取消收藏成功')
+        } else {
+          this.$message?.error(data.message || '操作失败')
+        }
+      } catch (error) {
+        console.error('收藏操作失败:', error)
+        this.$message?.error('操作失败，请重试')
+      } finally {
+        this.favoriteLoading = false
+      }
+    },
+    async toggleFollow() {
+      if (!this.isLoggedIn) return this.$message?.error('请先登录')
+      if (this.followLoading || this.isOwnPost) return
+      this.followLoading = true
+      try {
+        let response
+        if (this.hasFollowed) {
+          response = await axios.delete(API_URLS.unfollowUser(this.post.userId), {
+            headers: this.getAuthHeaders()
+          })
+        } else {
+          response = await axios.post(API_URLS.followUser(this.post.userId), {}, {
+            headers: this.getAuthHeaders()
+          })
+        }
+        const {data} = response
+        if (data.success || data.code === 200) {
+          this.hasFollowed = !this.hasFollowed
+          this.$message?.success(this.hasFollowed ? '关注成功' : '取消关注成功')
+        } else {
+          this.$message?.error(data.message || '操作失败')
+        }
+      } catch (error) {
+        console.error('关注操作失败:', error)
+        this.$message?.error('操作失败，请重试')
+      } finally {
+        this.followLoading = false
       }
     },
     async submitComment() {
@@ -1325,4 +1426,38 @@ export default {
     padding: 10px;
   }
 }
+/* ========== 关注按钮样式 ========== */
+.follow-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid #007bff;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.follow-btn:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.follow-btn.following {
+  background-color: #f0f0f0;
+  color: #666;
+  border-color: #ccc;
+}
+
+.follow-btn.following:hover {
+  background-color: #e0e0e0;
+  border-color: #bbb;
+}
+
 </style>

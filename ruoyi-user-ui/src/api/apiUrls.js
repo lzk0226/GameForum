@@ -62,6 +62,18 @@ export const API_URLS = {
     getApkDownloadUrl() {
         return `${BASE_URL}/user/download/apk`;
     },
+    // 帖子收藏相关
+    addPostFavorite: (postId) => `${BASE_URL}/user/post/favorite/${postId}`,
+    removePostFavorite: (postId) => `${BASE_URL}/user/post/favorite/${postId}`,
+    checkPostFavoriteStatus: (postId) => `${BASE_URL}/user/post/favorite/check/${postId}`,
+    getMyFavorites: () => `${BASE_URL}/user/post/favorite/my`,
+
+    // 用户关注相关
+    followUser: (userId) => `${BASE_URL}/user/follow/${userId}`,
+    unfollowUser: (userId) => `${BASE_URL}/user/follow/${userId}`,
+    checkFollowStatus: (userId) => `${BASE_URL}/user/follow/check/${userId}`,
+    getMyFollowing: () => `${BASE_URL}/user/follow/following/my`,
+    getMyFollowers: () => `${BASE_URL}/user/follow/follower/my`,
 }
 
 export default API_URLS
