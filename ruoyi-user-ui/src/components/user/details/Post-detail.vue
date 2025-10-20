@@ -601,20 +601,22 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 20px;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
   align-items: start;
 }
 
 .left-panel {
   min-width: 0;
+  padding-bottom: 40px;
 }
 
 .right-panel {
   position: sticky;
   top: 20px;
-  height: fit-content;
-  max-height: calc(100vh - 40px);
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* ========== 帖子卡片样式 ========== */
