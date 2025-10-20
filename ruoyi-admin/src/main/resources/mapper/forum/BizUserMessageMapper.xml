@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.forum.mapper.BizUserMessageMapper">
+    
+    <resultMap type="BizUserMessage" id="BizUserMessageResult">
+        <result property="messageId"    column="message_id"    />
+        <result property="receiverId"    column="receiver_id"    />
+        <result property="senderId"    column="sender_id"    />
+        <result property="messageType"    column="message_type"    />
+        <result property="messageContent"    column="message_content"    />
+        <result property="relatedType"    column="related_type"    />
+        <result property="relatedId"    column="related_id"    />
+        <result property="isRead"    column="is_read"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="readTime"    column="read_time"    />
+    </resultMap>
+
+    <sql id="selectBizUserMessageVo">
+        select message_id, receiver_id, sender_id, message_type, message_content, related_type, related_id, is_read, del_flag, create_time, read_time from biz_user_message
+    </sql>
+
+    <select id="selectBizUserMessageList" parameterType="BizUserMessage" resultMap="BizUserMessageResult">
+        <include refid="selectBizUserMessageVo"/>
+        <where>  
+            <if test="receiverId != null "> and receiver_id = #{receiverId}</if>
+            <if test="senderId != null "> and sender_id = #{senderId}</if>
+            <if test="messageType != null  and messageType != ''"> and message_type = #{messageType}</if>
+            <if test="messageContent != null  and messageContent != ''"> and message_content like concat('%', #{messageContent}, '%')</if>
+            <if test="relatedType != null  and relatedType != ''"> and related_type = #{relatedType}</if>
+            <if test="relatedId != null "> and related_id = #{relatedId}</if>
+            <if test="isRead != null  and isRead != ''"> and is_read = #{isRead}</if>
+            <if test="readTime != null "> and read_time = #{readTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectBizUserMessageByMessageId" parameterType="Long" resultMap="BizUserMessageResult">
+        <include refid="selectBizUserMessageVo"/>
+        where message_id = #{messageId}
+    </select>
+
+    <insert id="insertBizUserMessage" parameterType="BizUserMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into biz_user_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="senderId != null">sender_id,</if>
+            <if test="messageType != null and messageType != ''">message_type,</if>
+            <if test="messageContent != null and messageContent != ''">message_content,</if>
+            <if test="relatedType != null">related_type,</if>
+            <if test="relatedId != null">related_id,</if>
+            <if test="isRead != null">is_read,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="readTime != null">read_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="senderId != null">#{senderId},</if>
+            <if test="messageType != null and messageType != ''">#{messageType},</if>
+            <if test="messageContent != null and messageContent != ''">#{messageContent},</if>
+            <if test="relatedType != null">#{relatedType},</if>
+            <if test="relatedId != null">#{relatedId},</if>
+            <if test="isRead != null">#{isRead},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="readTime != null">#{readTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBizUserMessage" parameterType="BizUserMessage">
+        update biz_user_message
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="receiverId != null">receiver_id = #{receiverId},</if>
+            <if test="senderId != null">sender_id = #{senderId},</if>
+            <if test="messageType != null and messageType != ''">message_type = #{messageType},</if>
+            <if test="messageContent != null and messageContent != ''">message_content = #{messageContent},</if>
+            <if test="relatedType != null">related_type = #{relatedType},</if>
+            <if test="relatedId != null">related_id = #{relatedId},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+        </trim>
+        where message_id = #{messageId}
+    </update>
+
+    <delete id="deleteBizUserMessageByMessageId" parameterType="Long">
+        delete from biz_user_message where message_id = #{messageId}
+    </delete>
+
+    <delete id="deleteBizUserMessageByMessageIds" parameterType="String">
+        delete from biz_user_message where message_id in 
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+</mapper>

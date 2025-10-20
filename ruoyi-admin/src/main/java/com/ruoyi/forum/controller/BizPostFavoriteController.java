@@ -19,7 +19,7 @@ import java.util.List;
  * 帖子收藏Controller
  * 
  * @author ruoyi
- * @date 2025-05-17
+ * @date 2025-10-20
  */
 @RestController
 @RequestMapping("/forum/favorite")

@@ -12,7 +12,7 @@ import com.ruoyi.forum.service.IBizPostFavoriteService;
  * 帖子收藏Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-05-17
+ * @date 2025-10-20
  */
 @Service
 public class BizPostFavoriteServiceImpl implements IBizPostFavoriteService 

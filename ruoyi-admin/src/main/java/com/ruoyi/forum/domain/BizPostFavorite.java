@@ -9,7 +9,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 帖子收藏对象 biz_post_favorite
  * 
  * @author ruoyi
- * @date 2025-05-17
+ * @date 2025-10-20
  */
 public class BizPostFavorite extends BaseEntity
 {

@@ -7,7 +7,7 @@ import com.ruoyi.forum.domain.BizPostFavorite;
  * 帖子收藏Mapper接口
  * 
  * @author ruoyi
- * @date 2025-05-17
+ * @date 2025-10-20
  */
 public interface BizPostFavoriteMapper 
 {
