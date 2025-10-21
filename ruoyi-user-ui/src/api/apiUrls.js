@@ -74,6 +74,11 @@ export const API_URLS = {
     checkFollowStatus: (userId) => `${BASE_URL}/user/follow/check/${userId}`,
     getMyFollowing: () => `${BASE_URL}/user/follow/following/my`,
     getMyFollowers: () => `${BASE_URL}/user/follow/follower/my`,
+    // 个性化推荐相关 - 新增部分
+    getRecommendations: () => `${BASE_URL}/user/post/recommendations`,
+    getContentBasedRecommendations: () => `${BASE_URL}/user/post/recommendations/content`,
+    getHybridRecommendations: () => `${BASE_URL}/user/post/recommendations/hybrid`,
+    getDetailedRecommendations: () => `${BASE_URL}/user/post/recommendations/detailed`,
 }
 
 export default API_URLS

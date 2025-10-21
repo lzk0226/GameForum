@@ -26,38 +26,179 @@
         </div>
       </div>
 
-      <!-- 个人信息 -->
-      <div class="info-section">
-        <div class="section-header">
-          <h3>个人信息</h3>
-          <button @click="openModal('edit')" class="btn-primary">编辑</button>
+      <!-- 统计信息卡片 -->
+      <div class="stats-section">
+        <div class="stat-card" @click="activeTab = 'posts'">
+          <div class="stat-number">{{ myPosts.length }}</div>
+          <div class="stat-label">帖子</div>
         </div>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>昵称</label>
-            <span>{{ userInfo.nickName }}</span>
-          </div>
-          <div class="info-item">
-            <label>性别</label>
-            <span>{{ getSexText(userInfo.sex) }}</span>
-          </div>
-          <div class="info-item">
-            <label>邮箱</label>
-            <span>{{ userInfo.email || '未填写' }}</span>
-          </div>
-          <div class="info-item">
-            <label>手机号</label>
-            <span>{{ userInfo.phonenumber || '未填写' }}</span>
-          </div>
+        <div class="stat-card" @click="activeTab = 'following'">
+          <div class="stat-number">{{ followingList.length }}</div>
+          <div class="stat-label">关注</div>
+        </div>
+        <div class="stat-card" @click="activeTab = 'followers'">
+          <div class="stat-number">{{ followersList.length }}</div>
+          <div class="stat-label">粉丝</div>
+        </div>
+        <div class="stat-card" @click="activeTab = 'favorites'">
+          <div class="stat-number">{{ favoritesList.length }}</div>
+          <div class="stat-label">收藏</div>
         </div>
       </div>
 
-      <!-- 安全设置 -->
-      <div class="info-section">
-        <h3>安全设置</h3>
-        <div class="security-actions">
-          <button @click="openModal('password')" class="btn-secondary">修改密码</button>
-          <button @click="openModal('deactivate')" class="btn-danger">注销账户</button>
+      <!-- 标签页导航 -->
+      <div class="tabs-container">
+        <div class="tabs">
+          <button
+              :class="['tab', { active: activeTab === 'info' }]"
+              @click="activeTab = 'info'">
+            个人信息
+          </button>
+          <button
+              :class="['tab', { active: activeTab === 'posts' }]"
+              @click="activeTab = 'posts'">
+            我的帖子
+          </button>
+          <button
+              :class="['tab', { active: activeTab === 'favorites' }]"
+              @click="activeTab = 'favorites'">
+            我的收藏
+          </button>
+          <button
+              :class="['tab', { active: activeTab === 'following' }]"
+              @click="activeTab = 'following'">
+            关注列表
+          </button>
+          <button
+              :class="['tab', { active: activeTab === 'followers' }]"
+              @click="activeTab = 'followers'">
+            粉丝列表
+          </button>
+          <button
+              :class="['tab', { active: activeTab === 'security' }]"
+              @click="activeTab = 'security'">
+            安全设置
+          </button>
+        </div>
+      </div>
+
+      <!-- 标签页内容 -->
+      <div class="tab-content">
+        <!-- 个人信息 -->
+        <div v-if="activeTab === 'info'" class="info-section">
+          <div class="section-header">
+            <h3>个人信息</h3>
+            <button @click="openModal('edit')" class="btn-primary">编辑</button>
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>昵称</label>
+              <span>{{ userInfo.nickName }}</span>
+            </div>
+            <div class="info-item">
+              <label>性别</label>
+              <span>{{ getSexText(userInfo.sex) }}</span>
+            </div>
+            <div class="info-item">
+              <label>邮箱</label>
+              <span>{{ userInfo.email || '未填写' }}</span>
+            </div>
+            <div class="info-item">
+              <label>手机号</label>
+              <span>{{ userInfo.phonenumber || '未填写' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 我的帖子 -->
+        <div v-if="activeTab === 'posts'" class="list-section">
+          <div v-if="loadingPosts" class="loading-small">加载中...</div>
+          <div v-else-if="myPosts.length === 0" class="empty-state">
+            <p>还没有发布任何帖子</p>
+          </div>
+          <div v-else class="post-list">
+            <div v-for="post in myPosts" :key="post.postId" class="post-item" @click="goToPost(post.postId)">
+              <img v-if="post.photo" :src="getImageUrl(post.photo)" alt="" class="post-thumbnail"/>
+              <div class="post-info">
+                <h4>{{ post.postTitle }}</h4>
+                <div class="post-meta">
+                  <span>{{ formatDate(post.createTime) }}</span>
+                  <span>浏览 {{ post.postViews || 0 }}</span>
+                  <span>点赞 {{ post.postLikes || 0 }}</span>
+                  <span>评论 {{ post.postComments || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 我的收藏 -->
+        <div v-if="activeTab === 'favorites'" class="list-section">
+          <div v-if="loadingFavorites" class="loading-small">加载中...</div>
+          <div v-else-if="favoritesList.length === 0" class="empty-state">
+            <p>还没有收藏任何帖子</p>
+          </div>
+          <div v-else class="post-list">
+            <div v-for="favorite in favoritesList" :key="favorite.postId" class="post-item" @click="goToPost(favorite.postId)">
+              <img v-if="favorite.photo" :src="getImageUrl(favorite.photo)" alt="" class="post-thumbnail"/>
+              <div class="post-info">
+                <h4>{{ favorite.postTitle }}</h4>
+                <div class="post-meta">
+                  <span>作者: {{ favorite.nickName }}</span>
+                  <span>收藏于 {{ formatDate(favorite.createTime) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 关注列表 -->
+        <div v-if="activeTab === 'following'" class="list-section">
+          <div v-if="loadingFollowing" class="loading-small">加载中...</div>
+          <div v-else-if="followingList.length === 0" class="empty-state">
+            <p>还没有关注任何用户</p>
+          </div>
+          <div v-else class="user-list">
+            <div v-for="user in followingList" :key="user.userId" class="user-item">
+              <img :src="getImageUrl(user.followingAvatar) || '/images/headPortrait/default.jpg'" alt="" class="user-avatar"/>
+              <div class="user-info-item">
+                <h4>{{ user.followingNickName }}</h4>
+<!--                <p>@{{ user.followingNickName }}</p>-->
+              </div>
+              <button @click="handleUnfollow(user.followingId)" class="btn-secondary">取消关注</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 粉丝列表 -->
+        <div v-if="activeTab === 'followers'" class="list-section">
+          <div v-if="loadingFollowers" class="loading-small">加载中...</div>
+          <div v-else-if="followersList.length === 0" class="empty-state">
+            <p>还没有粉丝</p>
+          </div>
+          <div v-else class="user-list">
+            <div v-for="user in followersList" :key="user.userId" class="user-item">
+              <img :src="getImageUrl(user.followerAvatar) || '/images/headPortrait/default.jpg'" alt="" class="user-avatar"/>
+              <div class="user-info-item">
+                <h4>{{ user.followerNickName }}</h4>
+<!--                <p>@{{ user.followerNickName }}</p>-->
+              </div>
+              <button
+                  @click="handleFollowToggle(user.userId)"
+                  :class="['btn-primary', { 'btn-secondary': isFollowing(user.userId) }]">
+                {{ isFollowing(user.userId) ? '已关注' : '关注' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 安全设置 -->
+        <div v-if="activeTab === 'security'" class="info-section">
+          <h3>安全设置</h3>
+          <div class="security-actions">
+            <button @click="openModal('password')" class="btn-secondary">修改密码</button>
+            <button @click="openModal('deactivate')" class="btn-danger">注销账户</button>
+          </div>
         </div>
       </div>
     </template>
@@ -106,7 +247,7 @@
         <!-- 注销账户 -->
         <template v-if="activeModal === 'deactivate'">
           <h3>⚠️ 注销账户</h3>
-          <p>注销后您将无法登录此账户，此操作无法撤销。</p>
+          <p>注销后您将无法登录此账户,此操作无法撤销。</p>
           <input v-model="deactivateConfirm" :placeholder="`请输入用户名 ${userInfo.userName} 确认`"/>
           <div class="modal-actions">
             <button @click="closeModal" class="btn-secondary">取消</button>
@@ -131,7 +272,7 @@
               </div>
               <div v-else class="upload-placeholder">
                 <span>点击选择图片</span>
-                <small>支持 JPG、PNG，小于 5MB</small>
+                <small>支持 JPG、PNG,小于 5MB</small>
               </div>
             </div>
           </div>
@@ -158,6 +299,19 @@ const router = useRouter()
 const loading = ref(true)
 const userInfo = ref({})
 const activeModal = ref(null)
+const activeTab = ref('info')
+
+// 列表数据
+const myPosts = ref([])
+const favoritesList = ref([])
+const followingList = ref([])
+const followersList = ref([])
+
+// 加载状态
+const loadingPosts = ref(false)
+const loadingFavorites = ref(false)
+const loadingFollowing = ref(false)
+const loadingFollowers = ref(false)
 
 // 表单数据
 const editForm = reactive({
@@ -210,7 +364,7 @@ const getImageUrl = (path) => {
 }
 
 // 初始化用户信息
-const initUserInfo = () => {
+const initUserInfo = async () => {
   const authData = getAuthData()
   if (!authData) return
 
@@ -228,6 +382,14 @@ const initUserInfo = () => {
 
   passwordForm.userId = authData.userInfo.userId
   loading.value = false
+
+  // 加载所有列表数据
+  await Promise.all([
+    loadMyPosts(),
+    loadFavorites(),
+    loadFollowing(),
+    loadFollowers()
+  ])
 }
 
 // API 请求封装
@@ -260,6 +422,107 @@ const apiRequest = async (url, options = {}) => {
   }
 }
 
+// 加载我的帖子
+const loadMyPosts = async () => {
+  loadingPosts.value = true
+  try {
+    const result = await apiRequest(API_URLS.getMyPosts())
+    myPosts.value = result.data || []
+  } catch (error) {
+    console.error('加载帖子失败:', error)
+    myPosts.value = []
+  } finally {
+    loadingPosts.value = false
+  }
+}
+
+// 加载收藏列表
+const loadFavorites = async () => {
+  loadingFavorites.value = true
+  try {
+    const result = await apiRequest(API_URLS.getMyFavorites())
+    favoritesList.value = result.data || []
+  } catch (error) {
+    console.error('加载收藏失败:', error)
+    favoritesList.value = []
+  } finally {
+    loadingFavorites.value = false
+  }
+}
+
+// 加载关注列表
+const loadFollowing = async () => {
+  loadingFollowing.value = true
+  try {
+    const result = await apiRequest(API_URLS.getMyFollowing())
+    // 后端返回的数据已经包含了用户信息
+    // 数据格式: { userId, nickName, userName, avatar, ... }
+    followingList.value = result.data || []
+    console.log('关注列表数据:', followingList.value)
+  } catch (error) {
+    console.error('加载关注列表失败:', error)
+    followingList.value = []
+  } finally {
+    loadingFollowing.value = false
+  }
+}
+
+// 加载粉丝列表
+const loadFollowers = async () => {
+  loadingFollowers.value = true
+  try {
+    const result = await apiRequest(API_URLS.getMyFollowers())
+    // 后端返回的数据已经包含了用户信息
+    // 数据格式: { userId, nickName, userName, avatar, ... }
+    followersList.value = result.data || []
+    console.log('粉丝列表数据:', followersList.value)
+  } catch (error) {
+    console.error('加载粉丝列表失败:', error)
+    followersList.value = []
+  } finally {
+    loadingFollowers.value = false
+  }
+}
+
+// 检查是否已关注
+const isFollowing = (userId) => {
+  return followingList.value.some(user => user.userId === userId)
+}
+
+// 处理关注/取消关注
+const handleFollowToggle = async (userId) => {
+  try {
+    if (isFollowing(userId)) {
+      await apiRequest(API_URLS.unfollowUser(userId), { method: 'DELETE' })
+      alert('取消关注成功')
+    } else {
+      await apiRequest(API_URLS.followUser(userId), { method: 'POST' })
+      alert('关注成功')
+    }
+    await loadFollowing()
+  } catch (error) {
+    alert(error.message || '操作失败')
+  }
+}
+
+// 取消关注
+const handleUnfollow = async (userId) => {
+  if (!confirm('确定要取消关注吗?')) return
+
+  try {
+    await apiRequest(API_URLS.unfollowUser(userId), { method: 'DELETE' })
+    alert('取消关注成功')
+    await loadFollowing()
+  } catch (error) {
+    alert(error.message || '取消关注失败')
+  }
+}
+
+// 跳转到帖子详情
+const goToPost = (postId) => {
+  router.push(`/postDetail/${postId}`)
+}
+
 // 模态框管理
 const openModal = (type) => {
   activeModal.value = type
@@ -287,7 +550,7 @@ const closeModal = () => {
 
 // 退出登录
 const logout = () => {
-  if (confirm('确定要退出登录吗？')) {
+  if (confirm('确定要退出登录吗?')) {
     localStorage.clear()
     router.push('/')
   }
@@ -402,14 +665,12 @@ const uploadAvatar = async () => {
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
-        // 获取认证数据
         const authData = getAuthData()
         if (!authData) {
-          alert('用户认证失败，请重新登录')
+          alert('用户认证失败,请重新登录')
           return
         }
 
-        // 上传头像文件
         const uploadResponse = await fetch(API_URLS.uploadAvatar(), {
           method: 'POST',
           headers: {
@@ -422,7 +683,6 @@ const uploadAvatar = async () => {
           })
         })
 
-        // 检查上传响应
         if (!uploadResponse.ok) {
           throw new Error('头像上传失败')
         }
@@ -432,7 +692,6 @@ const uploadAvatar = async () => {
           throw new Error(uploadResult.message || '头像上传失败')
         }
 
-        // 更新用户头像路径
         await apiRequest(API_URLS.updateProfile(), {
           method: 'PUT',
           body: JSON.stringify({
@@ -472,16 +731,20 @@ onMounted(initUserInfo)
 
 <style scoped>
 .profile-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.loading {
+.loading, .loading-small {
   text-align: center;
   padding: 50px;
   color: #666;
+}
+
+.loading-small {
+  padding: 20px;
 }
 
 .profile-header {
@@ -565,11 +828,86 @@ onMounted(initUserInfo)
   color: #999;
 }
 
+/* 统计信息卡片 */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 标签页 */
+.tabs-container {
+  background: white;
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: #f8f9fa;
+}
+
+.tab.active {
+  background: #007bff;
+  color: white;
+}
+
+/* 标签页内容 */
+.tab-content {
+  min-height: 400px;
+}
+
 .info-section {
   background: white;
   border-radius: 12px;
   padding: 25px;
-  margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -612,6 +950,124 @@ onMounted(initUserInfo)
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
+}
+
+/* 列表区域 */
+.list-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state p {
+  font-size: 16px;
+}
+
+/* 帖子列表 */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.post-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.post-item:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+}
+
+.post-thumbnail {
+  width: 120px;
+  height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.post-info h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 13px;
+  color: #999;
+}
+
+/* 用户列表 */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.user-item:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-info-item {
+  flex: 1;
+}
+
+.user-info-item h4 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.user-info-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
 }
 
 /* 按钮样式 */
@@ -767,12 +1223,34 @@ onMounted(initUserInfo)
     margin-left: 0;
   }
 
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tabs {
+    gap: 5px;
+  }
+
+  .tab {
+    padding: 8px 15px;
+    font-size: 13px;
+  }
+
   .info-grid {
     grid-template-columns: 1fr;
   }
 
   .security-actions {
     flex-direction: column;
+  }
+
+  .post-item {
+    flex-direction: column;
+  }
+
+  .post-thumbnail {
+    width: 100%;
+    height: 150px;
   }
 
   .modal-content {

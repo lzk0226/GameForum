@@ -186,6 +186,13 @@ export default {
       } else if (this.isSearchMode && this.searchKeyword) {
         url = API_URLS.searchPosts()
         params.title = this.searchKeyword
+      } else {
+        // 如果用户已登录，使用推荐接口；否则使用列表接口
+        const token = this.getToken()
+        if (token) {
+          url = API_URLS.getRecommendations()
+          params.limit = this.pageSize
+        }
       }
 
       return {url, params}
