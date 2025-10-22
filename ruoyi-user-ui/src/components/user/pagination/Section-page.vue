@@ -1,11 +1,26 @@
 <template>
   <div class="section-page">
     <!-- 页面头部 -->
-    <div class="page-header">
+<!--    <div class="page-header">
       <h1 class="page-title">论坛版块</h1>
       <p class="page-description">选择您感兴趣的游戏版块，与其他玩家交流讨论</p>
-    </div>
+    </div>-->
 
+    <!-- 热门版块推荐 -->
+    <div class="hot-sections" v-if="!searchKeyword && !selectedGameId">
+      <h2 class="section-title">热门版块</h2>
+      <div class="hot-sections-list">
+        <div
+            v-for="hotSection in hotSections"
+            :key="'hot-' + hotSection.sectionId"
+            class="hot-section-item"
+            @click="goToSection(hotSection)"
+        >
+          <span class="hot-section-name">{{ hotSection.sectionName }}</span>
+          <span class="hot-section-game">{{ hotSection.gameName }}</span>
+        </div>
+      </div>
+    </div>
     <!-- 筛选和搜索区域 -->
     <div class="filter-section">
       <div class="filter-row">
@@ -78,21 +93,7 @@
       </div>
     </div>
 
-    <!-- 热门版块推荐 -->
-    <div class="hot-sections" v-if="!searchKeyword && !selectedGameId">
-      <h2 class="section-title">热门版块</h2>
-      <div class="hot-sections-list">
-        <div
-            v-for="hotSection in hotSections"
-            :key="'hot-' + hotSection.sectionId"
-            class="hot-section-item"
-            @click="goToSection(hotSection)"
-        >
-          <span class="hot-section-name">{{ hotSection.sectionName }}</span>
-          <span class="hot-section-game">{{ hotSection.gameName }}</span>
-        </div>
-      </div>
-    </div>
+
   </div>
   <BackToTopToggle
       :atTop="isAtTop"
@@ -623,6 +624,7 @@ export default defineComponent({
   border-radius: 12px;
   padding: 24px;
   border: 1px solid #e5e7eb;
+  margin-bottom: 32px; /* 添加这个属性来增加底部间距 */
 }
 
 .section-title {
