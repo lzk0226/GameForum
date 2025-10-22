@@ -352,11 +352,11 @@ const handleFollowToggle = async () => {
     if (isFollowing.value) {
       await apiRequest(API_URLS.unfollowUser(userProfile.value.userId), { method: 'DELETE' })
       isFollowing.value = false
-      alert('已取消关注')
+      //alert('已取消关注')
     } else {
       await apiRequest(API_URLS.followUser(userProfile.value.userId), { method: 'POST' })
       isFollowing.value = true
-      alert('关注成功')
+      //alert('关注成功')
     }
     await loadFollowers(userProfile.value.userId)
   } catch (error) {
@@ -404,7 +404,7 @@ onMounted(async () => {
     }
   }
 
-  console.log('获取到的用户ID:', userId) // 调试用
+  //console.log('获取到的用户ID:', userId) // 调试用
 
   if (!userId || isNaN(userId)) {
     alert('用户ID不存在或格式错误')
