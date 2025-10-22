@@ -1,5 +1,6 @@
 // src/api/apiUrls.js
 const BASE_URL = import.meta.env.VITE_BASE_URL//生产环境
+//const BASE_URL = 'http://localhost:8080'//生产环境
 //const BASE_URL = "http://110.41.1.63:8080"//部署环境
 
 export const API_URLS = {
@@ -74,6 +75,10 @@ export const API_URLS = {
     checkFollowStatus: (userId) => `${BASE_URL}/user/follow/check/${userId}`,
     getMyFollowing: () => `${BASE_URL}/user/follow/following/my`,
     getMyFollowers: () => `${BASE_URL}/user/follow/follower/my`,
+    // 获取指定用户的粉丝列表
+    getUserFollowers: (userId) => `${BASE_URL}/user/follow/follower/${userId}`,
+    // 获取指定用户的关注列表
+    getUserFollowing: (userId) => `${BASE_URL}/user/follow/following/${userId}`,
     // 个性化推荐相关 - 新增部分
     getRecommendations: () => `${BASE_URL}/user/post/recommendations`,
     getContentBasedRecommendations: () => `${BASE_URL}/user/post/recommendations/content`,

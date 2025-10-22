@@ -42,10 +42,25 @@
                   v-if="post.avatar"
                   :src="getImageUrl(post.avatar)"
                   :alt="post.nickName"
-                  class="avatar"
+                  class="avatar clickable"
+                  @click.stop="goToUserProfile(post.userId)"
+                  :title="`查看 ${post.nickName} 的主页`"
               />
-              <div v-else class="avatar-placeholder">{{ post.nickName.charAt(0) }}</div>
-              <span class="author-name">{{ post.nickName }}</span>
+              <div
+                  v-else
+                  class="avatar-placeholder clickable"
+                  @click.stop="goToUserProfile(post.userId)"
+                  :title="`查看 ${post.nickName} 的主页`"
+              >
+                {{ post.nickName.charAt(0) }}
+              </div>
+              <span
+                  class="author-name clickable"
+                  @click.stop="goToUserProfile(post.userId)"
+                  :title="`查看 ${post.nickName} 的主页`"
+              >
+                {{ post.nickName }}
+              </span>
               <span class="section-name">{{ post.sectionName }}</span>
             </div>
             <div class="post-time">{{ formatTime(post.createTime) }}</div>
@@ -128,12 +143,47 @@ export default {
     window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
+    /**
+     * 跳转到用户主页
+     */
+    goToUserProfile(userId) {
+      if (!userId) {
+        console.warn('用户ID不存在')
+        return
+      }
+
+      // 获取当前登录用户信息
+      const currentUserInfo = this.getCurrentUserInfo()
+
+      // 如果是当前用户自己,跳转到个人中心
+      if (currentUserInfo && currentUserInfo.userId === userId) {
+        this.$router.push('/profileContainer')
+      } else {
+        // 否则跳转到他人主页
+        this.$router.push(`/profile/${userId}`)
+      }
+    },
+
+    /**
+     * 获取当前登录用户信息
+     */
+    getCurrentUserInfo() {
+      try {
+        const userInfoStr = localStorage.getItem('userInfo')
+        if (!userInfoStr) return null
+        return JSON.parse(userInfoStr)
+      } catch (error) {
+        console.error('解析用户信息失败:', error)
+        return null
+      }
+    },
+
     async loadPosts(reset = false) {
       if (this.loading) return
       this.loading = true
 
       try {
-        const {url, params} = this.getApiConfig()
+        const {url, params, isRecommendation} = this.getApiConfig()
 
         const response = await axios.get(url, {
           params,
@@ -148,23 +198,30 @@ export default {
             this.posts = postsWithLikeStatus
             this.currentPage = 1
           } else {
-            const startIndex = (this.currentPage - 1) * this.pageSize
-            const pagedPosts = postsWithLikeStatus.slice(startIndex, startIndex + this.pageSize)
-            this.posts.push(...pagedPosts)
+            // ✅ 推荐接口直接追加,不需要分页切片
+            if (isRecommendation) {
+              this.posts.push(...postsWithLikeStatus)
+            } else {
+              const startIndex = (this.currentPage - 1) * this.pageSize
+              const pagedPosts = postsWithLikeStatus.slice(startIndex, startIndex + this.pageSize)
+              this.posts.push(...pagedPosts)
+            }
             this.currentPage++
           }
 
-          this.hasMore = newPosts.length >= this.pageSize && this.posts.length < newPosts.length
+          // ✅ 修改 hasMore 判断逻辑
+          if (isRecommendation) {
+            // 推荐接口:如果返回的数据等于请求的limit,说明可能还有更多
+            this.hasMore = newPosts.length >= this.pageSize
+          } else {
+            this.hasMore = newPosts.length >= this.pageSize && this.posts.length < newPosts.length
+          }
 
-          // 在帖子加载完成后，异步加载收藏数量
           this.loadFavoriteCountsForPosts(postsWithLikeStatus)
-        } else {
-          console.error('API返回错误:', response.data)
-          this.$message?.error(response.data.message || '获取数据失败')
         }
       } catch (error) {
         console.error('加载帖子失败:', error)
-        this.$message?.error('加载帖子失败，请检查网络连接')
+        this.$message?.error('加载帖子失败,请检查网络连接')
       } finally {
         this.loading = false
       }
@@ -173,6 +230,7 @@ export default {
     getApiConfig() {
       let url = API_URLS.getPostList()
       let params = {}
+      let isRecommendation = false  // ✅ 添加标识
 
       if (this.showMyPosts) {
         url = API_URLS.getMyPosts()
@@ -187,15 +245,18 @@ export default {
         url = API_URLS.searchPosts()
         params.title = this.searchKeyword
       } else {
-        // 如果用户已登录，使用推荐接口；否则使用列表接口
         const token = this.getToken()
         if (token) {
           url = API_URLS.getRecommendations()
+          // ✅ 每次请求更多数据
           params.limit = this.pageSize
+          // ✅ 如果后端支持分页参数,可以传递page
+          params.page = this.currentPage
+          isRecommendation = true
         }
       }
 
-      return {url, params}
+      return {url, params, isRecommendation}  // ✅ 返回标识
     },
 
     async initializePostsLikeStatus(posts) {
@@ -336,7 +397,7 @@ export default {
       } catch (error) {
         console.error('点赞/取消点赞请求失败:', error)
         const message = error.response?.status === 401 ? '请先登录' :
-            error.response?.data?.message || '操作失败，请重试'
+            error.response?.data?.message || '操作失败,请重试'
         this.$message?.error(message)
       } finally {
         post.likeLoading = false
@@ -381,7 +442,7 @@ export default {
 
     /**
      * 根据photo字段路径生成完整的图片访问URL
-     * photo字段包含的路径示例：
+     * photo字段包含的路径示例:
      *   - images/user/thumbnail/post_111_901fb6c3_0.jpg  (缩略图)
      *   - images/user/post/post_111_901fb6c3_0.jpg       (原图)
      *   - images/headPortrait/avatar_123_abc123.jpg      (头像)
@@ -389,10 +450,10 @@ export default {
     getImageUrl(path) {
       if (!path) return ''
 
-      // 清理路径（统一使用正斜杠）
+      // 清理路径(统一使用正斜杠)
       const cleanPath = path.replace(/\\/g, '/')
 
-      // 如果已经是完整的http链接，直接返回
+      // 如果已经是完整的http链接,直接返回
       if (cleanPath.startsWith('http')) return cleanPath
 
       // 根据路径中的目录名称决定调用哪个后端接口
@@ -415,13 +476,13 @@ export default {
     },
 
     /**
-     * 获取图片摘要（用于列表展示）
+     * 获取图片摘要(用于列表展示)
      */
     getExcerpt(content) {
       if (!content) return ''
       // 移除HTML标签
       const textContent = content.replace(/<[^>]*>/g, '')
-      // 如果内容超过100个字符，截断并添加省略号
+      // 如果内容超过100个字符,截断并添加省略号
       return textContent.length > 100 ? `${textContent.substring(0, 100)}...` : textContent
     },
 
@@ -610,7 +671,7 @@ export default {
   gap: 8px;
 }
 
-.avatar {
+.avatar, .avatar-placeholder {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -618,9 +679,6 @@ export default {
 }
 
 .avatar-placeholder {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
   background-color: #007bff;
   color: white;
   display: flex;
@@ -630,9 +688,26 @@ export default {
   font-size: 14px;
 }
 
+/* 可点击样式 */
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.avatar.clickable:hover,
+.avatar-placeholder.clickable:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
 .author-name {
   font-weight: 500;
   color: #333;
+}
+
+.author-name.clickable:hover {
+  color: #007bff;
+  text-decoration: underline;
 }
 
 .section-name {

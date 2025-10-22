@@ -9,6 +9,7 @@ import GamePage from "@/components/user/pagination/Game-page.vue"
 import Game from "@/components/user/details/Game.vue"
 import SectionPage from "@/components/user/pagination/Section-page.vue"
 import Section from "@/components/user/details/Section.vue"
+import Profile from "@/components/user/details/UserProfile.vue";
 
 const routes = [
     //主页
@@ -66,6 +67,11 @@ const routes = [
         path: "/section",
         name: 'Section',
         component: Section
+    },
+    {
+        path: '/profile/:userId',
+        name: 'Profile',
+        component: Profile
     }
     /*
     {

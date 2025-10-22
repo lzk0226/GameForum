@@ -298,7 +298,7 @@ public class PostRecommendationServiceImpl implements IPostRecommendationService
     }
 
     /**
-     * 修复的混合推荐分页方法 - 支持分页
+     * 混合推荐分页方法 - 支持分页
      */
     public List<Post> getHybridRecommendationsWithPaging(Long userId, Integer limit, Integer page) {
         if (userId == null || limit == null || page == null || page < 1) {

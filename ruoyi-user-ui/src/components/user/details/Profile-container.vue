@@ -183,11 +183,11 @@
                 <h4>{{ user.followerNickName }}</h4>
 <!--                <p>@{{ user.followerNickName }}</p>-->
               </div>
-              <button
+<!--              <button
                   @click="handleFollowToggle(user.userId)"
                   :class="['btn-primary', { 'btn-secondary': isFollowing(user.userId) }]">
                 {{ isFollowing(user.userId) ? '已关注' : '关注' }}
-              </button>
+              </button>-->
             </div>
           </div>
         </div>

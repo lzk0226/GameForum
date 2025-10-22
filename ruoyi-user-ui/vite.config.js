@@ -28,7 +28,7 @@ function getLocalIP() {
 }
 
 //const localIP = getLocalIP()
-const localIP = 'localhost'
+const localIP = '127.0.0.1'
 console.log(`✅ 当前自动获取的局域网 IP: ${localIP}`)
 
 export default defineConfig({
