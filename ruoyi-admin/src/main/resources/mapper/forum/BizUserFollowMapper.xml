@@ -1,28 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizUserFollowMapper">
-    
+
     <resultMap type="BizUserFollow" id="BizUserFollowResult">
-        <result property="followerId"    column="follower_id"    />
-        <result property="followingId"    column="following_id"    />
-        <result property="createTime"    column="create_time"    />
+        <result property="followerId"           column="follower_id"           />
+        <result property="followingId"          column="following_id"          />
+        <result property="createTime"           column="create_time"           />
+        <result property="followerNickName"     column="follower_nick_name"    />
+        <result property="followingNickName"    column="following_nick_name"   />
     </resultMap>
 
     <sql id="selectBizUserFollowVo">
-        select follower_id, following_id, create_time from biz_user_follow
+        select
+            buf.follower_id,
+            buf.following_id,
+            buf.create_time,
+            su1.nick_name as follower_nick_name,
+            su2.nick_name as following_nick_name
+        from biz_user_follow buf
+                 left join sys_user su1 on buf.follower_id = su1.user_id
+                 left join sys_user su2 on buf.following_id = su2.user_id
     </sql>
 
     <select id="selectBizUserFollowList" parameterType="BizUserFollow" resultMap="BizUserFollowResult">
         <include refid="selectBizUserFollowVo"/>
-        <where>  
+        <where>
+            <if test="followerId != null">
+                and buf.follower_id = #{followerId}
+            </if>
+            <if test="followingId != null">
+                and buf.following_id = #{followingId}
+            </if>
+            <if test="followerNickName != null and followerNickName != ''">
+                and su1.nick_name like concat('%', #{followerNickName}, '%')
+            </if>
+            <if test="followingNickName != null and followingNickName != ''">
+                and su2.nick_name like concat('%', #{followingNickName}, '%')
+            </if>
         </where>
+        order by buf.create_time desc
     </select>
-    
+
     <select id="selectBizUserFollowByFollowerId" parameterType="Long" resultMap="BizUserFollowResult">
         <include refid="selectBizUserFollowVo"/>
-        where follower_id = #{followerId}
+        where buf.follower_id = #{followerId}
     </select>
 
     <insert id="insertBizUserFollow" parameterType="BizUserFollow">
@@ -31,12 +54,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="followerId != null">follower_id,</if>
             <if test="followingId != null">following_id,</if>
             <if test="createTime != null">create_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="followerId != null">#{followerId},</if>
             <if test="followingId != null">#{followingId},</if>
             <if test="createTime != null">#{createTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateBizUserFollow" parameterType="BizUserFollow">
@@ -53,7 +76,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteBizUserFollowByFollowerIds" parameterType="String">
-        delete from biz_user_follow where follower_id in 
+        delete from biz_user_follow where follower_id in
         <foreach item="followerId" collection="array" open="(" separator="," close=")">
             #{followerId}
         </foreach>

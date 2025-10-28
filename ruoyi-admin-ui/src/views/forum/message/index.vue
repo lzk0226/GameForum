@@ -1,45 +1,36 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="接收者用户ID" prop="receiverId">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
+      <el-form-item label="接收者昵称" prop="receiverNickName">
         <el-input
-          v-model="queryParams.receiverId"
-          placeholder="请输入接收者用户ID"
+          v-model="queryParams.receiverNickName"
+          placeholder="请输入接收者昵称"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="发送者用户ID" prop="senderId">
+      <el-form-item label="发送者昵称" prop="senderNickName">
         <el-input
-          v-model="queryParams.senderId"
-          placeholder="请输入发送者用户ID"
+          v-model="queryParams.senderNickName"
+          placeholder="请输入发送者昵称"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="关联ID" prop="relatedId">
-        <el-input
-          v-model="queryParams.relatedId"
-          placeholder="请输入关联ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="消息类型" prop="messageType">
+        <el-select v-model="queryParams.messageType" placeholder="请选择消息类型" clearable>
+          <el-option label="点赞" value="0" />
+          <el-option label="评论" value="1" />
+          <el-option label="关注" value="2" />
+          <el-option label="收藏" value="3" />
+          <el-option label="系统消息" value="4" />
+        </el-select>
       </el-form-item>
       <el-form-item label="是否已读" prop="isRead">
-        <el-input
-          v-model="queryParams.isRead"
-          placeholder="请输入是否已读"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="阅读时间" prop="readTime">
-        <el-date-picker clearable
-          v-model="queryParams.readTime"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择阅读时间">
-        </el-date-picker>
+        <el-select v-model="queryParams.isRead" placeholder="请选择是否已读" clearable>
+          <el-option label="未读" value="0" />
+          <el-option label="已读" value="1" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -48,27 +39,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['forum:message:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['forum:message:edit']"
-        >修改</el-button>
-      </el-col>
       <el-col :span="1.5">
         <el-button
           type="danger"
@@ -95,20 +65,55 @@
 
     <el-table v-loading="loading" :data="messageList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="消息ID" align="center" prop="messageId" />
-      <el-table-column label="接收者用户ID" align="center" prop="receiverId" />
-      <el-table-column label="发送者用户ID" align="center" prop="senderId" />
-      <el-table-column label="消息类型" align="center" prop="messageType" />
-      <el-table-column label="消息内容" align="center" prop="messageContent" />
-      <el-table-column label="关联类型" align="center" prop="relatedType" />
-      <el-table-column label="关联ID" align="center" prop="relatedId" />
-      <el-table-column label="是否已读" align="center" prop="isRead" />
-      <el-table-column label="阅读时间" align="center" prop="readTime" width="180">
+      <el-table-column label="接收者" align="center" prop="receiverNickName" width="120">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.readTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ scope.row.receiverNickName || '未知用户' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="发送者" align="center" prop="senderNickName" width="120">
+        <template slot-scope="scope">
+          <span>{{ scope.row.senderNickName || '系统' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="消息类型" align="center" width="100">
+        <template slot-scope="scope">
+          <el-tag :type="messageTypeTag(scope.row.messageType)">
+            {{ messageTypeLabel(scope.row.messageType) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="消息内容" align="center" prop="messageContent" min-width="200" show-overflow-tooltip />
+      <el-table-column label="关联类型" align="center" width="100">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.relatedType" :type="scope.row.relatedType === '0' ? 'primary' : 'success'" size="small">
+            {{ relatedTypeLabel(scope.row.relatedType) }}
+          </el-tag>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="关联内容" align="center" min-width="150" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <span v-if="scope.row.relatedType === '0'">
+            {{ truncateText(scope.row.postTitle, 10) }}
+          </span>
+          <span v-else-if="scope.row.relatedType === '1'" v-html="truncateText(stripHtml(scope.row.commentContent), 10)">
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="已读状态" align="center" width="100">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.isRead === '1' ? 'success' : 'warning'">
+            {{ scope.row.isRead === '1' ? '已读' : '未读' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="160">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -127,7 +132,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -138,32 +143,39 @@
 
     <!-- 添加或修改用户消息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="接收者用户ID" prop="receiverId">
           <el-input v-model="form.receiverId" placeholder="请输入接收者用户ID" />
         </el-form-item>
         <el-form-item label="发送者用户ID" prop="senderId">
-          <el-input v-model="form.senderId" placeholder="请输入发送者用户ID" />
+          <el-input v-model="form.senderId" placeholder="请输入发送者用户ID（系统消息可为空）" />
         </el-form-item>
-        <el-form-item label="消息内容">
-          <editor v-model="form.messageContent" :min-height="192"/>
+        <el-form-item label="消息类型" prop="messageType">
+          <el-select v-model="form.messageType" placeholder="请选择消息类型">
+            <el-option label="点赞" value="0" />
+            <el-option label="评论" value="1" />
+            <el-option label="关注" value="2" />
+            <el-option label="收藏" value="3" />
+            <el-option label="系统消息" value="4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="消息内容" prop="messageContent">
+          <el-input v-model="form.messageContent" type="textarea" placeholder="请输入消息内容" />
+        </el-form-item>
+        <el-form-item label="关联类型" prop="relatedType">
+          <el-select v-model="form.relatedType" placeholder="请选择关联类型" clearable>
+            <el-option label="帖子" value="0" />
+            <el-option label="评论" value="1" />
+          </el-select>
         </el-form-item>
         <el-form-item label="关联ID" prop="relatedId">
           <el-input v-model="form.relatedId" placeholder="请输入关联ID" />
         </el-form-item>
         <el-form-item label="是否已读" prop="isRead">
-          <el-input v-model="form.isRead" placeholder="请输入是否已读" />
-        </el-form-item>
-        <el-form-item label="删除标志" prop="delFlag">
-          <el-input v-model="form.delFlag" placeholder="请输入删除标志" />
-        </el-form-item>
-        <el-form-item label="阅读时间" prop="readTime">
-          <el-date-picker clearable
-            v-model="form.readTime"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择阅读时间">
-          </el-date-picker>
+          <el-select v-model="form.isRead" placeholder="请选择是否已读">
+            <el-option label="未读" value="0" />
+            <el-option label="已读" value="1" />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -203,8 +215,8 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        receiverId: null,
-        senderId: null,
+        receiverNickName: null,
+        senderNickName: null,
         messageType: null,
         messageContent: null,
         relatedType: null,
@@ -241,6 +253,45 @@ export default {
         this.loading = false
       })
     },
+    // 消息类型标签
+    messageTypeLabel(type) {
+      const typeMap = {
+        '0': '点赞',
+        '1': '评论',
+        '2': '关注',
+        '3': '收藏',
+        '4': '系统消息'
+      }
+      return typeMap[type] || '未知'
+    },
+    // 消息类型标签颜色
+    messageTypeTag(type) {
+      const tagMap = {
+        '0': 'danger',
+        '1': 'primary',
+        '2': 'success',
+        '3': 'warning',
+        '4': 'info'
+      }
+      return tagMap[type] || ''
+    },
+    // 关联类型标签
+    relatedTypeLabel(type) {
+      return type === '0' ? '帖子' : type === '1' ? '评论' : '未知'
+    },
+    // 截断文本
+    truncateText(text, maxLength) {
+      if (!text) return '-'
+      if (text.length <= maxLength) return text
+      return text.substring(0, maxLength) + '...'
+    },
+    // 去除HTML标签
+    stripHtml(html) {
+      if (!html) return ''
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return div.textContent || div.innerText || ''
+    },
     // 取消按钮
     cancel() {
       this.open = false
@@ -256,7 +307,7 @@ export default {
         messageContent: null,
         relatedType: null,
         relatedId: null,
-        isRead: null,
+        isRead: '0',
         delFlag: null,
         createTime: null,
         readTime: null
@@ -318,7 +369,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const messageIds = row.messageId || this.ids
-      this.$modal.confirm('是否确认删除用户消息编号为"' + messageIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除选中的用户消息？').then(function() {
         return delMessage(messageIds)
       }).then(() => {
         this.getList()
@@ -334,3 +385,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 确保表格内容对齐 */
+.el-table {
+  font-size: 14px;
+}
+</style>

@@ -104,7 +104,7 @@
 
     <el-table v-loading="loading" :data="commentList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="评论ID" align="center" prop="commentId" />
+<!--      <el-table-column label="评论ID" align="center" prop="commentId" />-->
       <el-table-column label="评论内容" align="center" prop="commentContent" />
       <el-table-column label="帖子ID" align="center" prop="postId" />
       <el-table-column label="对应游戏" align="center">

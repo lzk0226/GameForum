@@ -1,15 +1,16 @@
 package com.ruoyi.forum.domain;
 
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.util.Date;
 
 /**
  * 用户消息对象 biz_user_message
- * 
+ *
  * @author ruoyi
  * @date 2025-10-20
  */
@@ -28,6 +29,14 @@ public class BizUserMessage extends BaseEntity
     @Excel(name = "发送者用户ID", readConverterExp = "系=统消息时可为空")
     private Long senderId;
 
+    /** 接收者昵称 */
+    @Excel(name = "接收者昵称")
+    private String receiverNickName;
+
+    /** 发送者昵称 */
+    @Excel(name = "发送者昵称")
+    private String senderNickName;
+
     /** 消息类型（0点赞 1评论 2关注 3收藏 4系统消息） */
     @Excel(name = "消息类型", readConverterExp = "0=点赞,1=评论,2=关注,3=收藏,4=系统消息")
     private String messageType;
@@ -44,6 +53,14 @@ public class BizUserMessage extends BaseEntity
     @Excel(name = "关联ID", readConverterExp = "帖=子ID或评论ID")
     private Long relatedId;
 
+    /** 关联帖子标题 */
+    @Excel(name = "关联帖子标题")
+    private String postTitle;
+
+    /** 关联评论内容 */
+    @Excel(name = "关联评论内容")
+    private String commentContent;
+
     /** 是否已读（0未读 1已读） */
     @Excel(name = "是否已读", readConverterExp = "0=未读,1=已读")
     private String isRead;
@@ -56,102 +73,142 @@ public class BizUserMessage extends BaseEntity
     @Excel(name = "阅读时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date readTime;
 
-    public void setMessageId(Long messageId) 
+    public void setMessageId(Long messageId)
     {
         this.messageId = messageId;
     }
 
-    public Long getMessageId() 
+    public Long getMessageId()
     {
         return messageId;
     }
 
-    public void setReceiverId(Long receiverId) 
+    public void setReceiverId(Long receiverId)
     {
         this.receiverId = receiverId;
     }
 
-    public Long getReceiverId() 
+    public Long getReceiverId()
     {
         return receiverId;
     }
 
-    public void setSenderId(Long senderId) 
+    public void setSenderId(Long senderId)
     {
         this.senderId = senderId;
     }
 
-    public Long getSenderId() 
+    public Long getSenderId()
     {
         return senderId;
     }
 
-    public void setMessageType(String messageType) 
+    public void setReceiverNickName(String receiverNickName)
+    {
+        this.receiverNickName = receiverNickName;
+    }
+
+    public String getReceiverNickName()
+    {
+        return receiverNickName;
+    }
+
+    public void setSenderNickName(String senderNickName)
+    {
+        this.senderNickName = senderNickName;
+    }
+
+    public String getSenderNickName()
+    {
+        return senderNickName;
+    }
+
+    public void setMessageType(String messageType)
     {
         this.messageType = messageType;
     }
 
-    public String getMessageType() 
+    public String getMessageType()
     {
         return messageType;
     }
 
-    public void setMessageContent(String messageContent) 
+    public void setMessageContent(String messageContent)
     {
         this.messageContent = messageContent;
     }
 
-    public String getMessageContent() 
+    public String getMessageContent()
     {
         return messageContent;
     }
 
-    public void setRelatedType(String relatedType) 
+    public void setRelatedType(String relatedType)
     {
         this.relatedType = relatedType;
     }
 
-    public String getRelatedType() 
+    public String getRelatedType()
     {
         return relatedType;
     }
 
-    public void setRelatedId(Long relatedId) 
+    public void setRelatedId(Long relatedId)
     {
         this.relatedId = relatedId;
     }
 
-    public Long getRelatedId() 
+    public Long getRelatedId()
     {
         return relatedId;
     }
 
-    public void setIsRead(String isRead) 
+    public void setPostTitle(String postTitle)
+    {
+        this.postTitle = postTitle;
+    }
+
+    public String getPostTitle()
+    {
+        return postTitle;
+    }
+
+    public void setCommentContent(String commentContent)
+    {
+        this.commentContent = commentContent;
+    }
+
+    public String getCommentContent()
+    {
+        return commentContent;
+    }
+
+    public void setIsRead(String isRead)
     {
         this.isRead = isRead;
     }
 
-    public String getIsRead() 
+    public String getIsRead()
     {
         return isRead;
     }
 
-    public void setDelFlag(String delFlag) 
+    public void setDelFlag(String delFlag)
     {
         this.delFlag = delFlag;
     }
 
-    public String getDelFlag() 
+    public String getDelFlag()
     {
         return delFlag;
     }
 
-    public void setReadTime(Date readTime) 
+    public void setReadTime(Date readTime)
     {
         this.readTime = readTime;
     }
 
-    public Date getReadTime() 
+    public Date getReadTime()
     {
         return readTime;
     }
@@ -159,17 +216,21 @@ public class BizUserMessage extends BaseEntity
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-            .append("messageId", getMessageId())
-            .append("receiverId", getReceiverId())
-            .append("senderId", getSenderId())
-            .append("messageType", getMessageType())
-            .append("messageContent", getMessageContent())
-            .append("relatedType", getRelatedType())
-            .append("relatedId", getRelatedId())
-            .append("isRead", getIsRead())
-            .append("delFlag", getDelFlag())
-            .append("createTime", getCreateTime())
-            .append("readTime", getReadTime())
-            .toString();
+                .append("messageId", getMessageId())
+                .append("receiverId", getReceiverId())
+                .append("senderId", getSenderId())
+                .append("receiverNickName", getReceiverNickName())
+                .append("senderNickName", getSenderNickName())
+                .append("messageType", getMessageType())
+                .append("messageContent", getMessageContent())
+                .append("relatedType", getRelatedType())
+                .append("relatedId", getRelatedId())
+                .append("postTitle", getPostTitle())
+                .append("commentContent", getCommentContent())
+                .append("isRead", getIsRead())
+                .append("delFlag", getDelFlag())
+                .append("createTime", getCreateTime())
+                .append("readTime", getReadTime())
+                .toString();
     }
 }

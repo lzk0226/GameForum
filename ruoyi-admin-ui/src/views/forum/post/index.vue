@@ -9,10 +9,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="发帖用户ID" prop="userId">
+      <el-form-item label="用户昵称" prop="nickName">
         <el-input
-          v-model="queryParams.userId"
-          placeholder="请输入发帖用户ID"
+          v-model="queryParams.nickName"
+          placeholder="请输入用户昵称"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -29,21 +29,21 @@
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
-          <el-option label="可浏览" :value="0" />
-          <el-option label="已隐藏" :value="1" />
-          <el-option label="已删除" :value="2" />
+          <el-option label="可浏览" value="0" />
+          <el-option label="已隐藏" value="1" />
+          <el-option label="已删除" value="2" />
         </el-select>
       </el-form-item>
       <el-form-item label="置顶标志" prop="topFlag">
         <el-select v-model="queryParams.topFlag" placeholder="请选择" clearable>
-          <el-option label="普通" :value="0" />
-          <el-option label="置顶" :value="1" />
+          <el-option label="普通" value="0" />
+          <el-option label="置顶" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item label="热门标志" prop="hotFlag">
         <el-select v-model="queryParams.hotFlag" placeholder="请选择" clearable>
-          <el-option label="普通" :value="0" />
-          <el-option label="热门" :value="1" />
+          <el-option label="普通" value="0" />
+          <el-option label="热门" value="1" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -100,41 +100,44 @@
 
     <el-table v-loading="loading" :data="postList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="帖子ID" align="center" prop="postId" />
-      <el-table-column label="帖子标题" align="center" prop="postTitle" />
-      <el-table-column label="帖子内容" align="center" prop="postContent" :show-overflow-tooltip="true" />
-      <el-table-column label="发帖用户ID" align="center" prop="userId" />
-      <el-table-column label="所属版块" align="center">
+      <el-table-column label="帖子ID" align="center" prop="postId" width="80" />
+      <el-table-column label="帖子标题" align="center" prop="postTitle" min-width="200" show-overflow-tooltip />
+      <el-table-column label="帖子内容" align="center" prop="postContent" min-width="250" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <div v-html="scope.row.postContent" class="content-preview"></div>
+        </template>
+      </el-table-column>
+      <el-table-column label="发帖用户" align="center" prop="nickName" width="120" />
+      <el-table-column label="所属版块" align="center" width="150">
         <template slot-scope="scope">
           {{ sectionMap[String(scope.row.sectionId)] || '未知版块' }}
         </template>
       </el-table-column>
-      <el-table-column label="点赞数" align="center" prop="likeCount" />
-      <el-table-column label="评论数" align="center" prop="commentCount" />
-      <el-table-column label="浏览数" align="center" prop="viewCount" />
-      <el-table-column label="置顶标志" align="center">
+      <el-table-column label="点赞数" align="center" prop="likeCount" width="80" />
+      <el-table-column label="评论数" align="center" prop="commentCount" width="80" />
+      <el-table-column label="浏览数" align="center" prop="viewCount" width="80" />
+      <el-table-column label="置顶标志" align="center" width="90">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.topFlag == 1 ? 'danger' : 'info'">
-            {{ scope.row.topFlag == 1 ? '置顶' : '普通' }}
+          <el-tag :type="scope.row.topFlag == '1' ? 'danger' : 'info'">
+            {{ scope.row.topFlag == '1' ? '置顶' : '普通' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="热门标志" align="center">
+      <el-table-column label="热门标志" align="center" width="90">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.hotFlag == 1 ? 'warning' : 'info'">
-            {{ scope.row.hotFlag == 1 ? '热门' : '普通' }}
+          <el-tag :type="scope.row.hotFlag == '1' ? 'warning' : 'info'">
+            {{ scope.row.hotFlag == '1' ? '热门' : '普通' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center">
+      <el-table-column label="状态" align="center" width="90">
         <template slot-scope="scope">
           <el-tag :type="statusType(scope.row.status)">
             {{ statusLabel(scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="160">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -195,21 +198,21 @@
         </el-form-item>
         <el-form-item label="置顶标志" prop="topFlag">
           <el-select v-model="form.topFlag" placeholder="请选择置顶标志">
-            <el-option label="普通" :value="0" />
-            <el-option label="置顶" :value="1" />
+            <el-option label="普通" value="0" />
+            <el-option label="置顶" value="1" />
           </el-select>
         </el-form-item>
         <el-form-item label="热门标志" prop="hotFlag">
           <el-select v-model="form.hotFlag" placeholder="请选择热门标志">
-            <el-option label="普通" :value="0" />
-            <el-option label="热门" :value="1" />
+            <el-option label="普通" value="0" />
+            <el-option label="热门" value="1" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择状态">
-            <el-option label="可浏览" :value="0" />
-            <el-option label="已隐藏" :value="1" />
-            <el-option label="已删除" :value="2" />
+            <el-option label="可浏览" value="0" />
+            <el-option label="已隐藏" value="1" />
+            <el-option label="已删除" value="2" />
           </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -258,13 +261,14 @@ export default {
         postTitle: null,
         postContent: null,
         userId: null,
+        nickName: null,
         sectionId: null,
         likeCount: null,
         commentCount: null,
         viewCount: null,
         topFlag: null,
         hotFlag: null,
-        status: 0,
+        status: null,
       },
       // 表单参数
       form: {},
@@ -302,16 +306,16 @@ export default {
     },
     // 状态标签显示名称
     statusLabel(status) {
-      if (status == 0) return '可浏览'
-      if (status == 1) return '已隐藏'
-      if (status == 2) return '已删除'
+      if (status == '0') return '可浏览'
+      if (status == '1') return '已隐藏'
+      if (status == '2') return '已删除'
       return '未知状态'
     },
     // 状态标签显示类型
     statusType(status) {
-      if (status === 0) return 'success'
-      if (status === 1) return 'info'
-      if (status === 2) return 'danger'
+      if (status === '0') return 'success'
+      if (status === '1') return 'info'
+      if (status === '2') return 'danger'
       return ''
     },
     /** 查询论坛帖子列表 */
@@ -339,9 +343,9 @@ export default {
         likeCount: 0,
         commentCount: 0,
         viewCount: 0,
-        topFlag: 0,
-        hotFlag: 0,
-        status: 0,
+        topFlag: '0',
+        hotFlag: '0',
+        status: '0',
         createBy: null,
         createTime: null,
         updateBy: null,
@@ -409,7 +413,7 @@ export default {
         .then(() => {
           // 循环修改状态
           const requests = postIds.map(id => {
-            const updateData = { postId: id, status: 2 } // 2 表示已删除
+            const updateData = { postId: id, status: '2' } // 2 表示已删除
             return updatePost(updateData)
           })
           return Promise.all(requests)
@@ -429,3 +433,21 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 限制HTML内容的显示样式 */
+.content-preview {
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.5;
+}
+
+/* 移除内容预览中的图片 */
+.content-preview >>> img {
+  display: none;
+}
+</style>

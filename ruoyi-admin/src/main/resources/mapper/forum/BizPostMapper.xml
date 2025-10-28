@@ -1,52 +1,97 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizPostMapper">
 
     <resultMap type="BizPost" id="BizPostResult">
-        <result property="postId"    column="post_id"    />
-        <result property="postTitle"    column="post_title"    />
-        <result property="postContent"    column="post_content"    />
-        <result property="userId"    column="user_id"    />
-        <result property="sectionId"    column="section_id"    />
-        <result property="likeCount"    column="like_count"    />
-        <result property="commentCount"    column="comment_count"    />
-        <result property="viewCount"    column="view_count"    />
-        <result property="topFlag"    column="top_flag"    />
-        <result property="hotFlag"    column="hot_flag"    />
-        <result property="status"    column="status"    />
-        <result property="delFlag"    column="del_flag"    />
-        <result property="createBy"    column="create_by"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="postId"         column="post_id"       />
+        <result property="postTitle"      column="post_title"    />
+        <result property="postContent"    column="post_content"  />
+        <result property="userId"         column="user_id"       />
+        <result property="nickName"       column="nick_name"     />
+        <result property="sectionId"      column="section_id"    />
+        <result property="likeCount"      column="like_count"    />
+        <result property="commentCount"   column="comment_count" />
+        <result property="viewCount"      column="view_count"    />
+        <result property="topFlag"        column="top_flag"      />
+        <result property="hotFlag"        column="hot_flag"      />
+        <result property="status"         column="status"        />
+        <result property="delFlag"        column="del_flag"      />
+        <result property="createBy"       column="create_by"     />
+        <result property="createTime"     column="create_time"   />
+        <result property="updateBy"       column="update_by"     />
+        <result property="updateTime"     column="update_time"   />
+        <result property="remark"         column="remark"        />
     </resultMap>
 
     <sql id="selectBizPostVo">
-        select post_id, post_title, post_content, user_id, section_id, like_count, comment_count, view_count, top_flag, hot_flag, status, del_flag, create_by, create_time, update_by, update_time, remark from biz_post
+        select
+            bp.post_id,
+            bp.post_title,
+            bp.post_content,
+            bp.user_id,
+            su.nick_name,
+            bp.section_id,
+            bp.like_count,
+            bp.comment_count,
+            bp.view_count,
+            bp.top_flag,
+            bp.hot_flag,
+            bp.status,
+            bp.del_flag,
+            bp.create_by,
+            bp.create_time,
+            bp.update_by,
+            bp.update_time,
+            bp.remark
+        from biz_post bp
+                 left join sys_user su on bp.user_id = su.user_id
     </sql>
 
     <select id="selectBizPostList" parameterType="BizPost" resultMap="BizPostResult">
         <include refid="selectBizPostVo"/>
         <where>
-            <if test="postTitle != null  and postTitle != ''"> and post_title like concat('%', #{postTitle}, '%')</if>
-            <if test="postContent != null  and postContent != ''"> and post_content like concat('%', #{postContent}, '%')</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="sectionId != null "> and section_id = #{sectionId}</if>
-            <if test="likeCount != null "> and like_count = #{likeCount}</if>
-            <if test="commentCount != null "> and comment_count = #{commentCount}</if>
-            <if test="viewCount != null "> and view_count = #{viewCount}</if>
-            <if test="topFlag != null  and topFlag != ''"> and top_flag = #{topFlag}</if>
-            <if test="hotFlag != null  and hotFlag != ''"> and hot_flag = #{hotFlag}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="postTitle != null and postTitle != ''">
+                and bp.post_title like concat('%', #{postTitle}, '%')
+            </if>
+            <if test="postContent != null and postContent != ''">
+                and bp.post_content like concat('%', #{postContent}, '%')
+            </if>
+            <if test="userId != null">
+                and bp.user_id = #{userId}
+            </if>
+            <if test="nickName != null and nickName != ''">
+                and su.nick_name like concat('%', #{nickName}, '%')
+            </if>
+            <if test="sectionId != null">
+                and bp.section_id = #{sectionId}
+            </if>
+            <if test="likeCount != null">
+                and bp.like_count = #{likeCount}
+            </if>
+            <if test="commentCount != null">
+                and bp.comment_count = #{commentCount}
+            </if>
+            <if test="viewCount != null">
+                and bp.view_count = #{viewCount}
+            </if>
+            <if test="topFlag != null and topFlag != ''">
+                and bp.top_flag = #{topFlag}
+            </if>
+            <if test="hotFlag != null and hotFlag != ''">
+                and bp.hot_flag = #{hotFlag}
+            </if>
+            <if test="status != null and status != ''">
+                and bp.status = #{status}
+            </if>
         </where>
+        order by bp.create_time desc
     </select>
 
     <select id="selectBizPostByPostId" parameterType="Long" resultMap="BizPostResult">
         <include refid="selectBizPostVo"/>
-        where post_id = #{postId}
+        where bp.post_id = #{postId}
     </select>
 
     <insert id="insertBizPost" parameterType="BizPost" useGeneratedKeys="true" keyProperty="postId">
@@ -68,7 +113,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="postTitle != null and postTitle != ''">#{postTitle},</if>
             <if test="postContent != null and postContent != ''">#{postContent},</if>
@@ -86,7 +131,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateBizPost" parameterType="BizPost">

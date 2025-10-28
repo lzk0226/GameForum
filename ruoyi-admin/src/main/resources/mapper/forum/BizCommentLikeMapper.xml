@@ -1,28 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizCommentLikeMapper">
-    
+
     <resultMap type="BizCommentLike" id="BizCommentLikeResult">
-        <result property="userId"    column="user_id"    />
-        <result property="commentId"    column="comment_id"    />
-        <result property="createTime"    column="create_time"    />
+        <result property="userId"           column="user_id"         />
+        <result property="commentId"        column="comment_id"      />
+        <result property="createTime"       column="create_time"     />
+        <result property="nickName"         column="nick_name"       />
+        <result property="commentContent"   column="comment_content" />
     </resultMap>
 
     <sql id="selectBizCommentLikeVo">
-        select user_id, comment_id, create_time from biz_comment_like
+        select
+            bcl.user_id,
+            bcl.comment_id,
+            bcl.create_time,
+            su.nick_name,
+            bc.comment_content
+        from biz_comment_like bcl
+                 left join sys_user su on bcl.user_id = su.user_id
+                 left join biz_comment bc on bcl.comment_id = bc.comment_id
     </sql>
 
     <select id="selectBizCommentLikeList" parameterType="BizCommentLike" resultMap="BizCommentLikeResult">
         <include refid="selectBizCommentLikeVo"/>
-        <where>  
+        <where>
+            <if test="userId != null">
+                and bcl.user_id = #{userId}
+            </if>
+            <if test="commentId != null">
+                and bcl.comment_id = #{commentId}
+            </if>
+            <if test="nickName != null and nickName != ''">
+                and su.nick_name like concat('%', #{nickName}, '%')
+            </if>
         </where>
+        order by bcl.create_time desc
     </select>
-    
+
     <select id="selectBizCommentLikeByUserId" parameterType="Long" resultMap="BizCommentLikeResult">
         <include refid="selectBizCommentLikeVo"/>
-        where user_id = #{userId}
+        where bcl.user_id = #{userId}
     </select>
 
     <insert id="insertBizCommentLike" parameterType="BizCommentLike">
@@ -31,12 +51,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id,</if>
             <if test="commentId != null">comment_id,</if>
             <if test="createTime != null">create_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="commentId != null">#{commentId},</if>
             <if test="createTime != null">#{createTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateBizCommentLike" parameterType="BizCommentLike">
@@ -53,7 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteBizCommentLikeByUserIds" parameterType="String">
-        delete from biz_comment_like where user_id in 
+        delete from biz_comment_like where user_id in
         <foreach item="userId" collection="array" open="(" separator="," close=")">
             #{userId}
         </foreach>

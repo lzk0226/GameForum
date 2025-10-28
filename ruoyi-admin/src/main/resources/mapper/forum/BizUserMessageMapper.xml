@@ -1,44 +1,91 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizUserMessageMapper">
-    
+
     <resultMap type="BizUserMessage" id="BizUserMessageResult">
-        <result property="messageId"    column="message_id"    />
-        <result property="receiverId"    column="receiver_id"    />
-        <result property="senderId"    column="sender_id"    />
-        <result property="messageType"    column="message_type"    />
+        <result property="messageId"         column="message_id"         />
+        <result property="receiverId"        column="receiver_id"        />
+        <result property="senderId"          column="sender_id"          />
+        <result property="receiverNickName"  column="receiver_nick_name" />
+        <result property="senderNickName"    column="sender_nick_name"   />
+        <result property="messageType"       column="message_type"       />
         <result property="messageContent"    column="message_content"    />
-        <result property="relatedType"    column="related_type"    />
-        <result property="relatedId"    column="related_id"    />
-        <result property="isRead"    column="is_read"    />
-        <result property="delFlag"    column="del_flag"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="readTime"    column="read_time"    />
+        <result property="relatedType"       column="related_type"       />
+        <result property="relatedId"         column="related_id"         />
+        <result property="postTitle"         column="post_title"         />
+        <result property="commentContent"    column="comment_content"    />
+        <result property="isRead"            column="is_read"            />
+        <result property="delFlag"           column="del_flag"           />
+        <result property="createTime"        column="create_time"        />
+        <result property="readTime"          column="read_time"          />
     </resultMap>
 
     <sql id="selectBizUserMessageVo">
-        select message_id, receiver_id, sender_id, message_type, message_content, related_type, related_id, is_read, del_flag, create_time, read_time from biz_user_message
+        select
+            bum.message_id,
+            bum.receiver_id,
+            bum.sender_id,
+            su1.nick_name as receiver_nick_name,
+            su2.nick_name as sender_nick_name,
+            bum.message_type,
+            bum.message_content,
+            bum.related_type,
+            bum.related_id,
+            bp.post_title,
+            bc.comment_content,
+            bum.is_read,
+            bum.del_flag,
+            bum.create_time,
+            bum.read_time
+        from biz_user_message bum
+                 left join sys_user su1 on bum.receiver_id = su1.user_id
+                 left join sys_user su2 on bum.sender_id = su2.user_id
+                 left join biz_post bp on bum.related_type = '0' and bum.related_id = bp.post_id
+                 left join biz_comment bc on bum.related_type = '1' and bum.related_id = bc.comment_id
     </sql>
 
     <select id="selectBizUserMessageList" parameterType="BizUserMessage" resultMap="BizUserMessageResult">
         <include refid="selectBizUserMessageVo"/>
-        <where>  
-            <if test="receiverId != null "> and receiver_id = #{receiverId}</if>
-            <if test="senderId != null "> and sender_id = #{senderId}</if>
-            <if test="messageType != null  and messageType != ''"> and message_type = #{messageType}</if>
-            <if test="messageContent != null  and messageContent != ''"> and message_content like concat('%', #{messageContent}, '%')</if>
-            <if test="relatedType != null  and relatedType != ''"> and related_type = #{relatedType}</if>
-            <if test="relatedId != null "> and related_id = #{relatedId}</if>
-            <if test="isRead != null  and isRead != ''"> and is_read = #{isRead}</if>
-            <if test="readTime != null "> and read_time = #{readTime}</if>
+        <where>
+            <if test="receiverId != null">
+                and bum.receiver_id = #{receiverId}
+            </if>
+            <if test="senderId != null">
+                and bum.sender_id = #{senderId}
+            </if>
+            <if test="receiverNickName != null and receiverNickName != ''">
+                and su1.nick_name like concat('%', #{receiverNickName}, '%')
+            </if>
+            <if test="senderNickName != null and senderNickName != ''">
+                and su2.nick_name like concat('%', #{senderNickName}, '%')
+            </if>
+            <if test="messageType != null and messageType != ''">
+                and bum.message_type = #{messageType}
+            </if>
+            <if test="messageContent != null and messageContent != ''">
+                and bum.message_content like concat('%', #{messageContent}, '%')
+            </if>
+            <if test="relatedType != null and relatedType != ''">
+                and bum.related_type = #{relatedType}
+            </if>
+            <if test="relatedId != null">
+                and bum.related_id = #{relatedId}
+            </if>
+            <if test="isRead != null and isRead != ''">
+                and bum.is_read = #{isRead}
+            </if>
+            <if test="readTime != null">
+                and bum.read_time = #{readTime}
+            </if>
         </where>
+        order by bum.create_time desc
     </select>
-    
+
     <select id="selectBizUserMessageByMessageId" parameterType="Long" resultMap="BizUserMessageResult">
         <include refid="selectBizUserMessageVo"/>
-        where message_id = #{messageId}
+        where bum.message_id = #{messageId}
     </select>
 
     <insert id="insertBizUserMessage" parameterType="BizUserMessage" useGeneratedKeys="true" keyProperty="messageId">
@@ -54,7 +101,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="delFlag != null">del_flag,</if>
             <if test="createTime != null">create_time,</if>
             <if test="readTime != null">read_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="receiverId != null">#{receiverId},</if>
             <if test="senderId != null">#{senderId},</if>
@@ -66,7 +113,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="delFlag != null">#{delFlag},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="readTime != null">#{readTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateBizUserMessage" parameterType="BizUserMessage">
@@ -91,7 +138,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteBizUserMessageByMessageIds" parameterType="String">
-        delete from biz_user_message where message_id in 
+        delete from biz_user_message where message_id in
         <foreach item="messageId" collection="array" open="(" separator="," close=")">
             #{messageId}
         </foreach>

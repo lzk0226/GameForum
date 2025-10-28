@@ -7,7 +7,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
  * 论坛帖子对象 biz_post
- * 
+ *
  * @author ruoyi
  * @date 2025-05-17
  */
@@ -29,6 +29,10 @@ public class BizPost extends BaseEntity
     /** 发帖用户ID */
     @Excel(name = "发帖用户ID")
     private Long userId;
+
+    /** 发帖用户昵称 */
+    @Excel(name = "发帖用户昵称")
+    private String nickName;
 
     /** 所属版块ID */
     @Excel(name = "所属版块ID")
@@ -61,122 +65,132 @@ public class BizPost extends BaseEntity
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
-    public void setPostId(Long postId) 
+    public void setPostId(Long postId)
     {
         this.postId = postId;
     }
 
-    public Long getPostId() 
+    public Long getPostId()
     {
         return postId;
     }
 
-    public void setPostTitle(String postTitle) 
+    public void setPostTitle(String postTitle)
     {
         this.postTitle = postTitle;
     }
 
-    public String getPostTitle() 
+    public String getPostTitle()
     {
         return postTitle;
     }
 
-    public void setPostContent(String postContent) 
+    public void setPostContent(String postContent)
     {
         this.postContent = postContent;
     }
 
-    public String getPostContent() 
+    public String getPostContent()
     {
         return postContent;
     }
 
-    public void setUserId(Long userId) 
+    public void setUserId(Long userId)
     {
         this.userId = userId;
     }
 
-    public Long getUserId() 
+    public Long getUserId()
     {
         return userId;
     }
 
-    public void setSectionId(Long sectionId) 
+    public void setNickName(String nickName)
+    {
+        this.nickName = nickName;
+    }
+
+    public String getNickName()
+    {
+        return nickName;
+    }
+
+    public void setSectionId(Long sectionId)
     {
         this.sectionId = sectionId;
     }
 
-    public Long getSectionId() 
+    public Long getSectionId()
     {
         return sectionId;
     }
 
-    public void setLikeCount(Long likeCount) 
+    public void setLikeCount(Long likeCount)
     {
         this.likeCount = likeCount;
     }
 
-    public Long getLikeCount() 
+    public Long getLikeCount()
     {
         return likeCount;
     }
 
-    public void setCommentCount(Long commentCount) 
+    public void setCommentCount(Long commentCount)
     {
         this.commentCount = commentCount;
     }
 
-    public Long getCommentCount() 
+    public Long getCommentCount()
     {
         return commentCount;
     }
 
-    public void setViewCount(Long viewCount) 
+    public void setViewCount(Long viewCount)
     {
         this.viewCount = viewCount;
     }
 
-    public Long getViewCount() 
+    public Long getViewCount()
     {
         return viewCount;
     }
 
-    public void setTopFlag(String topFlag) 
+    public void setTopFlag(String topFlag)
     {
         this.topFlag = topFlag;
     }
 
-    public String getTopFlag() 
+    public String getTopFlag()
     {
         return topFlag;
     }
 
-    public void setHotFlag(String hotFlag) 
+    public void setHotFlag(String hotFlag)
     {
         this.hotFlag = hotFlag;
     }
 
-    public String getHotFlag() 
+    public String getHotFlag()
     {
         return hotFlag;
     }
 
-    public void setStatus(String status) 
+    public void setStatus(String status)
     {
         this.status = status;
     }
 
-    public String getStatus() 
+    public String getStatus()
     {
         return status;
     }
 
-    public void setDelFlag(String delFlag) 
+    public void setDelFlag(String delFlag)
     {
         this.delFlag = delFlag;
     }
 
-    public String getDelFlag() 
+    public String getDelFlag()
     {
         return delFlag;
     }
@@ -184,23 +198,24 @@ public class BizPost extends BaseEntity
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-            .append("postId", getPostId())
-            .append("postTitle", getPostTitle())
-            .append("postContent", getPostContent())
-            .append("userId", getUserId())
-            .append("sectionId", getSectionId())
-            .append("likeCount", getLikeCount())
-            .append("commentCount", getCommentCount())
-            .append("viewCount", getViewCount())
-            .append("topFlag", getTopFlag())
-            .append("hotFlag", getHotFlag())
-            .append("status", getStatus())
-            .append("delFlag", getDelFlag())
-            .append("createBy", getCreateBy())
-            .append("createTime", getCreateTime())
-            .append("updateBy", getUpdateBy())
-            .append("updateTime", getUpdateTime())
-            .append("remark", getRemark())
-            .toString();
+                .append("postId", getPostId())
+                .append("postTitle", getPostTitle())
+                .append("postContent", getPostContent())
+                .append("userId", getUserId())
+                .append("nickName", getNickName())
+                .append("sectionId", getSectionId())
+                .append("likeCount", getLikeCount())
+                .append("commentCount", getCommentCount())
+                .append("viewCount", getViewCount())
+                .append("topFlag", getTopFlag())
+                .append("hotFlag", getHotFlag())
+                .append("status", getStatus())
+                .append("delFlag", getDelFlag())
+                .append("createBy", getCreateBy())
+                .append("createTime", getCreateTime())
+                .append("updateBy", getUpdateBy())
+                .append("updateTime", getUpdateTime())
+                .append("remark", getRemark())
+                .toString();
     }
 }

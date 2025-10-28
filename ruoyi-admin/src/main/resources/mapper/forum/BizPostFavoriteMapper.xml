@@ -1,28 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.forum.mapper.BizPostFavoriteMapper">
-    
+
     <resultMap type="BizPostFavorite" id="BizPostFavoriteResult">
-        <result property="userId"    column="user_id"    />
-        <result property="postId"    column="post_id"    />
-        <result property="createTime"    column="create_time"    />
+        <result property="userId"       column="user_id"      />
+        <result property="postId"       column="post_id"      />
+        <result property="createTime"   column="create_time"  />
+        <result property="nickName"     column="nick_name"    />
+        <result property="postTitle"    column="post_title"   />
     </resultMap>
 
     <sql id="selectBizPostFavoriteVo">
-        select user_id, post_id, create_time from biz_post_favorite
+        select
+            bpf.user_id,
+            bpf.post_id,
+            bpf.create_time,
+            su.nick_name,
+            bp.post_title
+        from biz_post_favorite bpf
+                 left join sys_user su on bpf.user_id = su.user_id
+                 left join biz_post bp on bpf.post_id = bp.post_id
     </sql>
 
     <select id="selectBizPostFavoriteList" parameterType="BizPostFavorite" resultMap="BizPostFavoriteResult">
         <include refid="selectBizPostFavoriteVo"/>
-        <where>  
+        <where>
+            <if test="userId != null">
+                and bpf.user_id = #{userId}
+            </if>
+            <if test="postId != null">
+                and bpf.post_id = #{postId}
+            </if>
+            <if test="nickName != null and nickName != ''">
+                and su.nick_name like concat('%', #{nickName}, '%')
+            </if>
+            <if test="postTitle != null and postTitle != ''">
+                and bp.post_title like concat('%', #{postTitle}, '%')
+            </if>
         </where>
+        order by bpf.create_time desc
     </select>
-    
+
     <select id="selectBizPostFavoriteByUserId" parameterType="Long" resultMap="BizPostFavoriteResult">
         <include refid="selectBizPostFavoriteVo"/>
-        where user_id = #{userId}
+        where bpf.user_id = #{userId}
     </select>
 
     <insert id="insertBizPostFavorite" parameterType="BizPostFavorite">
@@ -31,12 +54,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id,</if>
             <if test="postId != null">post_id,</if>
             <if test="createTime != null">create_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="postId != null">#{postId},</if>
             <if test="createTime != null">#{createTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateBizPostFavorite" parameterType="BizPostFavorite">
@@ -53,7 +76,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteBizPostFavoriteByUserIds" parameterType="String">
-        delete from biz_post_favorite where user_id in 
+        delete from biz_post_favorite where user_id in
         <foreach item="userId" collection="array" open="(" separator="," close=")">
             #{userId}
         </foreach>

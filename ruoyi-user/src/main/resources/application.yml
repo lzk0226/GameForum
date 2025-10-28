@@ -101,13 +101,13 @@ jwt:
 
 
 # token配置
-#token:
-#  # 令牌自定义标识
-#  header: Authorization
-#  # 令牌密钥
-#  secret: abcdefghijklmnopqrstuvwxyz
-#  # 令牌有效期（默认30分钟）
-#  expireTime: 30
+token:
+  # 令牌自定义标识
+  #header: Authorization
+  # 令牌密钥
+  secret: "4k8pMn2qZv9wXy3cVb5nTg7hJl1kPm6"
+  # 令牌有效期（默认30分钟）
+  expireTime: 1440
 
 # MyBatis配置
 mybatis:
