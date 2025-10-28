@@ -241,18 +241,19 @@
         WHERE comment_id = #{commentId}
     </select>
 
-    <!-- 增加评论点赞数（用于查看当前评论点赞量） -->
-    <select id="incrementCommentLikeCount" resultType="int">
-        SELECT like_count
-        FROM biz_comment
+    <!-- 增加评论点赞数 +1 -->
+    <update id="incrementCommentLikeCount">
+        UPDATE biz_comment
+        SET like_count = like_count + 1
         WHERE comment_id = #{commentId}
-    </select>
+    </update>
 
-    <!-- 删除点赞记录（取消点赞） -->
-    <delete id="decrementCommentLikeCount">
-        DELETE FROM biz_comment_like
-        WHERE user_id = #{userId} AND comment_id = #{commentId}
-    </delete>
+    <!-- 减少评论点赞数 -1 -->
+    <update id="decrementCommentLikeCount">
+        UPDATE biz_comment
+        SET like_count = like_count - 1
+        WHERE comment_id = #{commentId}
+    </update>
 
     <!-- 更新评论 -->
     <update id="updateComment" parameterType="Comment">

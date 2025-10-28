@@ -227,10 +227,11 @@ export default {
       }
     },
 
+    // apiUrls.js 中已经有这个接口
     getApiConfig() {
       let url = API_URLS.getPostList()
       let params = {}
-      let isRecommendation = false  // ✅ 添加标识
+      let isRecommendation = false
 
       if (this.showMyPosts) {
         url = API_URLS.getMyPosts()
@@ -247,16 +248,15 @@ export default {
       } else {
         const token = this.getToken()
         if (token) {
-          url = API_URLS.getRecommendations()
-          // ✅ 每次请求更多数据
+          // ✅ 修改为使用混合推荐接口
+          url = API_URLS.getHybridRecommendations()
           params.limit = this.pageSize
-          // ✅ 如果后端支持分页参数,可以传递page
-          params.page = this.currentPage
+          params.page = this.currentPage  // 现在支持分页了
           isRecommendation = true
         }
       }
 
-      return {url, params, isRecommendation}  // ✅ 返回标识
+      return {url, params, isRecommendation}
     },
 
     async initializePostsLikeStatus(posts) {
