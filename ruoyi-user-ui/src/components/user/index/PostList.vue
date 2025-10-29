@@ -228,6 +228,7 @@ export default {
     },
 
     // apiUrls.js 中已经有这个接口
+    // apiUrls.js 中已经有这个接口
     getApiConfig() {
       let url = API_URLS.getPostList()
       let params = {}
@@ -248,11 +249,15 @@ export default {
       } else {
         const token = this.getToken()
         if (token) {
-          // ✅ 修改为使用混合推荐接口
+          // ✅ 登录状态:使用混合推荐接口
           url = API_URLS.getHybridRecommendations()
           params.limit = this.pageSize
-          params.page = this.currentPage  // 现在支持分页了
+          params.page = this.currentPage
           isRecommendation = true
+        } else {
+          // ✅ 未登录状态:使用默认帖子列表接口
+          url = API_URLS.getPostList()
+          // getPostList 接口不需要额外参数,会返回所有公开帖子
         }
       }
 
