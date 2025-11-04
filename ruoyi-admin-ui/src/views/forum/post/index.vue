@@ -100,7 +100,7 @@
 
     <el-table v-loading="loading" :data="postList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="帖子ID" align="center" prop="postId" width="80" />
+<!--      <el-table-column label="帖子ID" align="center" prop="postId" width="80" />-->
       <el-table-column label="帖子标题" align="center" prop="postTitle" min-width="200" show-overflow-tooltip />
       <el-table-column label="帖子内容" align="center" prop="postContent" min-width="250" show-overflow-tooltip>
         <template slot-scope="scope">
@@ -165,59 +165,104 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改论坛帖子对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="帖子标题" prop="postTitle">
-          <el-input v-model="form.postTitle" placeholder="请输入帖子标题" />
-        </el-form-item>
-        <el-form-item label="帖子内容" prop="postContent">
-          <editor v-model="form.postContent" :min-height="192"/>
-        </el-form-item>
-        <el-form-item label="发帖用户ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入发帖用户ID" />
-        </el-form-item>
-        <el-form-item label="所属版块" prop="sectionId">
-          <el-select v-model="form.sectionId" placeholder="请选择所属版块">
-            <el-option
-              v-for="(name, id) in sectionMap"
-              :key="id"
-              :label="name"
-              :value="parseInt(id)"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="点赞数" prop="likeCount">
-          <el-input v-model="form.likeCount" placeholder="请输入点赞数" />
-        </el-form-item>
-        <el-form-item label="评论数" prop="commentCount">
-          <el-input v-model="form.commentCount" placeholder="请输入评论数" />
-        </el-form-item>
-        <el-form-item label="浏览数" prop="viewCount">
-          <el-input v-model="form.viewCount" placeholder="请输入浏览数" />
-        </el-form-item>
-        <el-form-item label="置顶标志" prop="topFlag">
-          <el-select v-model="form.topFlag" placeholder="请选择置顶标志">
-            <el-option label="普通" value="0" />
-            <el-option label="置顶" value="1" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="热门标志" prop="hotFlag">
-          <el-select v-model="form.hotFlag" placeholder="请选择热门标志">
-            <el-option label="普通" value="0" />
-            <el-option label="热门" value="1" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="form.status" placeholder="请选择状态">
-            <el-option label="可浏览" value="0" />
-            <el-option label="已隐藏" value="1" />
-            <el-option label="已删除" value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+    <!-- 添加或修改论坛帖子对话框 - 优化为两列布局 -->
+    <el-dialog :title="title" :visible.sync="open" width="900px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="90px">
+        <!-- 第一行：帖子标题（独占一行） -->
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="帖子标题" prop="postTitle">
+              <el-input v-model="form.postTitle" placeholder="请输入帖子标题" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第二行：帖子内容（独占一行） -->
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="帖子内容" prop="postContent">
+              <editor v-model="form.postContent" :min-height="192"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第三行：用户ID和版块（两列） -->
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="发帖用户ID" prop="userId">
+              <el-input v-model="form.userId" placeholder="请输入发帖用户ID" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="所属版块" prop="sectionId">
+              <el-select v-model="form.sectionId" placeholder="请选择所属版块" style="width: 100%;">
+                <el-option
+                  v-for="(name, id) in sectionMap"
+                  :key="id"
+                  :label="name"
+                  :value="parseInt(id)"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第四行：点赞数、评论数、浏览数（三列） -->
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="点赞数" prop="likeCount">
+              <el-input v-model="form.likeCount" placeholder="请输入点赞数" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="评论数" prop="commentCount">
+              <el-input v-model="form.commentCount" placeholder="请输入评论数" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="浏览数" prop="viewCount">
+              <el-input v-model="form.viewCount" placeholder="请输入浏览数" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第五行：置顶标志、热门标志、状态（三列） -->
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="置顶标志" prop="topFlag">
+              <el-select v-model="form.topFlag" placeholder="请选择置顶标志" style="width: 100%;">
+                <el-option label="普通" value="0" />
+                <el-option label="置顶" value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="热门标志" prop="hotFlag">
+              <el-select v-model="form.hotFlag" placeholder="请选择热门标志" style="width: 100%;">
+                <el-option label="普通" value="0" />
+                <el-option label="热门" value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="状态" prop="status">
+              <el-select v-model="form.status" placeholder="请选择状态" style="width: 100%;">
+                <el-option label="可浏览" value="0" />
+                <el-option label="已隐藏" value="1" />
+                <el-option label="已删除" value="2" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第六行：备注（独占一行） -->
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="备注" prop="remark">
+              <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入内容" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -406,10 +451,10 @@ export default {
         }
       })
     },
-    /** 删除按钮操作（改为逻辑删除） */
+    /** 删除按钮操作(逻辑删除) */
     handleDelete(row) {
       const postIds = row.postId ? [row.postId] : this.ids
-      this.$modal.confirm('是否确认将论坛帖子编号为 "' + postIds.join(', ') + '" 的帖子标记为已删除？')
+      this.$modal.confirm('是否确认将论坛帖子编号为 "' + postIds.join(', ') + '" 的帖子标记为已删除?')
         .then(() => {
           // 循环修改状态
           const requests = postIds.map(id => {
