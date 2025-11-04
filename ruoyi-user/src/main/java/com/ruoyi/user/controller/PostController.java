@@ -545,7 +545,12 @@ public class PostController {
 
         Long userId = validateTokenAndGetUserId(authHeader);
         if (userId == null) {
-            return R.fail(ResultCodeEnum.TOKEN_INVALID);
+            try {
+                List<Post> hotPosts = postService.selectHotPostList(limit);
+                return R.ok(hotPosts);
+            } catch (Exception e) {
+                return R.fail("获取推荐帖子失败");
+            }
         }
 
         try {

@@ -190,6 +190,7 @@ export default {
           headers: this.getAuthHeaders()
         })
 
+        // ✅ 处理响应
         if (response.data.success || response.data.code === 200) {
           const newPosts = response.data.data || []
           const postsWithLikeStatus = await this.initializePostsLikeStatus(newPosts)
@@ -218,17 +219,71 @@ export default {
           }
 
           this.loadFavoriteCountsForPosts(postsWithLikeStatus)
+        } else {
+          // ❌ 响应失败时的处理
+          console.warn('接口返回失败:', response.data)
+          throw new Error(response.data.message || '加载失败')
         }
       } catch (error) {
         console.error('加载帖子失败:', error)
-        this.$message?.error('加载帖子失败,请检查网络连接')
+
+        // ✅ 如果是 token 错误，尝试使用热门帖子接口降级
+        if (error.response?.data?.code === 4001 || error.response?.status === 401) {
+          try {
+            console.log('Token无效，降级使用热门帖子')
+
+            // 清理无效的token
+            this.clearInvalidTokens()
+
+            const hotResponse = await axios.get(API_URLS.getHotPosts(), {
+              params: { limit: this.pageSize }
+            })
+
+            if (hotResponse.data.success || hotResponse.data.code === 200) {
+              const newPosts = hotResponse.data.data || []
+              const postsWithLikeStatus = await this.initializePostsLikeStatus(newPosts)
+
+              if (reset) {
+                this.posts = postsWithLikeStatus
+                this.currentPage = 1
+              } else {
+                this.posts.push(...postsWithLikeStatus)
+                this.currentPage++
+              }
+
+              this.hasMore = newPosts.length >= this.pageSize
+              this.loadFavoriteCountsForPosts(postsWithLikeStatus)
+
+              // ✅ 提示用户
+              this.$message?.warning('登录已过期，正在为您展示热门帖子')
+
+              return // ✅ 降级成功，直接返回
+            }
+          } catch (fallbackError) {
+            console.error('降级到热门帖子也失败:', fallbackError)
+          }
+        }
+
+        this.$message?.error('加载帖子失败，请检查网络连接')
       } finally {
         this.loading = false
       }
     },
 
-    // apiUrls.js 中已经有这个接口
-    // apiUrls.js 中已经有这个接口
+    /**
+     * 清理无效的 tokens
+     */
+    clearInvalidTokens() {
+      const tokenKeys = ['accessToken', 'token', 'Admin-Token', 'access_token']
+      tokenKeys.forEach(key => {
+        const token = localStorage.getItem(key)
+        if (token) {
+          console.log(`清理无效token: ${key}`)
+          localStorage.removeItem(key)
+        }
+      })
+    },
+
     getApiConfig() {
       let url = API_URLS.getPostList()
       let params = {}
@@ -239,6 +294,7 @@ export default {
       } else if (this.showHotPosts) {
         url = API_URLS.getHotPosts()
         params.limit = this.pageSize
+        isRecommendation = true
       } else if (this.sectionId) {
         url = API_URLS.getPostsBySection(this.sectionId)
       } else if (this.userId) {
@@ -255,9 +311,10 @@ export default {
           params.page = this.currentPage
           isRecommendation = true
         } else {
-          // ✅ 未登录状态:使用默认帖子列表接口
-          url = API_URLS.getPostList()
-          // getPostList 接口不需要额外参数,会返回所有公开帖子
+          // ✅ 未登录状态:使用热门帖子接口
+          url = API_URLS.getHotPosts()
+          params.limit = this.pageSize
+          isRecommendation = true
         }
       }
 
@@ -401,9 +458,15 @@ export default {
         }
       } catch (error) {
         console.error('点赞/取消点赞请求失败:', error)
-        const message = error.response?.status === 401 ? '请先登录' :
-            error.response?.data?.message || '操作失败,请重试'
-        this.$message?.error(message)
+
+        // ✅ 如果是token错误，提示用户重新登录
+        if (error.response?.data?.code === 4001 || error.response?.status === 401) {
+          this.clearInvalidTokens()
+          this.$message?.error('登录已过期，请重新登录')
+        } else {
+          const message = error.response?.data?.message || '操作失败,请重试'
+          this.$message?.error(message)
+        }
       } finally {
         post.likeLoading = false
       }
@@ -502,10 +565,29 @@ export default {
       return new Date(timeStr).toLocaleDateString()
     },
 
+    /**
+     * 获取有效的 Token
+     * ✅ 增强版：验证 token 格式
+     */
     getToken() {
-      return ['accessToken', 'token', 'Admin-Token', 'access_token']
-          .map(key => localStorage.getItem(key))
-          .find(Boolean)
+      const tokenKeys = ['accessToken', 'token', 'Admin-Token', 'access_token']
+
+      for (const key of tokenKeys) {
+        const token = localStorage.getItem(key)
+        if (token) {
+          // ✅ 简单验证 token 格式（JWT 通常是三段式）
+          const parts = token.split('.')
+          if (parts.length === 3) {
+            return token
+          } else {
+            // ❌ Token 格式无效，清理掉
+            console.warn(`发现无效 token (${key})，已清理`)
+            localStorage.removeItem(key)
+          }
+        }
+      }
+
+      return null
     },
 
     getAuthHeaders() {
@@ -514,8 +596,6 @@ export default {
 
       if (token) {
         headers.Authorization = `Bearer ${token}`
-      } else {
-        console.warn('未找到登录记录')
       }
 
       return headers
