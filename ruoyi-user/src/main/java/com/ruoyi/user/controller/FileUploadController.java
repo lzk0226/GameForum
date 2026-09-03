@@ -78,6 +78,7 @@ public class FileUploadController {
             BufferedImage thumbnail = resizeImage(originalImage, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
             // 保存缩略图（使用相同的文件名，保存到thumbnail目录）
+            //最近邻插值算法
             String thumbnailDir = BASE_PATH + THUMBNAIL_PATH;
             File dir = new File(thumbnailDir);
             if (!dir.exists()) {
